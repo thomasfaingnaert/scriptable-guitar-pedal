@@ -1,4 +1,4 @@
-[y,Fs]=audioread('..\samples\dry-guitar-cut.wav');
+[y,Fs]=audioread('dry-guitar-cut.wav');
 
 original = y;
 

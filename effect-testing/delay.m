@@ -8,10 +8,8 @@ classdef delay
          % delayed signal with a certain decay
          %  buf buffer with original samples
          %  rate determines rate of samples in buf
-         %  delay determines the time for the delay
+         %  delayT determines the time for the delay
          %  decay determines the relative volume of the echo ( 0 < decay < 1)
-         %  lengthlim determines how long the echoing can go on after the
-         %              end of the original track
          
         % Determine amount of samples delay
         dS = delayT * rate;
