@@ -16,7 +16,7 @@ classdef distortion
             y = x./treshold;
 
             % hard clipping to [-1,1]
-            y=min(vol, max(y, -vol));
+            y=min(1, max(y, -1));
 
             % smoothing
             y=vol.*(-3/8.* y .^3 + 9/8 .* y);
