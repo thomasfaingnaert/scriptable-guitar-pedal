@@ -1,4 +1,4 @@
-[y,Fs] = audioread('dry-guitar-cut.wav');
+[y,Fs] = audioread('../samples/dry-guitar-cut.wav');
 delayT = 0.2; % In seconds
 decay = 0.8;
 

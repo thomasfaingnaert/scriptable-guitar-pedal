@@ -1,4 +1,4 @@
-[y,Fs] = audioread('tremolotest-guitar.wav');
+[y,Fs] = audioread('../samples/tremolotest-guitar.wav');
 
 depth = 0.4;
 rate = 0.2;

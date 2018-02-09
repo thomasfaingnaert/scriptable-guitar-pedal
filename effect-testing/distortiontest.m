@@ -1,10 +1,10 @@
-[y,Fs]=audioread('smoke-on-the-water.wav');
+[y,Fs]=audioread('../samples/smoke-on-the-water.wav');
 
 
 %{
 % Formula 1
 treshold = 0.05;
-vol = 0.8; 
+vol = 0.8;
 output = distortion.makeOutputSamples1(y,treshold,vol);
 
 sound(output,Fs);
