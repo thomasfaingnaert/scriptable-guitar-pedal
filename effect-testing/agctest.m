@@ -1,4 +1,4 @@
-[y,Fs] = audioread('../samples/agc-test.wav');
+[y,Fs] = audioread('../samples/smoke-on-the-water.wav');
 
 input_power_treshold = -55;
 output_power = -22;
