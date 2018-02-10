@@ -20,10 +20,28 @@ classdef delay
         end
         
         %Prepare delayed sound
-        delS = [zeros(dS,2) ; buf];
+        delS = [zeros(dS,size(buf,2)) ; buf];
         
-        samples = [buf ; zeros(dS,2)] + (1 - decay) * delS;
-     end     
+        samples = [buf ; zeros(dS,size(buf,2))] + (1 - decay) * delS;
+     end
+     
+     function y = makeOutputSamples2(buf, rate, delayT, decay, amount)
+         %MAKEOUTPUTSAMPLES2 will implement a tapped delay line with
+         %multiple echoes.
+         %  buf         contains the input samples
+         %  rate        determines the rate of samples in the buffer
+         %  delayT      determines the time for the delay
+         %  decay       determines the relative volume of the echo (0 < decay < 1)
+         %  amount      determines the amount of echoes
+         
+         inter = buf;
+         
+         for i=1:amount
+            inter = delay.makeOutputSamples(inter, rate, delayT, decay^(1/i)); 
+         end
+         
+         y = inter;
+     end
  end
 end
 
