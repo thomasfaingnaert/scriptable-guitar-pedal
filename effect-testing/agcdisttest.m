@@ -6,8 +6,6 @@ block_size = Fs;
 
 y = agc.makeOutputSamples(x, input_power_treshold, output_power, block_size);
 
-formula = 3;
-
 if exist('formula', 'var') ~= 1
     disp('Please create a variable ''formula'' in the current workspace, set it to 1, 2 or 3 and run this script again.');
     return;
