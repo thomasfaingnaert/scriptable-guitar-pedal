@@ -34,6 +34,11 @@ classdef delay
          %  decay       determines the relative volume of the echo (0 < decay < 1)
          %  amount      determines the amount of echoes
          
+         % Make sure decay has a valid value
+         if decay >= 1 || decay <= 0
+             decay = 0.5;
+         end
+         
          inter = buf;
          
          for i=1:amount
