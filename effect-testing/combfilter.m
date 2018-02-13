@@ -9,7 +9,16 @@ classdef combfilter
             %   feedforward     determines the amount of feedforward of the filter
             %   feedback        determines the amount of feedback of the filter
             %   blend           determines the blend of original and delayed signal
-                        
+            
+            % make sure variables are not too big
+            if abs(feedforward) > 1
+                feedforward = 0.5;
+            end
+            
+            if abs(feedback) > 1
+                feedback = 0.5;
+            end
+            
             % compute transfer function
             len = 2^(nextpow2(2 * size(x,1))); 
             f = Fs * (-len/2:len/2-1)' / len;
