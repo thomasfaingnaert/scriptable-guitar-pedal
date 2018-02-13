@@ -9,23 +9,36 @@ classdef combfilter
             %   feedforward     determines the amount of feedforward of the filter
             %   feedback        determines the amount of feedback of the filter
             %   blend           determines the blend of original and delayed signal
-            
-            % calculate the amount of samples for delay
-            dS = Fs * delay;
-            
-            % calculate transfer function
-            f = (Fs*(0:size(x,1)-1)/size(x,1))';
-            z = exp(1i*2*pi.*f*dS);
-            trans = (blend + feedforward * z) ./ (1 - feedback * z); 
+                        
+            % compute transfer function
+            len = 2^(nextpow2(2 * size(x,1))); 
+            f = Fs * (-len/2:len/2-1)' / len;
+            z = exp(-1i*2*pi*delay*f);
+            trans = (blend + feedforward * z) ./ (1 - feedback * z);
             
             % fourier transform of input
-            x_fourier = fft(x);
+            x_fourier = fft(x,len);
             
             % calculate output in fourier domain
             y_fourier = trans .* x_fourier;
             
             % inverse transform
             y = real(ifft(y_fourier));
+            y = y(1:size(x,1)+delay*Fs);
+        end
+        
+        function y = fir(x, Fs, delayT, gain)
+            %FIR implements a finite impulse response filter
+            %   x           contains the input samples
+            %   Fs          determines the sample rate
+            %   delayT      determines the delay time
+            %   gain        determines the strength of the echo
+            
+            % calculate amount of samples for delay
+            dS = Fs * delayT;
+            
+            % calculate transfer function
+            
         end
     end
 end
