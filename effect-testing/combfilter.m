@@ -27,18 +27,47 @@ classdef combfilter
             y = y(1:size(x,1)+delay*Fs);
         end
         
-        function y = fir(x, Fs, delayT, gain)
+        function y = fir(x, Fs, delay, gain)
             %FIR implements a finite impulse response filter
             %   x           contains the input samples
             %   Fs          determines the sample rate
-            %   delayT      determines the delay time
+            %   delay      determines the delay time
             %   gain        determines the strength of the echo
+                        
+            % call universal comb filter with right parameters
+            y = combfilter.universal(x,Fs,delay,gain,0,1);
+        end
+        
+        function y = iir(x, Fs, delay, gain)
+            %IIR implements a finite impulse response filter
+            %   x           contains the input samples
+            %   Fs          determines the sample rate
+            %   delay       determines the delay time
+            %   gain        determines the strength of the echo
+                        
+            % call universal comb filter with right parameters
+            y = combfilter.universal(x,Fs,delay,0,gain,1);
+        end
+        
+        function y = allpass(x, Fs, delay, a)
+            %ALLPASS implements an allpass filter
+            %   x           contains the input samples
+            %   Fs          determines the sample rate
+            %   delay       determines the delay time
+            %   a           determines a multiplication factor
             
-            % calculate amount of samples for delay
-            dS = Fs * delayT;
+            % call universal comb filter with right parameters
+            y = combfilter.universal(x,Fs,delay,1,-a,a);
+        end
+        
+        function y = delay(x, Fs, delay)
+            %DELAY implements a pure delay
+            %   x           contains the input samples
+            %   Fs          determines the sample rate
+            %   delay       determines the delay time
             
-            % calculate transfer function
-            
+            % call universal comb filter with right parameters
+            y = combfilter.universal(x,Fs,delay,1,0,0);
         end
     end
 end
