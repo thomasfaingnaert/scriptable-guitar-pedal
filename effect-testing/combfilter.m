@@ -33,7 +33,7 @@ classdef combfilter
             
             % inverse transform
             y = real(ifft(y_fourier));
-            y = y(1:size(x,1)+delay*Fs);
+            y = y(1:size(x,1)+ceil(delay*Fs));
         end
         
         function y = fir(x, Fs, delay, gain)
