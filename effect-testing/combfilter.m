@@ -22,6 +22,7 @@ classdef combfilter
             % compute transfer function
             len = 2^(nextpow2(2 * size(x,1))); 
             f = Fs * (-len/2:len/2-1)' / len;
+            f = repmat(f,1,size(x,2));
             z = exp(-1i*2*pi*delay*f);
             trans = (blend + feedforward * z) ./ (1 - feedback * z);
             
@@ -33,7 +34,7 @@ classdef combfilter
             
             % inverse transform
             y = real(ifft(y_fourier));
-            y = y(1:size(x,1)+ceil(delay*Fs));
+            y = y(1:size(x,1)+ceil(delay*Fs),:);
         end
         
         function y = fir(x, Fs, delay, gain)
