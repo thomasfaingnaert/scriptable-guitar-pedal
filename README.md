@@ -1,5 +1,34 @@
 # A scriptable guitar pedal
 ## Building
+### GNU/Linux (native compilation)
+The following instructions are for Debian-based distributions.
+Change the commands according to the distribution you are using.
+
+1. Install the following prerequisites:
+  - CMake
+  - GNU Toolchain
+  - Make
+```bash
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install cmake build-essential
+```
+
+2. Clone the repository and build the project:
+```bash
+git clone https://github.com/thomasfaingnaert/scriptable-guitar-pedal
+mkdir build
+cd build
+cmake ../scriptable-guitar-pedal
+make
+```
+
+3. Run the executable:
+```bash
+chmod +x ./scriptable-guitar-pedal
+./scriptable-guitar-pedal
+```
+
 ### Windows (cross compilation)
 1. Install the following prerequisites, and make sure they are in your PATH:
   - CMake (https://cmake.org/)
