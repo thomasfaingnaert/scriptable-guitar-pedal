@@ -1,11 +1,12 @@
 # A scriptable guitar pedal
 ## Building
-### Windows (Cross Compilation)
+### Windows (cross compilation)
 1. Install the following prerequisites, and make sure they are in your PATH:
   - CMake (https://cmake.org/)
   - Beaglebone GNU Toolchain (http://gnutoolchains.com/beaglebone/)
   - NMake (included in Visual Studio or Microsoft Visual C++ Build Tools)
   - PuTTY (https://www.putty.org/)
+
 2. Clone the repository and build the project:
 ```powershell
 git clone https://github.com/thomasfaingnaert/scriptable-guitar-pedal
@@ -22,6 +23,7 @@ To transfer the executable to your BeagleBone Black, you can use SSH, e.g. PSCP 
 pscp -pw temppwd scriptable-guitar-pedal debian@192.168.7.2:/home/debian/scriptable-guitar-pedal
 ```
 Make sure to change the username (`debian`), password (`temppwd`), destination path (`/home/debian/scriptable-guitar-pedal`) and IP address (`192.168.7.2`) if required.
+
 2. Log in to the BeagleBone Black using SSH, and run the application:
 ```bash
 chmod +x ./scriptable-guitar-pedal
