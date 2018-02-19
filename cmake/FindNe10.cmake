@@ -1,2 +1,2 @@
-find_path(NE10_INCLUDE_DIRS Ne10.h PATHS "${CMAKE_SOURCE_DIR}/include/ne10")
+find_path(NE10_INCLUDE_DIRS NE10.h PATHS "${CMAKE_SOURCE_DIR}/include/ne10")
 find_library(NE10_LIBRARIES libNE10.a PATHS "${CMAKE_SOURCE_DIR}/lib")
