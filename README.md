@@ -45,6 +45,28 @@ cmake -G"NMake Makefiles" -DCMAKE_TOOLCHAIN_FILE="../scriptable-guitar-pedal/cma
 nmake
 ```
 
+### GNU/Linux - Fedora (cross compilation)
+These instructions are for Fedora based distributions.
+Change the commands according to the distribution you are using.
+
+1. Install the following prerequisites:
+  - CMake
+  - GNU Toolchain for ARM
+  - Make
+```bash
+sudo dnf copr enable lantw44/arm-linux-gnueabihf-toolchain
+sudo dnf install make cmake arm-linux-gnueabihf-{binutils,gcc,glibc}
+```
+
+2. Clone the repository and build the project:
+```bash
+git clone https://github.com/thomasfaingnaert/scriptable-guitar-pedal
+mkdir build
+cd build
+cmake -DCMAKE_TOOLCHAIN_FILE="../scriptable-guitar-pedal/cmake/Toolchain.cmake" ../scriptable-guitar-pedal
+make
+```
+
 ## Transferring to BeagleBone Black
 To transfer the executable to your BeagleBone Black, you can use SSH, e.g. PSCP (PuTTY Secure Copy):
 1. Copy the executable on your computer to the BeagleBone Black:
