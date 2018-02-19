@@ -68,12 +68,13 @@ make
 ```
 
 ## Transferring to BeagleBone Black
-To transfer the executable to your BeagleBone Black, you can use SSH, e.g. PSCP (PuTTY Secure Copy):
+To transfer the executable to your BeagleBone Black, you can use SSH, e.g. using PSCP (PuTTY Secure Copy) on Windows or SCP (Secure Copy) on GNU/Linux:
 1. Copy the executable on your computer to the BeagleBone Black:
 ```powershell
-pscp -pw temppwd scriptable-guitar-pedal debian@192.168.7.2:/home/debian/scriptable-guitar-pedal
+pscp scriptable-guitar-pedal debian@192.168.7.2:/home/debian/scriptable-guitar-pedal
 ```
-Make sure to change the username (`debian`), password (`temppwd`), destination path (`/home/debian/scriptable-guitar-pedal`) and IP address (`192.168.7.2`) if required.
+If you are using scp, change `pscp` to `scp`.
+Also make sure to change the username (`debian`), destination path (`/home/debian/scriptable-guitar-pedal`) and IP address (`192.168.7.2`) if required.
 
 2. Log in to the BeagleBone Black using SSH, and run the application:
 ```bash
