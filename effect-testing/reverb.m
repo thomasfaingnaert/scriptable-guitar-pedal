@@ -29,7 +29,9 @@ classdef reverb
             y3 = c1 - c2 + c3 + c4;
             y4 = -y3;
             
-            y = volume * y1;
+            x(maxL,:) = 0;
+            
+            y = x + volume * y1;
         end
         
         function y = makeOutputSamples2(x, Fs, room_size, volume)
@@ -70,7 +72,10 @@ classdef reverb
             ap1 = combfilter.allpass(inter, Fs, A(1), 0.5);
             ap2 = combfilter.allpass(ap1, Fs, A(2), 0.5);
             ap3 = combfilter.allpass(ap2, Fs, A(3), 0.5);
-            y = volume * combfilter.allpass(ap3, Fs, A(4), 0.5);
+            ap4 = combfilter.allpass(ap3, Fs, A(4), 0.5);
+            
+            x(size(ap4,1),:) = 0;
+            y = x + volume * ap4;
         end        
     end
 end
