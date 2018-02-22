@@ -1,0 +1,50 @@
+# Documentation: http://elinux.org/Beagleboard:U-boot_partitioning_layout_2.0
+uname_r=4.9.78-ti-r94
+
+# U-Boot overlays
+# Documentation: http://elinux.org/Beagleboard:BeagleBoneBlack_Debian#U-Boot_Overlays
+## Master enable
+enable_uboot_overlays=1
+
+## Override capes with EEPROM
+#uboot_overlay_addr0=/lib/firmware/<file0>.dtbo
+#uboot_overlay_addr1=/lib/firmware/<file1>.dtbo
+#uboot_overlay_addr2=/lib/firmware/<file2>.dtbo
+#uboot_overlay_addr3=/lib/firmware/<file3>.dtbo
+
+## Additional custom capes
+#uboot_overlay_addr4=/lib/firmware/<file4>.dtbo
+#uboot_overlay_addr5=/lib/firmware/<file5>.dtbo
+#uboot_overlay_addr6=/lib/firmware/<file6>.dtbo
+#uboot_overlay_addr7=/lib/firmware/<file7>.dtbo
+
+## Custom cape
+dtb_overlay=/lib/firmware/beaglebone-black-codec-00A0.dtbo
+
+## Disable auto loading of virtual capes (emmc/video/wireless/adc)
+#disable_uboot_overlay_emmc=1
+disable_uboot_overlay_video=1
+disable_uboot_overlay_audio=1
+disable_uboot_overlay_wireless=1
+disable_uboot_overlay_adc=1
+
+## PRUSS options
+### pru_rproc (4.4.x-ti kernel)
+#uboot_overlay_pru=/lib/firmware/AM335X-PRU-RPROC-4-4-TI-00A0.dtbo
+### pru_uio (4.4.x-ti & mainline/bone kernel)
+#uboot_overlay_pru=/lib/firmware/AM335X-PRU-UIO-00A0.dtbo
+
+## Cape universal enable
+#enable_uboot_cape_universal=1
+
+## Debug: disable U-Boot autoload of cape
+#disable_uboot_overlay_addr0=1
+#disable_uboot_overlay_addr1=1
+#disable_uboot_overlay_addr2=1
+#disable_uboot_overlay_addr3=1
+
+## U-Boot fdt tweaks... (60000 = 384KB)
+#uboot_fdt_buffer=0x60000
+
+cmdline=coherent_pool=1M net.ifnames=0 quiet
+

@@ -1,0 +1,113 @@
+/dts-v1/;
+/plugin/; /* Allow undefined label references and record them */
+
+/ {
+    compatible = "ti,beaglebone-black";
+
+    part-number = "beaglebone-black-codec";
+    version = "00A0";
+
+    exclusive-use =
+        "mcasp0", /* McASP0 */
+        "P9.25", /* AHCLKX */
+        "P9.27", /* FSR */
+        "P9.28", /* AHCLKR */
+        "P9.29", /* FSX */
+        "P9.30", /* AXR0 */
+        "P9.31", /* ACLKX */
+        "P9.41", /* AXR1 */
+        "P9.42", /* ACLKR */
+        "i2c2", /* I2C2 */
+        "P9.21", /* SCL */
+        "P9.22"; /* SDA */
+
+    /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt */
+    fragment@0 {
+        target = <&am33xx_pinmux>;
+
+        __overlay__ {
+            beaglebone_black_i2c2_pins: pinmux_beaglebone_black_i2c2_pins {
+                /*
+                    0x73: INPUT | PULLUP | SLOW | MODE2
+                */
+                pinctrl-single,pins = <
+                    0x150 0x72 /* SCL */
+                    0x154 0x72 /* SDA */
+                >;
+            };
+
+            beaglebone_black_codec_pins: pinmux_beaglebone_black_codec_pins {
+                /*
+                    0x10: INPUT  | PULLUP | MODE0
+                    0x30: OUTPUT | PULLUP | MODE0
+                */
+                pinctrl-single,pins = <
+                    0x1ac 0x10 /* AHCLKX */
+                    0x190 0x30 /* ACLKX */
+                    0x194 0x30 /* FSX */
+                    0x198 0x30 /* AXR0 */
+                    0x19c 0x30 /* AHCLKR */
+                    0x1a0 0x30 /* ACLKR */
+                    0x1a4 0x30 /* FSR */
+                    0x1a8 0x10 /* AXR1 */
+                >;
+            };
+        };
+    };
+
+    /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/i2c/i2c.txt */
+    fragment@1 {
+        target = <&i2c2>;
+
+        __overlay__ {
+            pinctrl-names = "default";
+            pinctrl-0 = <&beaglebone_black_i2c2_pins>;
+
+            status = "okay";
+        };
+    };
+
+    /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt */
+    fragment@2 {
+        target = <&mcasp0>;
+
+        __overlay__ {
+            pinctrl-names = "default";
+            pinctrl-0 = <&beaglebone_black_codec_pins>;
+
+            status = "okay";
+
+            /*
+                I2S/DIT ops mode. 0 for I2S mode. 1 for DIT mode used for S/PDIF,
+  	        IEC60958-1, and AES-3 formats.
+            */
+            op-mode = <0>;
+
+            /*
+                Slots for TDM operation.
+                Indicates number of channels transmitted or received over one serializer.
+            */
+            tdm-slots =<2>;
+
+            /*
+                A list of serializer configuration.
+                Each entry is an number indictation for serializer pin direction.
+                (0 - INACTIVE, 1 - TX, 2 - RX)
+            */
+            serial-dir = <
+                1 2 0 0
+                0 0 0 0
+                0 0 0 0
+                0 0 0 0
+            >;
+
+            /*
+                FIFO levels.
+                Documentation: /sound/soc/davinci/davinci-mcasp.c
+            */
+            tx-num-evt = <1>;
+            rx-num-evt = <1>;
+        };
+    };
+};
+
