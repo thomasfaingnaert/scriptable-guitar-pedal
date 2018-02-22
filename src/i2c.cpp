@@ -53,3 +53,8 @@ void I2C::set_device(int address)
         std::cout << "log: i2c: successfully opened device at address " << address << std::endl;
     }
 }
+
+void I2C::test_write()
+{
+    i2c_smbus_write_byte_data(file, 0x40, 0xF0);
+}

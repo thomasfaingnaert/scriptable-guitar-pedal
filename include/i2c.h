@@ -11,6 +11,8 @@ public:
 
     void set_device(int address);
 
+    void test_write();
+
     virtual ~I2C();
 private:
     std::string adapter_to_filename();

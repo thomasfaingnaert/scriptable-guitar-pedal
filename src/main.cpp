@@ -32,8 +32,9 @@ int main(int argc, char *argv[])
     /* Test I2C */
     I2C i2c(2);
 
-    i2c.set_device(0x47);
+    i2c.set_device(0x46);
 
+    i2c.test_write();
 
     /* Test CivetWeb */
     const char *options[] =
