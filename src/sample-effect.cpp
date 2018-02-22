@@ -1,6 +1,4 @@
-//
-// Created by Robbe on 22/02/2018.
-//
+#include "sample-effect.h"
 
 virtual void SampleEffect::addSample(T sample) {
     this.sample = sample;

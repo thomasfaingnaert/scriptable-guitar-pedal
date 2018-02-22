@@ -1,7 +1,3 @@
-//
-// Created by Robbe on 22/02/2018.
-//
-
 #ifndef SCRIPTABLE_GUITAR_PEDAL_SAMPLE_EFFECT_H
 #define SCRIPTABLE_GUITAR_PEDAL_SAMPLE_EFFECT_H
 
@@ -24,4 +20,5 @@ private:
     virtual void processSample() = 0;
 };
 
-#endif //SCRIPTABLE_GUITAR_PEDAL_SAMPLE_EFFECT_H
+
+#endif

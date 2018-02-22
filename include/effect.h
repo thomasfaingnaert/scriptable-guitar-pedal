@@ -1,7 +1,3 @@
-//
-// Created by Robbe on 22/02/2018.
-//
-
 #ifndef SCRIPTABLE_GUITAR_PEDAL_EFFECT_H
 #define SCRIPTABLE_GUITAR_PEDAL_EFFECT_H
 
@@ -26,4 +22,4 @@ public:
 };
 
 
-#endif //SCRIPTABLE_GUITAR_PEDAL_EFFECT_H
+#endif

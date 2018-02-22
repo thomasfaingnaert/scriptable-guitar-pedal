@@ -1,8 +1,6 @@
-//
-// Created by Robbe on 22/02/2018.
-//
 #include <iostream>
-#include <block-effect.h>
+
+#include "block-effect.h"
 
 virtual void BlockEffect<T, BLOCK_SIZE>::addInputSample(T sample)
 {

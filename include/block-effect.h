@@ -1,7 +1,3 @@
-//
-// Created by Robbe on 22/02/2018.
-//
-
 #ifndef SCRIPTABLE_GUITAR_PEDAL_BLOCK_EFFECT_H
 #define SCRIPTABLE_GUITAR_PEDAL_BLOCK_EFFECT_H
 
@@ -34,4 +30,5 @@ private:
     virtual void processBlock(const std::array <T, BLOCK_SIZE>& block_buffer) = 0;
 };
 
-#endif //SCRIPTABLE_GUITAR_PEDAL_BLOCK_EFFECT_H
+
+#endif
