@@ -3,6 +3,7 @@
 
 #include "NE10.h"
 #include "civetweb.h"
+#include "i2c.h"
 
 int handler(mg_connection *connection, void *ignored)
 {
@@ -21,12 +22,20 @@ int handler(mg_connection *connection, void *ignored)
 
 int main(int argc, char *argv[])
 {
+    /* Test Ne10 */
     if (ne10_init() != NE10_OK)
     {
         std::cout << "Could not initialise Ne10.\n";
         return EXIT_FAILURE;
     }
 
+    /* Test I2C */
+    I2C i2c(2);
+
+    i2c.set_device(0x47);
+
+
+    /* Test CivetWeb */
     const char *options[] =
     {
         "listening_ports",
@@ -47,7 +56,7 @@ int main(int argc, char *argv[])
 
     /* temporary infinite loop */
     std::cout << "Server running on port 8888.\n";
-    while ( true ) ;
+    // while ( true ) ;
 
     mg_stop(context);
     mg_exit_library();
