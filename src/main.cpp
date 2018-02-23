@@ -1,10 +1,11 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "NE10.h"
 #include "civetweb.h"
 
-int handler(mg_connection *connection, void *ignored)
+bool exit_server = false;
+
+int handler(mg_connection *connection, void *user_data)
 {
     std::string message = "Test";
 
@@ -15,6 +16,23 @@ int handler(mg_connection *connection, void *ignored)
             "Connection: close\r\n\r\n",
             message.length());
     mg_write(connection, message.c_str(), message.length());
+
+    return 200;
+}
+
+int exit_handler(mg_connection *connection, void *user_data)
+{
+    std::string message = "Shutting down server...";
+
+    mg_printf(connection,
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: %u\r\n"
+            "Content-Type: text/plain\r\n"
+            "Connection: close\r\n\r\n",
+            message.length());
+    mg_write(connection, message.c_str(), message.length());
+
+    exit_server = true;
 
     return 200;
 }
@@ -40,9 +58,8 @@ int main(int argc, char *argv[])
 
     mg_set_request_handler(context, "/", handler, nullptr);
 
-    /* temporary infinite loop */
     std::cout << "Server running on port 8888.\n";
-    while (true) ;
+    while (!exit_server) ;
 
     mg_stop(context);
     mg_exit_library();
