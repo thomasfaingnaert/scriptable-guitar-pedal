@@ -3,7 +3,7 @@
 
 #include "civetweb.h"
 
-bool exit_server = false;
+volatile bool exit_server = false;
 
 int handler(mg_connection *connection, void *user_data)
 {
@@ -56,7 +56,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    mg_set_request_handler(context, "/", handler, nullptr);
+    mg_set_request_handler(context, "/$", handler, nullptr);
+    mg_set_request_handler(context, "/exit$", exit_handler, nullptr);
 
     std::cout << "Server running on port 8888.\n";
     while (!exit_server) ;
