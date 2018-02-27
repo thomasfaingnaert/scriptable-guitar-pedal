@@ -66,6 +66,10 @@ classdef distortion
             y = vol * 2/pi * atan(alpha * x);
         end
 
+        %{
+        The following functions implement asymmetric clipping in different
+        ways.
+        %}
         
         function y = makeOutputSamples4(x,alpha,vol)
             %MAKEOUTPUTSAMPLES4 will add distortion to the samples
@@ -103,7 +107,26 @@ classdef distortion
             
             % sigmoid curve
             y = vol * sign(x) .* (1 - exp(-tau*abs(x)));
-            y = y .* (y >= 0) + x .* (x <= 0);
+            y = y .* (y >= 0) + x .* (y < 0);
+        end
+        
+        function y = makeOutputSamples6(x, alpha, vol)
+            %MAKEOUTPUTSAMPLES3 adds distortion to the samples
+            %   x contains the samples
+            %   alpha affects the amount of clipping
+            %   vol regulates the volume
+            
+            % eliminate noise
+            noisegate = 5 * 10^(-4);
+            x = x .* (abs(x) >= noisegate);
+
+            if vol > 1 || vol <= 0
+                vol = 1;
+            end
+
+            % soft clipping
+            y = vol * 2/pi * atan(alpha * x);
+            y = y .* (y >= 0) + x .* (y < 0);
         end
     end
 end
