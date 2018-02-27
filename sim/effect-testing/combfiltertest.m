@@ -9,8 +9,6 @@ gain = 0.4;
 
 a = 0.2;
 
-formula = 1;
-
 if exist('formula', 'var') ~= 1
     disp('Please create a variable ''formula'' in the current workspace, set it to 1, 2, 3, 4 or 5  and run this script again.');
     return;
