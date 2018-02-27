@@ -66,6 +66,24 @@ classdef distortion
             y = vol * 2/pi * atan(alpha * x);
         end
 
+        
+        function y = makeOutputSamples4(x,alpha,vol)
+            %MAKEOUTPUTSAMPLES4 will add distortion to the samples
+            %   x contains the samples
+            %   treshold determines at which point the clipping starts
+            %   vol determines outputvolume
+            
+            % eliminate noise
+            noisegate = 2 * 10^(-3);
+            
+            if vol > 1 || vol <= 0
+                vol = 1;
+            end
+            
+            % asymmetric clipping
+            y = vol * ((x.*(x >= noisegate)).^(1/alpha) + (x.*(x <= noisegate)));
+            y = y.* (abs(y) >= noisegate);
+        end
     end
 end
 
