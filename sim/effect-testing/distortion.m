@@ -84,6 +84,27 @@ classdef distortion
             y = vol * ((x.*(x >= noisegate)).^(1/alpha) + (x.*(x <= noisegate)));
             y = y.* (abs(y) >= noisegate);
         end
+        
+        function y = makeOutputSamples5(x,tau,vol)
+            %MAKEOUTPUTSAMPLES5 adds distortion to the samples
+            %   x contains the samples
+            %   tau contains the 'steepness' of the function that
+            %   vol regulates the volume
+            %   calculates distortion
+            
+            % eliminate noise
+            noisegate = 5 * 10^(-4);
+            x = x .* (abs(x) >= noisegate);
+            
+            % check if vol has valid value
+            if vol > 1 || vol <= 0
+                vol = 1;
+            end
+            
+            % sigmoid curve
+            y = vol * sign(x) .* (1 - exp(-tau*abs(x)));
+            y = y .* (y >= 0) + x .* (x <= 0);
+        end
     end
 end
 
