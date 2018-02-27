@@ -6,7 +6,11 @@ classdef distortion
             %   x contains the samples
             %   treshold determines at which point the clipping starts
             %   vol determines outputvolume
-
+            
+            % eliminate noise
+            noisegate = 5 * 10^(-4);
+            x = x .* (abs(x) >= noisegate);
+            
             % check if vol has valid value
             if vol > 1 || vol <= 0
                 vol = 1;
@@ -28,6 +32,10 @@ classdef distortion
             %   tau contains the 'steepness' of the function that
             %   vol regulates the volume
             %   calculates distortion
+            
+            % eliminate noise
+            noisegate = 5 * 10^(-4);
+            x = x .* (abs(x) >= noisegate);
 
             % check if vol has valid value
             if vol > 1 || vol <= 0
@@ -45,6 +53,10 @@ classdef distortion
             %   x contains the samples
             %   alpha affects the amount of clipping
             %   vol regulates the volume
+            
+            % eliminate noise
+            noisegate = 5 * 10^(-4);
+            x = x .* (abs(x) >= noisegate);
 
             if vol > 1 || vol <= 0
                 vol = 1;
