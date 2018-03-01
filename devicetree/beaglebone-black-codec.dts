@@ -4,52 +4,31 @@
 / {
     compatible = "ti,beaglebone-black";
 
+    /* Identification */
     part-number = "beaglebone-black-codec";
     version = "00A0";
 
+    /* State the resources this cape uses */
     exclusive-use =
-        "mcasp0", /* McASP0 */
-        "P9.25", /* AHCLKX */
-        "P9.27", /* FSR */
-        "P9.28", /* AHCLKR */
-        "P9.29", /* FSX */
-        "P9.30", /* AXR0 */
-        "P9.31", /* ACLKX */
-        "P9.41", /* AXR1 */
-        "P9.42", /* ACLKR */
-        "i2c2", /* I2C2 */
-        "P9.21", /* SCL */
-        "P9.22"; /* SDA */
+        "mcasp0",
+        "P9.25", /* mcasp0_ahclkx */
+        "P9.28", /* mcasp0_axr2 */
+        "P9.29", /* mcasp0_fsx */
+        "P9.30", /* mcasp0_axr0 */
+        "P9.31"; /* mcasp0_aclkx */
 
     /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt */
     fragment@0 {
         target = <&am33xx_pinmux>;
 
         __overlay__ {
-            beaglebone_black_i2c2_pins: pinmux_beaglebone_black_i2c2_pins {
-                /*
-                    0x73: INPUT | PULLUP | SLOW | MODE2
-                */
-                pinctrl-single,pins = <
-                    0x150 0x72 /* SCL */
-                    0x154 0x72 /* SDA */
-                >;
-            };
-
             beaglebone_black_codec_pins: pinmux_beaglebone_black_codec_pins {
-                /*
-                    0x10: INPUT  | PULLUP | MODE0
-                    0x30: OUTPUT | PULLUP | MODE0
-                */
                 pinctrl-single,pins = <
-                    0x1ac 0x10 /* AHCLKX */
-                    0x190 0x30 /* ACLKX */
-                    0x194 0x30 /* FSX */
-                    0x198 0x30 /* AXR0 */
-                    0x19c 0x30 /* AHCLKR */
-                    0x1a0 0x30 /* ACLKR */
-                    0x1a4 0x30 /* FSR */
-                    0x1a8 0x10 /* AXR1 */
+                    0x190 0x20 /* mcasp0_aclkx:  output, pull down, mode 0 */
+                    0x194 0x30 /* mcasp0_fsx:    output, pull up,   mode 0 */
+                    0x198 0x00 /* mcasp0_axr0:   input,  pull down, mode 0 */
+                    0x19c 0x22 /* mcasp0_axr2:   output, pull down, mode 2 */
+                    0x1ac 0x10 /* mcasp0_ahclkx: input,  pull up,   mode 0 */
                 >;
             };
         };
@@ -60,10 +39,16 @@
         target = <&i2c2>;
 
         __overlay__ {
-            pinctrl-names = "default";
-            pinctrl-0 = <&beaglebone_black_i2c2_pins>;
+            beaglebone_black_codec: cs4271@10 {
+                compatible = "cirrus,cs4271";
 
-            status = "okay";
+                /*
+                    The I2C address.
+                */
+                reg = <0x10>;
+
+                #sound-dai-cells = <0>;
+            };
         };
     };
 
@@ -79,7 +64,7 @@
 
             /*
                 I2S/DIT ops mode. 0 for I2S mode. 1 for DIT mode used for S/PDIF,
-  	        IEC60958-1, and AES-3 formats.
+                IEC60958-1, and AES-3 formats.
             */
             op-mode = <0>;
 
@@ -95,7 +80,7 @@
                 (0 - INACTIVE, 1 - TX, 2 - RX)
             */
             serial-dir = <
-                1 2 0 0
+                2 0 1 0
                 0 0 0 0
                 0 0 0 0
                 0 0 0 0
@@ -107,6 +92,71 @@
             */
             tx-num-evt = <1>;
             rx-num-evt = <1>;
+
+            #sound-dai-cells = <0>;
+        };
+    };
+
+    /* Documentation:
+        - https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/simple-card.txt
+        - https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/widgets.txt
+    */
+    fragment@3 {
+        target-path= "/";
+
+        __overlay__ {
+            sound {
+                compatible = "simple-audio-card";
+
+                /*
+                    User specified audio sound card name, one string property.
+                */
+                simple-audio-card,name = "CS4272-Sound-Card";
+
+                /*
+                    Please refer to widgets.txt.
+                */
+                simple-audio-card,widgets =
+                    "Line", "Line In Jack",
+                    "Line", "Line Out Jack";
+
+                /*
+                    A list of the connections between audio components.
+                    Each entry is a pair of strings, the first being the connection's sink,
+                    the second being the connection's source.
+                */
+                simple-audio-card,routing =
+                    "AINL", "Line In Jack",
+                    "AINR", "Line In Jack",
+                    "Line Out Jack", "AOUTL",
+                    "Line Out Jack", "AOUTR";
+
+                /*
+                    CPU/CODEC common audio format.
+                    "i2s", "right_j", "left_j" , "dsp_a", "dsp_b", "ac97", "pdm", "msb", "lsb"
+                */
+                simple-audio-card,format = "i2s";
+
+                /*
+                    Indicates dai-link frame master.
+                    phandle to a cpu or codec subnode.
+                */
+                simple-audio-card,frame-master = <&dailink0_master>;
+
+                /*
+                    Indicates dai-link bit clock master.
+                    phandle to a cpu or codec subnode.
+                */
+                simple-audio-card,bitclock-master = <&dailink0_master>;
+
+                dailink0_master: simple-audio-card,cpu {
+                    sound-dai = <&mcasp0>;
+                };
+
+                dailink0_slave: simple-audio-card,codec {
+                    sound-dai = <&beaglebone_black_codec>;
+                };
+            };
         };
     };
 };
