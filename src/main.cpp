@@ -3,10 +3,12 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <sstream>
 #include <string>
 #include <vector>
 
 #include "civetweb.h"
+#include "sampledata.h"
 
 volatile bool exit_server = false;
 
@@ -69,13 +71,11 @@ int sample_handler(mg_connection *connection, void *user_data)
     fdh.field_store = [] (const char *path, long long file_size, void *user_data) -> int
     {
         mg_connection *connection = (mg_connection*) user_data;
-        std::ifstream file(path);
-        std::vector<double> samples;
 
-        std::copy(std::istream_iterator<double>(file), std::istream_iterator<double>(), std::back_inserter(samples));
+        SampleData data(path);
+        data.save("out.wav");
 
-        std::string msg = "Loaded " + std::to_string(samples.size()) + " samples.";
-        render_html(connection, msg);
+        mg_send_file(connection, "out.wav");
 
         return 0;
     };
