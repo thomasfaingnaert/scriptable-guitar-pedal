@@ -38,9 +38,9 @@ classdef equalizer
             hf = 2400;
             
             % Calculate peaking filters
-            [bA, bB] = equalizer.makeFilter(bf, Fs, bass, 0.8);
-            [mA, mB] = equalizer.makeFilter(mf, Fs, mid, 0.8);
-            [hA, hB] = equalizer.makeFilter(hf, Fs, trebble, 0.8);
+            [bA, bB] = equalizer.makeFilter(bf, Fs, bass, 0.5);
+            [mA, mB] = equalizer.makeFilter(mf, Fs, mid, 0.5);
+            [hA, hB] = equalizer.makeFilter(hf, Fs, trebble, 0.5);
             
             % Calculate functions
             len = 2^(nextpow2(2 * size(x,1))); 
@@ -61,7 +61,7 @@ classdef equalizer
             % Inverse Fourier
             y = ifft(y_fourier);
             y = real(y);
-            y = y(1:size(x,1));
+            y = y(1:size(x,1),:);
         end
     end
 end

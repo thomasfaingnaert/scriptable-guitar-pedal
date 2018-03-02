@@ -5,7 +5,7 @@ end
 
 switch fragment
     case 1
-        [x,Fs] = audioread('../samples/smoke-on-the-water.wav');
+        [x,Fs] = audioread('../samples/my-propeller.wav');
         N = size(x,1);
     case 2
         Fs = 8192;
@@ -24,12 +24,12 @@ end
 
 f = -Fs/2:Fs/N:Fs/2 - Fs/N;
 
-y = equalizer.makeOutputSamples1(x,Fs,20,0,0);
-z = equalizer.makeOutputSamples1(x,Fs,-50,-50,30);
+y = equalizer.makeOutputSamples1(x,Fs,-5,-8,-6);
+z = equalizer.makeOutputSamples1(x,Fs,-15,0,5);
 
-X = abs(fftshift(fft(x)));
-Y = abs(fftshift(fft(y)));
-Z = abs(fftshift(fft(z)));
+X = abs(fftshift(fft(x)/N));
+Y = abs(fftshift(fft(y)/N));
+Z = abs(fftshift(fft(z)/N));
 
 subplot(2,2,1);
 plot(f,X);
