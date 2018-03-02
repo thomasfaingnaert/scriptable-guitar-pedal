@@ -11,6 +11,7 @@ class SampleData
 {
     public:
         SampleData(const std::string& filename);
+        SampleData(const std::vector<std::vector<Sample>> samples, unsigned int rate);
 
         unsigned int getSampleRate() const;
         unsigned int getNumChannels() const;
@@ -21,6 +22,8 @@ class SampleData
 
         Sample get(size_t channel, size_t index) const;
         void set(size_t channel, size_t index, Sample sample);
+
+        std::vector<std::vector<Sample>> getSamples() const;
 
     private:
         std::vector<Sample> sampleData;

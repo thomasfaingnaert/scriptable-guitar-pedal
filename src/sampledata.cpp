@@ -11,6 +11,23 @@ SampleData::SampleData(const std::string& filename)
     load(filename);
 }
 
+SampleData::SampleData(const std::vector<std::vector<Sample>> samples, unsigned int rate) : sampleRate(rate)
+{
+    numChannels = samples.size();
+
+    if (!samples.empty())
+    {
+        sampleData.reserve(samples.size() * samples[0].size());
+        for (size_t j = 0; j < samples[0].size(); ++j)
+        {
+            for (size_t i = 0; i < samples.size(); ++i)
+            {
+                sampleData.push_back(samples[i][j]);
+            }
+        }
+    }
+}
+
 unsigned int SampleData::getSampleRate() const
 {
     return sampleRate;
@@ -69,3 +86,17 @@ void SampleData::save(const std::string& filename) const
     file.write(sampleData.data(), sampleData.size());
 }
 
+std::vector<std::vector<Sample>> SampleData::getSamples() const
+{
+    std::vector<std::vector<Sample>> samples(numChannels, std::vector<Sample>());
+
+    for (size_t i = 0; i < numChannels; ++i)
+    {
+        for (size_t j = 0; j < getNumFrames(); ++j)
+        {
+            samples[i].push_back(get(i, j));
+        }
+    }
+
+    return samples;
+}

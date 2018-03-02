@@ -12,6 +12,27 @@
 
 volatile bool exit_server = false;
 
+template<typename T>
+std::vector<T> conv(const std::vector<T>& x, const std::vector<T>& y)
+{
+    const size_t out_size = x.size() + y.size() - 1;
+
+    std::vector<T> result(out_size, T());
+
+    for (size_t i = 0; i < out_size; ++i)
+    {
+        const size_t j_min = std::max(0u, i + 1 - y.size());
+        const size_t j_max = std::min(x.size() - 1, i);
+
+        for (size_t j = j_min; j <= j_max; ++j)
+        {
+            result[i] += (x.at(j) * y.at(i-j));
+        }
+    }
+
+    return result;
+}
+
 void render_html(mg_connection *connection, const std::string& html)
 {
     mg_printf(connection,
@@ -72,8 +93,22 @@ int sample_handler(mg_connection *connection, void *user_data)
     {
         mg_connection *connection = (mg_connection*) user_data;
 
-        SampleData data(path);
-        data.save("out.wav");
+        SampleData in(path);
+        SampleData filter("filter.wav");
+
+        std::vector<std::vector<Sample>> inS = in.getSamples();
+        std::vector<std::vector<Sample>> filterS = filter.getSamples();
+
+        std::vector<std::vector<Sample>> outS(inS.size(), std::vector<Sample>());
+
+        for (size_t i = 0; i < outS.size(); ++i)
+        {
+            //outS[i] = conv(inS[i], filterS[0]);
+        }
+
+        //SampleData out(outS, in.getSampleRate());
+        //out.save("out.wav");
+        in.save("out.wav");
 
         mg_send_file(connection, "out.wav");
 
