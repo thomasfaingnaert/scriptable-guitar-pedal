@@ -1,7 +1,7 @@
 %x = rand([1 3*29*1000]);
 %h = rand([1 30]);
 x = 1:36;
-h = [1 0 0 0 0];
+h = [1 0 0 0];
 y = overlapSave(x, h);
 c = conv(x, h);
 if all(abs(c(1:length(x)) - y) < 1e-12) 

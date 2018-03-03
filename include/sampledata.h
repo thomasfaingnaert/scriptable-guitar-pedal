@@ -5,7 +5,7 @@
 #ifndef SAMPLEDATA_H_FIPJCQHI
 #define SAMPLEDATA_H_FIPJCQHI
 
-typedef double Sample;
+typedef float Sample;
 
 class SampleData
 {
