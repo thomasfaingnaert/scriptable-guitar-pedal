@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <iterator>
+#include <numeric>
 #include <vector>
 
 #include "NE10.h"
@@ -17,11 +18,13 @@ int main(int argc, char *argv[])
 
     FilterEffect fe;
     fe.setImpulseResponse({1, 0, 0, 0});
-    std::vector<Complex> freq = fe.getFrequencyResponse();
+    std::vector<Sample> block(fe.getBlockSize());
+    std::iota(block.begin(), block.end(), 0);
+    fe.addInputBlock(block);
 
-    for (Complex c : freq)
+    for (Sample s : fe.getOutputBlock())
     {
-        std::cout << c.r << " + i " << c.i << std::endl;
+        std::cout << s << std::endl;
     }
 
     return EXIT_SUCCESS;

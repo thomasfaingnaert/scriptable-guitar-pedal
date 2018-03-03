@@ -24,7 +24,7 @@ function y = overlapSave(x, h)
     block_size = N - overlap;
     
     % current output and input position
-    pos = 0;
+    pos = 0;    
     
     % calculate frequency response
     H = fft(h, N);
