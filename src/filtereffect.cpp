@@ -71,6 +71,9 @@ std::vector<Sample> FilterEffect::getOutputBlock()
     // remove unneeded samples
     output.erase(output.begin(), output.begin() + overlap);
 
+    // remove block from input buffer
+    inputBuffer.erase(inputBuffer.begin(), inputBuffer.begin() + blockSize);
+
     return output;
 }
 

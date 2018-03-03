@@ -7,6 +7,7 @@
 
 #include "NE10.h"
 #include "filtereffect.h"
+#include "sampledata.h"
 
 int main(int argc, char *argv[])
 {
@@ -16,16 +17,41 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    FilterEffect fe;
-    fe.setImpulseResponse({1, 0, 0, 0});
-    std::vector<Sample> block(fe.getBlockSize());
-    std::iota(block.begin(), block.end(), 0);
-    fe.addInputBlock(block);
+    SampleData input("smoke-on-the-water.wav");
+    SampleData filter("SquareVictoriaDome.wav");
 
-    for (Sample s : fe.getOutputBlock())
+    std::vector<Sample> inputSamples = input.getSamples()[0];
+    std::vector<Sample> filterSamples = filter.getSamples()[0];
+
+    FilterEffect fe;
+    fe.setImpulseResponse(filterSamples);
+
+    std::vector<Sample> outputSamples;
+
+    unsigned int pos = 0;
+
+    while (pos + fe.getBlockSize() < inputSamples.size())
     {
-        std::cout << s << std::endl;
+        std::vector<Sample> block(inputSamples.begin() + pos, inputSamples.begin() + pos + fe.getBlockSize());
+        fe.addInputBlock(block);
+        std::vector<Sample> output = fe.getOutputBlock();
+        outputSamples.insert(outputSamples.end(), output.begin(), output.end());
+        pos += fe.getBlockSize();
     }
+
+    Sample max = outputSamples[0];
+    for (Sample sample : outputSamples)
+    {
+        max = (sample > max) ? sample : max;
+    }
+
+    for (Sample& sample : outputSamples)
+    {
+        sample /= max;
+    }
+
+    SampleData out({ outputSamples }, input.getSampleRate());
+    out.save("output.wav");
 
     return EXIT_SUCCESS;
 }
