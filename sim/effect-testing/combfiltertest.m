@@ -1,11 +1,11 @@
-[x,Fs] = audioread('../samples/delaytest-guitar.wav');
+[x,Fs] = audioread('../samples/presentatie-sample.wav');
 
-delayT = 0.18;
+delayT = 0.3;
 feedforward = 0.3;
-feedback = 0.2;
+feedback = 0.3;
 blend = 1;
 
-gain = 0.4;
+gain = 0.5;
 
 a = 0.2;
 

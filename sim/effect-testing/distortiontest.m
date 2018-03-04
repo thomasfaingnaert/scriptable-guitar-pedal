@@ -1,4 +1,4 @@
-[y,Fs]=audioread('../samples/smoke-on-the-water.wav');
+[y,Fs]=audioread('../samples/presentatie-sample.wav');
 
 if exist('formula', 'var') ~= 1
     disp('Please create a variable ''formula'' in the current workspace, set it to a number between 1 and 6 and run this script again.');
