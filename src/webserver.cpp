@@ -135,52 +135,37 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
 
     std::vector<Sample> outputSamples;
 
-    std::cout << "input: " << inputSamples.size() << " (@ " << input.getSampleRate() << " Hz)" << std::endl;
-    std::cout << "impulse: " << filterSamples.size() << " (@ " << filter.getSampleRate() << " Hz)" << std::endl;
-    std::ofstream ofs("perf.log");
-    ofs << inputSamples.size() << "\n";
-    ofs << input.getSampleRate() << "\n";
-    ofs << filterSamples.size() << "\n";
-    ofs << filter.getSampleRate() << "\n";
+    FilterEffect fe;
+    fe.setImpulseResponse(filterSamples);
 
-    for (int i = 0; i < 100; ++i)
+    const auto start = std::chrono::high_resolution_clock::now();
+
+    unsigned int pos = 0;
+
+    while (pos + fe.getBlockSize() < inputSamples.size())
     {
-        outputSamples.clear();
-        FilterEffect fe;
-        fe.setImpulseResponse(filterSamples);
-
-        const auto start = std::chrono::high_resolution_clock::now();
-
-        unsigned int pos = 0;
-
-        while (pos + fe.getBlockSize() < inputSamples.size())
-        {
-            std::vector<Sample> block(inputSamples.begin() + pos, inputSamples.begin() + pos + fe.getBlockSize());
-            fe.addInputBlock(block);
-            std::vector<Sample> output = fe.getOutputBlock();
-            outputSamples.insert(outputSamples.end(), output.begin(), output.end());
-            pos += fe.getBlockSize();
-        }
-
-        Sample max = outputSamples[0];
-        for (Sample sample : outputSamples)
-        {
-            max = std::max(std::abs(sample), max);
-        }
-
-        for (Sample& sample : outputSamples)
-        {
-            sample /= max;
-        }
-
-        const auto end = std::chrono::high_resolution_clock::now();
-
-        ofs << std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count() << "\n";
-
-        if (i % 10 == 0)
-            std::cout << "processing took " << std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count() << " ns (" <<
-                std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << " ms)." << std::endl;
+        std::vector<Sample> block(inputSamples.begin() + pos, inputSamples.begin() + pos + fe.getBlockSize());
+        fe.addInputBlock(block);
+        std::vector<Sample> output = fe.getOutputBlock();
+        outputSamples.insert(outputSamples.end(), output.begin(), output.end());
+        pos += fe.getBlockSize();
     }
+
+    Sample max = outputSamples[0];
+    for (Sample sample : outputSamples)
+    {
+        max = std::max(std::abs(sample), max);
+    }
+
+    for (Sample& sample : outputSamples)
+    {
+        sample /= max;
+    }
+
+    const auto end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "processing took " << std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count() << " ns (" <<
+        std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << " ms)." << std::endl;
 
 
     SampleData out({ outputSamples }, input.getSampleRate());
