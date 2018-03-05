@@ -8,7 +8,7 @@ classdef distortion
             %   vol determines outputvolume
             
             % eliminate noise
-            noisegate = 5 * 10^(-4);
+            noisegate = 8 * 10^(-4);
             x = x .* (abs(x) >= noisegate);
             
             % check if vol has valid value
@@ -34,7 +34,7 @@ classdef distortion
             %   calculates distortion
             
             % eliminate noise
-            noisegate = 5 * 10^(-4);
+            noisegate = 8 * 10^(-4);
             x = x .* (abs(x) >= noisegate);
 
             % check if vol has valid value
@@ -55,7 +55,7 @@ classdef distortion
             %   vol regulates the volume
             
             % eliminate noise
-            noisegate = 5 * 10^(-4);
+            noisegate = 8 * 10^(-4);
             x = x .* (abs(x) >= noisegate);
 
             if vol > 1 || vol <= 0
@@ -78,7 +78,7 @@ classdef distortion
             %   vol determines outputvolume
             
             % eliminate noise
-            noisegate = 5 * 10^(-4);
+            noisegate = 8 * 10^(-4);
             x = x .* (abs(x) >= noisegate);
             
             % check if vol has valid value
@@ -107,7 +107,7 @@ classdef distortion
             %   calculates distortion
             
             % eliminate noise
-            noisegate = 5 * 10^(-4);
+            noisegate = 8 * 10^(-4);
             x = x .* (abs(x) >= noisegate);
             
             % check if vol has valid value
@@ -129,7 +129,7 @@ classdef distortion
             %   vol regulates the volume
             
             % eliminate noise
-            noisegate = 5 * 10^(-4);
+            noisegate = 8 * 10^(-4);
             x = x .* (abs(x) >= noisegate);
 
             if vol > 1 || vol <= 0
