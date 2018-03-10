@@ -12,8 +12,8 @@ class SineSource : public Source<float>
     private:
         float amplitude;
         unsigned int period;
-        std::vector<float> samples; // pre calculate one period
-        std::vector<float>::iterator currentSample;
+        std::vector<float> samples;
+        unsigned int currentSample;
 };
 
 #endif /* end of include guard: SINESOURCE_H_1Z38J52N */

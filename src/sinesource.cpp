@@ -5,9 +5,9 @@
 #include "sinesource.h"
 
 SineSource::SineSource(float amplitude, unsigned int period)
-    : amplitude(amplitude), period(period), samples(period)
+    : amplitude(amplitude), period(period), samples(BLOCK_SIZE + period - 1), currentSample(0)
 {
-    // pre calculate one period of sine
+    // pre calculate sine
     unsigned int phase = 0;
     std::generate(samples.begin(), samples.end(), [&phase, amplitude, period] ()
             {
@@ -15,30 +15,11 @@ SineSource::SineSource(float amplitude, unsigned int period)
                 phase++;
                 return res;
             });
-
-    currentSample = samples.begin();
 }
 
 void SineSource::generate_next()
 {
-    unsigned int numCopied = 0;
-    auto block = std::make_shared<std::vector<float>>(BLOCK_SIZE);
-
-    while (numCopied != BLOCK_SIZE)
-    {
-        if (std::distance(currentSample, samples.end()) >= BLOCK_SIZE - numCopied)
-        {
-            std::copy_n(currentSample, BLOCK_SIZE - numCopied, block->begin() + numCopied);
-            currentSample += BLOCK_SIZE - numCopied;
-            numCopied = BLOCK_SIZE;
-        }
-        else
-        {
-            std::copy(currentSample, samples.end(), block->begin() + numCopied);
-            numCopied += std::distance(currentSample, samples.end());
-            currentSample = samples.begin();
-        }
-    }
-
+    auto block = std::make_shared<std::vector<float>>(samples.begin() + currentSample, samples.begin() + currentSample + BLOCK_SIZE);
+    currentSample = (currentSample + BLOCK_SIZE) % period;
     generate(block);
 }
