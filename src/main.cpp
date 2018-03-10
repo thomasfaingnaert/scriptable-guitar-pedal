@@ -12,6 +12,7 @@
 #include "filesink.h"
 #include "filesource.h"
 #include "processor.h"
+#include "sinesource.h"
 #include "sink.h"
 #include "source.h"
 #include "streamsink.h"
@@ -25,14 +26,15 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    FileSource inputFile("input.wav");
+    SineSource src(1.0, 44100 / 440);
     auto outputFile = std::make_shared<FileSink>("output.wav");
 
-    inputFile.connect(outputFile, 0);
+    src.connect(outputFile, 0);
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    while (inputFile.generate_next()) ;
+    for (int i = 0; i < 44100 * 30 / src.BLOCK_SIZE; ++i)
+        src.generate_next();
 
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << "took " << std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << " ms\n";
