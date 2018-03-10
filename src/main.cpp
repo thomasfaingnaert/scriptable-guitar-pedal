@@ -23,14 +23,14 @@ int main(int argc, char *argv[])
     }
 
     Source<float> src1, src2;
-    std::shared_ptr<Adder> adder = std::make_shared<Adder>(3);
-    std::shared_ptr<Sink<float>> output = std::make_shared<StreamSink<float>>(std::cout, 10);
+    std::shared_ptr<Adder> adder = std::make_shared<Adder>();
+    std::shared_ptr<Sink<float>> output = std::make_shared<StreamSink<float>>(std::cout);
 
     src1.connect(adder, 0);
     src2.connect(adder, 1);
     adder->connect(output, 0);
 
-    for (int i = 1; i <= 100; ++i)
+    for (int i = 1; i <= Source<float>::BLOCK_SIZE; ++i)
     {
         src1.generate(i);
         src2.generate(0);

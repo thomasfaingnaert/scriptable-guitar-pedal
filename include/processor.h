@@ -11,13 +11,11 @@ template<typename T, typename U>
 class Processor : public Source<T>, public Sink<U>
 {
     public:
-        Processor(std::size_t blockSize, std::size_t numChannels)
-            : data(numChannels), channelsReceived(0), blockSize(blockSize), numChannels(numChannels)
+        Processor(std::size_t numChannels)
+            : data(numChannels), channelsReceived(0), numChannels(numChannels)
         { }
 
-        virtual std::size_t getBlockSize(unsigned int channel) const { return blockSize; }
-
-        virtual void push(const U* u, std::size_t n, unsigned int channel)
+        virtual void push(const U* u, unsigned int channel)
         {
             if (channel >= numChannels)
                 return;
@@ -41,9 +39,6 @@ class Processor : public Source<T>, public Sink<U>
         }
 
         virtual std::vector<T> process(const std::vector<const U*>& data) const = 0;
-
-    protected:
-        std::size_t blockSize;
 
     private:
         std::vector<const U*> data; // used to remember the address of each input

@@ -8,8 +8,7 @@ class Sink
 {
     public:
         virtual ~Sink() { };
-        virtual std::size_t getBlockSize(unsigned int channel) const = 0;
-        virtual void push(const T* t, std::size_t n, unsigned int channel) = 0;
+        virtual void push(const T* t, unsigned int channel) = 0;
 };
 
 #endif /* end of include guard: SINK_H_FUKZZ1SW */

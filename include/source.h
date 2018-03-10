@@ -20,8 +20,6 @@ class Source
             int counter;
         };
 
-        Source() : buffer(MAX_BLOCK_SIZE) { }
-
         void connect(const std::shared_ptr<Sink<T>>& sink, int channel)
         {
             Connection c;
@@ -40,21 +38,18 @@ class Source
             {
                 c.counter++;
 
-                const std::size_t blockSize = c.sink->getBlockSize(c.channel);
-                if (blockSize > MAX_BLOCK_SIZE) throw std::invalid_argument("Blocksize cannot be bigger than MAX_BLOCK_SIZE");
-
-                if (c.counter == blockSize)
+                if (c.counter == BLOCK_SIZE)
                 {
                     c.counter = 0;
-                    // buffer.data() points to the last MAX_BLOCK_SIZE samples
-                    // the last blockSize samples start at index buffer.data() + MAX_BLOCKS_SIZE - blockSize
-                    c.sink->push(buffer.data() + MAX_BLOCK_SIZE - blockSize, blockSize, c.channel);
+                    c.sink->push(buffer.data(), c.channel);
                 }
             }
         }
 
+        static constexpr std::size_t BLOCK_SIZE = 256;
+        Source() : buffer(BLOCK_SIZE) { }
+
     private:
-        static constexpr std::size_t MAX_BLOCK_SIZE = 256;
         SampleBuffer<T> buffer;
         std::vector<Connection> connections;
 };
