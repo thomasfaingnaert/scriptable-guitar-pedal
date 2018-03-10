@@ -1,10 +1,12 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <iterator>
 
 #include "NE10.h"
 #include "civetweb.h"
 #include "webserver.h"
+#include "samplebuffer.h"
 
 int main(int argc, char *argv[])
 {
@@ -15,12 +17,10 @@ int main(int argc, char *argv[])
     }
 
     mg_init_library(0);
-
     WebServer server(8888);
-
     while (server.isRunning()) ;
-
     mg_exit_library();
+
 
     return EXIT_SUCCESS;
 }

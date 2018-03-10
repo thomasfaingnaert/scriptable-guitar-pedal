@@ -96,7 +96,8 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
         if (filename && *filename)
         {
             // file, so save as tmp file
-            std::string tempPath = std::tmpnam(nullptr);
+            //std::string tempPath = std::tmpnam(nullptr);
+            std::string tempPath = filename;
             snprintf(path, pathlen, tempPath.c_str());
 
             // store path
@@ -169,7 +170,8 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
 
 
     SampleData out({ outputSamples }, input.getSampleRate());
-    std::string outputPath = std::tmpnam(nullptr);
+    //std::string outputPath = std::tmpnam(nullptr);
+    std::string outputPath = "output";
     outputPath += ".wav";
     out.save(outputPath);
 
