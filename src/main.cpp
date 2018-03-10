@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <iterator>
@@ -26,7 +27,6 @@ int main(int argc, char *argv[])
     Source<float> src2;
 
     auto adder = std::make_shared<Adder>();
-    auto out = std::make_shared<StreamSink<float>>(std::cout);
 
     auto data1 = std::make_shared<std::vector<float>>();
     data1->resize(Source<float>::BLOCK_SIZE);
@@ -38,12 +38,15 @@ int main(int argc, char *argv[])
 
     src1.connect(adder, 0);
     src2.connect(adder, 1);
-    adder->connect(out, 0);
-    src1.connect(out, 1);
-    src2.connect(out, 2);
 
-    src1.generate(data1);
-    src2.generate(data2);
+    auto begin = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 60 * 44100 / Source<float>::BLOCK_SIZE; ++i)
+    {
+        src1.generate(data1);
+        src2.generate(data2);
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "took " << std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << " ms\n";
 
     /*
     mg_init_library(0);

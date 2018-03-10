@@ -38,7 +38,7 @@ class Source
             }
         }
 
-        static constexpr std::size_t BLOCK_SIZE = 8;
+        static constexpr std::size_t BLOCK_SIZE = 256;
 
     private:
         std::vector<Connection> connections;
