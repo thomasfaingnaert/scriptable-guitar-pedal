@@ -5,12 +5,14 @@
 #include <string>
 
 #include "NE10.h"
+#include "adder.h"
 #include "civetweb.h"
-#include "webserver.h"
+#include "processor.h"
 #include "samplebuffer.h"
-#include "source.h"
 #include "sink.h"
+#include "source.h"
 #include "streamsink.h"
+#include "webserver.h"
 
 int main(int argc, char *argv[])
 {
@@ -20,15 +22,18 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    Source<int> src;
-    std::shared_ptr<Sink<int>> sink = std::make_shared<StreamSink<int>>(std::cout, 5);
+    Source<float> src1, src2;
+    std::shared_ptr<Adder> adder = std::make_shared<Adder>(3);
+    std::shared_ptr<Sink<float>> output = std::make_shared<StreamSink<float>>(std::cout, 10);
 
-    src.connect(sink, 0);
-    src.connect(sink, 1);
+    src1.connect(adder, 0);
+    src2.connect(adder, 1);
+    adder->connect(output, 0);
 
-    for (int i = 1; i <= 10; ++i)
+    for (int i = 1; i <= 100; ++i)
     {
-        src.generate(i);
+        src1.generate(i);
+        src2.generate(0);
     }
 
     /*

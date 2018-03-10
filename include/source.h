@@ -42,6 +42,7 @@ class Source
 
                 const std::size_t blockSize = c.sink->getBlockSize(c.channel);
                 if (blockSize > MAX_BLOCK_SIZE) throw std::invalid_argument("Blocksize cannot be bigger than MAX_BLOCK_SIZE");
+
                 if (c.counter == blockSize)
                 {
                     c.counter = 0;

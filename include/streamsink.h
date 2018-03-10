@@ -12,8 +12,9 @@ class StreamSink : public Sink<T>
 {
     public:
         StreamSink(std::ostream& os, std::size_t blockSize) : os(os), blockSize(blockSize) { }
-        virtual std::size_t getBlockSize(int channel) const { return blockSize; }
-        virtual void push(const T* t, std::size_t n, int channel) const
+        virtual std::size_t getBlockSize(unsigned int channel) const { return blockSize; }
+        virtual std::size_t getNumChannels() const { return 1; }
+        virtual void push(const T* t, std::size_t n, unsigned int channel)
         {
             os << "channel " << channel << ": ";
             std::copy(t, t+n, std::ostream_iterator<T>(os, " "));
