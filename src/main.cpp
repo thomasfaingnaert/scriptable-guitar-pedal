@@ -33,9 +33,6 @@ int main(int argc, char *argv[])
     for (int i = 1; i <= 100; ++i)
     {
         src1.generate(i);
-    }
-    for (int i = 1; i <= 100; ++i)
-    {
         src2.generate(0);
     }
 
