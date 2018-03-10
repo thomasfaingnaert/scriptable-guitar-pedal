@@ -10,6 +10,7 @@
 #include "samplebuffer.h"
 #include "source.h"
 #include "sink.h"
+#include "streamsink.h"
 
 int main(int argc, char *argv[])
 {
@@ -20,7 +21,7 @@ int main(int argc, char *argv[])
     }
 
     Source<int> src;
-    std::shared_ptr<Sink<int>> sink = std::make_shared<Sink<int>>();
+    std::shared_ptr<Sink<int>> sink = std::make_shared<StreamSink<int>>(std::cout, 5);
 
     src.connect(sink, 0);
     src.connect(sink, 1);
