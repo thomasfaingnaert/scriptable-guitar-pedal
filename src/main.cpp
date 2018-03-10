@@ -9,6 +9,8 @@
 #include "NE10.h"
 #include "adder.h"
 #include "civetweb.h"
+#include "filesink.h"
+#include "filesource.h"
 #include "processor.h"
 #include "sink.h"
 #include "source.h"
@@ -23,30 +25,19 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    Source<float> src1;
-    Source<float> src2;
+    FileSource inputFile("input.wav");
+    auto outputFile = std::make_shared<FileSink>("output.wav");
 
-    auto adder = std::make_shared<Adder>();
-
-    auto data1 = std::make_shared<std::vector<float>>();
-    data1->resize(Source<float>::BLOCK_SIZE);
-    std::iota(data1->begin(), data1->end(), 1);
-
-    auto data2 = std::make_shared<std::vector<float>>();
-    data2->resize(Source<float>::BLOCK_SIZE);
-    std::fill(data2->begin(), data2->end(), 1);
-
-    src1.connect(adder, 0);
-    src2.connect(adder, 1);
+    inputFile.connect(outputFile, 0);
 
     auto begin = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < 60 * 44100 / Source<float>::BLOCK_SIZE; ++i)
-    {
-        src1.generate(data1);
-        src2.generate(data2);
-    }
+
+    while (inputFile.generate_next()) ;
+
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << "took " << std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << " ms\n";
+
+    outputFile->write();
 
     /*
     mg_init_library(0);
