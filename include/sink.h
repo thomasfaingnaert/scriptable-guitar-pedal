@@ -1,3 +1,6 @@
+#include <memory>
+#include <vector>
+
 #include <cstddef>
 
 #ifndef SINK_H_FUKZZ1SW
@@ -8,7 +11,7 @@ class Sink
 {
     public:
         virtual ~Sink() { };
-        virtual void push(const T* t, unsigned int channel) = 0;
+        virtual void push(const std::shared_ptr<std::vector<T>>& t, unsigned int channel) = 0;
 };
 
 #endif /* end of include guard: SINK_H_FUKZZ1SW */

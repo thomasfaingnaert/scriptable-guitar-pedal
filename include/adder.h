@@ -11,7 +11,7 @@ class Adder : public Processor<float, float>
     public:
         Adder()
             : Processor<float, float>(2) { }
-        virtual std::vector<float> process(const std::vector<const float*>& data) const;
+        virtual std::shared_ptr<std::vector<float>> process(const std::vector<std::shared_ptr<std::vector<float>>>& data) const;
 };
 
 #endif /* end of include guard: ADDER_H_AOFQV6G9 */

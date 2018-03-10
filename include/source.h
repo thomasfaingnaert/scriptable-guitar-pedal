@@ -3,7 +3,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include "samplebuffer.h"
 #include "sink.h"
 
 #ifndef SOURCE_H_WUKQSVNX
@@ -16,41 +15,32 @@ class Source
         struct Connection
         {
             std::shared_ptr<Sink<T>> sink;
-            int channel;
-            int counter;
+            unsigned int channel;
         };
 
-        void connect(const std::shared_ptr<Sink<T>>& sink, int channel)
+        void connect(const std::shared_ptr<Sink<T>>& sink, unsigned int channel)
         {
             Connection c;
             c.sink = sink;
             c.channel = channel;
-            c.counter = 0;
             connections.push_back(c);
         }
 
-        void generate(const T& t)
+        void generate(const std::shared_ptr<std::vector<T>>& t)
         {
-            buffer.push_back(t);
+            if (t->size() != BLOCK_SIZE)
+                throw std::invalid_argument("Samples should be BLOCK_SIZE long");
 
             // update all connected sinks
             for (Connection& c : connections)
             {
-                c.counter++;
-
-                if (c.counter == BLOCK_SIZE)
-                {
-                    c.counter = 0;
-                    c.sink->push(buffer.data(), c.channel);
-                }
+                c.sink->push(t, c.channel);
             }
         }
 
-        static constexpr std::size_t BLOCK_SIZE = 256;
-        Source() : buffer(BLOCK_SIZE) { }
+        static constexpr std::size_t BLOCK_SIZE = 8;
 
     private:
-        SampleBuffer<T> buffer;
         std::vector<Connection> connections;
 };
 

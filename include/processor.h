@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <stdexcept>
 #include <vector>
 
 #include "sink.h"
@@ -11,16 +12,16 @@ template<typename T, typename U>
 class Processor : public Source<T>, public Sink<U>
 {
     public:
-        Processor(std::size_t numChannels)
-            : data(numChannels), channelsReceived(0), numChannels(numChannels)
+        Processor(unsigned int numChannels)
+            : data(numChannels), numChannels(numChannels), channelsReceived(0)
         { }
 
-        virtual void push(const U* u, unsigned int channel)
+        virtual void push(const std::shared_ptr<std::vector<U>>& u, unsigned int channel)
         {
             if (channel >= numChannels)
-                return;
+                throw std::invalid_argument("Channel cannot be bigger than numChannels");
 
-            // save pointer
+            // save data
             data[channel] = u;
 
             // one more channel received
@@ -30,20 +31,17 @@ class Processor : public Source<T>, public Sink<U>
             if (channelsReceived == numChannels)
             {
                 channelsReceived = 0;
-                std::vector<T> output = process(data);
-                for (T t : output)
-                {
-                    Source<T>::generate(t);
-                }
+                std::shared_ptr<std::vector<T>> output = process(data);
+                Source<T>::generate(output);
             }
         }
 
-        virtual std::vector<T> process(const std::vector<const U*>& data) const = 0;
+        virtual std::shared_ptr<std::vector<T>> process(const std::vector<std::shared_ptr<std::vector<U>>>& data) const = 0;
 
     private:
-        std::vector<const U*> data; // used to remember the address of each input
-        std::size_t channelsReceived;
-        std::size_t numChannels;
+        std::vector<std::shared_ptr<std::vector<U>>> data;
+        unsigned int numChannels;
+        unsigned int channelsReceived;
 };
 
 #endif /* end of include guard: PROCESSOR_H_DGNQSWPH */

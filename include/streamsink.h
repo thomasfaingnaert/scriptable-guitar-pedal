@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <iterator>
+#include <memory>
 #include <ostream>
+#include <vector>
 
 #include "sink.h"
 #include "source.h"
@@ -13,11 +15,10 @@ class StreamSink : public Sink<T>
 {
     public:
         StreamSink(std::ostream& os) : os(os) { }
-        virtual std::size_t getNumChannels() const { return 1; }
-        virtual void push(const T* t, unsigned int channel)
+        virtual void push(const std::shared_ptr<std::vector<T>>& t, unsigned int channel)
         {
             os << "channel " << channel << ": ";
-            std::copy(t, t + Source<T>::BLOCK_SIZE, std::ostream_iterator<T>(os, " "));
+            std::copy(t->begin(), t->end(), std::ostream_iterator<T>(os, " "));
             os << "\n";
         }
 
