@@ -9,7 +9,7 @@ template<typename T>
 class SampleBuffer
 {
     public:
-        SampleBuffer(size_t size)
+        SampleBuffer(std::size_t size)
             : size(size), index(0)
         {
             // buffer is twice as big as number of elements
