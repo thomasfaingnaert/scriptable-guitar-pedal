@@ -9,6 +9,7 @@
 #include "NE10.h"
 #include "adder.h"
 #include "civetweb.h"
+#include "distortioneffect.h"
 #include "filesink.h"
 #include "filesource.h"
 #include "processor.h"
@@ -30,7 +31,7 @@ int main(int argc, char *argv[])
 
     // Test effects
     FileSource in("input.wav");
-    auto eff = std::make_shared<TremoloEffect>(0.4, 44100 * 0.2);
+    auto eff = std::make_shared<DistortionEffect>(20.0f, 1.0f);
     auto out = std::make_shared<FileSink>("output.wav");
 
     in.connect(eff, 0);
