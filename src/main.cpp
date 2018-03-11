@@ -1,4 +1,5 @@
 #include <chrono>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <iterator>
@@ -32,7 +33,16 @@ int main(int argc, char *argv[])
 
     // Test effects
     FileSource in("input.wav");
-    auto eff = std::make_shared<DelayEffect>(DelayEffect(1.0f, { static_cast<unsigned int>(44100 * 0.2 / in.BLOCK_SIZE) }, { 0.2f }));
+
+    std::vector<unsigned int> delays;
+    std::vector<float> coeffs;
+    for (unsigned int i = 1; i <= 5; ++i)
+    {
+        delays.push_back(i * 44100 * 0.2 / in.BLOCK_SIZE);
+        coeffs.push_back(std::pow(0.8f, i));
+    }
+
+    auto eff = std::make_shared<DelayEffect>(DelayEffect(1.0f, delays, coeffs));
     auto out = std::make_shared<FileSink>("output.wav");
 
     in.connect(eff, 0);
