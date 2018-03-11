@@ -9,6 +9,7 @@
 #include "NE10.h"
 #include "adder.h"
 #include "civetweb.h"
+#include "delayeffect.h"
 #include "distortioneffect.h"
 #include "filesink.h"
 #include "filesource.h"
@@ -31,7 +32,7 @@ int main(int argc, char *argv[])
 
     // Test effects
     FileSource in("input.wav");
-    auto eff = std::make_shared<DistortionEffect>(20.0f, 1.0f);
+    auto eff = std::make_shared<DelayEffect>(DelayEffect(1.0f, { static_cast<unsigned int>(44100 * 0.2 / in.BLOCK_SIZE) }, { 0.2f }));
     auto out = std::make_shared<FileSink>("output.wav");
 
     in.connect(eff, 0);
