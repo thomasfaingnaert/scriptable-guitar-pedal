@@ -16,32 +16,37 @@
 #include "sink.h"
 #include "source.h"
 #include "streamsink.h"
+#include "tremoloeffect.h"
 #include "webserver.h"
 
 int main(int argc, char *argv[])
 {
+    // NE10 Initialisation
     if (ne10_init() != NE10_OK)
     {
         std::cerr << "Could not initialise Ne10." << std::endl;
         return EXIT_FAILURE;
     }
 
-    SineSource src(1.0, 44100 / 440);
-    auto outputFile = std::make_shared<FileSink>("output.wav");
+    // Test effects
+    FileSource in("input.wav");
+    auto eff = std::make_shared<TremoloEffect>(0.4, 44100 * 0.2);
+    auto out = std::make_shared<FileSink>("output.wav");
 
-    src.connect(outputFile, 0);
+    in.connect(eff, 0);
+    eff->connect(out, 0);
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    for (int i = 0; i < 44100 * 30 / src.BLOCK_SIZE; ++i)
-        src.generate_next();
+    while (in.generate_next()) ;
 
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << "took " << std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << " ms\n";
 
-    outputFile->write();
+    out->write();
 
     /*
+    // Start web server
     mg_init_library(0);
     WebServer server(8888);
     while (server.isRunning()) ;

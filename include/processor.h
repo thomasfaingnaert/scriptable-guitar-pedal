@@ -36,7 +36,7 @@ class Processor : public Source<T>, public Sink<U>
             }
         }
 
-        virtual std::shared_ptr<std::vector<T>> process(const std::vector<std::shared_ptr<std::vector<U>>>& data) const = 0;
+        virtual std::shared_ptr<std::vector<T>> process(const std::vector<std::shared_ptr<std::vector<U>>>& data) = 0;
 
     private:
         std::vector<std::shared_ptr<std::vector<U>>> data;
