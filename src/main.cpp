@@ -31,40 +31,33 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    // Test effects
-    FileSource in("input.wav");
-
-    std::vector<unsigned int> delays;
-    std::vector<float> coeffs;
-    for (unsigned int i = 1; i <= 5; ++i)
+    for (int i = 1; i <= 20; ++i)
     {
-        delays.push_back(i * 44100 * 0.2 / in.BLOCK_SIZE);
-        coeffs.push_back(std::pow(0.8f, i));
+        const unsigned int n = std::pow(2, i);
+        long long duration = 0;
+        for (int j = 0; j < 1000; ++j)
+        {
+            std::vector<float> samples(n);
+            std::vector<ne10_fft_cpx_float32_t> output(n);
+
+            ne10_fft_r2c_cfg_float32_t cfg = ne10_fft_alloc_r2c_float32(n);
+
+            for (int i = 0; i < n; ++i)
+            {
+                samples[i] = rand() / RAND_MAX * 1.0f;
+            }
+
+            auto begin = std::chrono::high_resolution_clock::now();
+
+            //while (in.generate_next()) ;
+            ne10_fft_r2c_1d_float32(output.data(), samples.data(), cfg);
+
+            auto end = std::chrono::high_resolution_clock::now();
+            duration += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count();
+        }
+
+        std::cout << n << ": took " << duration / (n * 1000) << " ns/sample\n";
     }
-
-    auto eff = std::make_shared<DelayEffect>(DelayEffect(1.0f, delays, coeffs));
-    auto out = std::make_shared<FileSink>("output.wav");
-
-    in.connect(eff, 0);
-    eff->connect(out, 0);
-
-    auto begin = std::chrono::high_resolution_clock::now();
-
-    while (in.generate_next()) ;
-
-    auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "took " << std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << " ms\n";
-
-    out->write();
-
-    /*
-    // Start web server
-    mg_init_library(0);
-    WebServer server(8888);
-    while (server.isRunning()) ;
-    mg_exit_library();
-    */
-
 
     return EXIT_SUCCESS;
 }
