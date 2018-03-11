@@ -10,6 +10,7 @@
 #include "NE10.h"
 #include "adder.h"
 #include "civetweb.h"
+#include "convolver.h"
 #include "delayeffect.h"
 #include "distortioneffect.h"
 #include "filesink.h"
@@ -31,40 +32,23 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    // Test effects
-    FileSource in("input.wav");
-
-    std::vector<unsigned int> delays;
-    std::vector<float> coeffs;
-    for (unsigned int i = 1; i <= 5; ++i)
-    {
-        delays.push_back(i * 44100 * 0.2 / in.BLOCK_SIZE);
-        coeffs.push_back(std::pow(0.8f, i));
-    }
-
-    auto eff = std::make_shared<DelayEffect>(DelayEffect(1.0f, delays, coeffs));
-    auto out = std::make_shared<FileSink>("output.wav");
-
-    in.connect(eff, 0);
-    eff->connect(out, 0);
+    /* Test convolver */
+    unsigned int blockSize = 256;
+    std::vector<float> impulse(256);
+    std::iota(impulse.begin(), impulse.end(), 0);
+    Convolver conv(impulse, blockSize);
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    while (in.generate_next()) ;
+    for (int i = 0; i < 10000; ++i)
+    {
+        auto block = std::make_shared<std::vector<float>>(blockSize);
+        std::iota(block->begin(), block->end(), 1 + blockSize * i);
+        auto result = conv.process(block);
+    }
 
     auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "took " << std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << " ms\n";
-
-    out->write();
-
-    /*
-    // Start web server
-    mg_init_library(0);
-    WebServer server(8888);
-    while (server.isRunning()) ;
-    mg_exit_library();
-    */
-
+    std::cout << "took " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << " us\n";
 
     return EXIT_SUCCESS;
 }
