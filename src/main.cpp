@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     }
 
     /* Test convolver */
-    unsigned int blockSize = 4096;
+    unsigned int blockSize = 256;
     std::vector<float> impulse(blockSize);
     std::iota(impulse.begin(), impulse.end(), 1);
     Convolver conv(impulse, blockSize);
