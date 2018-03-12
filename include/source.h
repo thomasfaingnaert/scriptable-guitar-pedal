@@ -44,4 +44,8 @@ class Source
         std::vector<Connection> connections;
 };
 
+template<typename T>
+constexpr std::size_t Source<T>::BLOCK_SIZE;
+
+
 #endif /* end of include guard: SOURCE_H_WUKQSVNX */
