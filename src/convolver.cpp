@@ -33,15 +33,18 @@ std::shared_ptr<std::vector<float>> Convolver::process(const std::shared_ptr<std
     if (block->size() != blockSize)
         throw std::invalid_argument("Block must have blockSize elements");
 
-    std::vector<float> inputSegment(blockSize + overlap);
+    std::vector<float> inputSegment(period);
     std::copy_n(lastBlock->begin() + blockSize - overlap, overlap, inputSegment.begin());
     std::copy(block->begin(), block->end(), inputSegment.begin() + overlap);
 
-    std::vector<Complex> inputFourier = fft(inputSegment, period, config);
+    std::vector<Complex> inputFourier(period / 2 + 1);
+    ne10_fft_r2c_1d_float32(inputFourier.data(), inputSegment.data(), config);
 
     std::vector<Complex> outputFourier = multiplyComplex(inputFourier, frequencyResponse);
 
-    std::vector<float> output = ifft(outputFourier, period, config);
+    std::vector<float> output(period);
+    ne10_fft_c2r_1d_float32(output.data(), outputFourier.data(), config);
+
     lastBlock = block;
     return std::make_shared<std::vector<float>>(output.begin() + overlap, output.begin() + overlap + blockSize);
 }

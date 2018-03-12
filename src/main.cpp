@@ -33,10 +33,12 @@ int main(int argc, char *argv[])
     }
 
     /* Test convolver */
-    unsigned int blockSize = 256;
-    std::vector<float> impulse(256);
-    std::iota(impulse.begin(), impulse.end(), 0);
+    unsigned int blockSize = 4096;
+    std::vector<float> impulse(blockSize);
+    std::iota(impulse.begin(), impulse.end(), 1);
     Convolver conv(impulse, blockSize);
+
+    std::cout << "Block size: " << blockSize << std::endl;
 
     auto begin = std::chrono::high_resolution_clock::now();
 
@@ -45,6 +47,8 @@ int main(int argc, char *argv[])
         auto block = std::make_shared<std::vector<float>>(blockSize);
         std::iota(block->begin(), block->end(), 1 + blockSize * i);
         auto result = conv.process(block);
+
+        //std::copy(result->begin(), result->end(), std::ostream_iterator<float>(std::cout, " "));
     }
 
     auto end = std::chrono::high_resolution_clock::now();
