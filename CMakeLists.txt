@@ -7,6 +7,6 @@ find_package(CivetWeb REQUIRED)
 find_package(LibSndFile REQUIRED)
 find_package(LibI2C REQUIRED)
 
-add_executable(scriptable-guitar-pedal src/main.cpp src/sampledata.cpp src/filtereffect.cpp src/dspmath.cpp src/webserver.cpp src/codec.cpp)
+add_executable(scriptable-guitar-pedal src/main.cpp src/sampledata.cpp src/filtereffect.cpp src/dspmath.cpp src/webserver.cpp src/i2cdevice.cpp src/codec.cpp)
 target_link_libraries(scriptable-guitar-pedal ${NE10_LIBRARIES} ${CIVETWEB_LIBRARIES} ${LIBSNDFILE_LIBRARIES} ${LIBI2C_LIBRARIES})
 include_directories("${CMAKE_SOURCE_DIR}/include" ${NE10_INCLUDE_DIRS} ${CIVETWEB_INCLUDE_DIRS} ${LIBSNDFILE_INCLUDE_DIRS} ${LIBI2C_INCLUDE_DIRS})

@@ -11,15 +11,13 @@ public:
 
     virtual ~I2CDevice();
 
-    void writeRegister(uint16_t registerAddress, uint8_t *sendBuffer, uint16_t sendBufferSize) const;
-
-    void readRegister(uint8_t registerAddress, uint8_t *receiveBuffer, uint16_t receiveBufferSize) const;
+    void writeRegister(uint8_t registerAddress, uint8_t value) const;
 private:
     int file;
 
     unsigned long functionality;
 
-    uint16_t deviceAddress;
+    const uint16_t deviceAddress;
 };
 
 #endif

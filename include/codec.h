@@ -3,7 +3,8 @@
 
 #include "i2cdevice.h"
 
-class Codec {
+class Codec
+{
 
 };
 
