@@ -89,3 +89,15 @@ uint8_t I2CDevice::readRegister(uint8_t registerAddress) const
 
     return receiveBuffer[0];
 }
+
+void I2CDevice::updateRegister(uint8_t registerAddress, uint8_t mask, uint8_t value) const
+{
+    uint8_t currentValue = readRegister(registerAddress);
+
+    uint8_t nextValue = (currentValue & ~mask) | (value & mask);
+
+    if (nextValue != currentValue)
+    {
+        writeRegister(registerAddress, nextValue);
+    }
+}
