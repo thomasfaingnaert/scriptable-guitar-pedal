@@ -32,24 +32,10 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    /* Test convolver */
-    std::vector<float> impulse(Source<float>::BLOCK_SIZE);
-    std::iota(impulse.begin(), impulse.end(), 1);
-    Convolver conv(impulse);
+    std::vector<float> impulseResponse(256);
+    std::iota(impulseResponse.begin(), impulseResponse.end(), 1);
 
-    std::cout << "Block size: " << Source<float>::BLOCK_SIZE << "\n";
-
-    auto begin = std::chrono::high_resolution_clock::now();
-
-    for (int i = 0; i < 10000; ++i)
-    {
-        auto block = std::make_shared<std::vector<float>>(Source<float>::BLOCK_SIZE);
-        std::iota(block->begin(), block->end(), 1 + Source<float>::BLOCK_SIZE * i);
-        auto result = conv.process({ block });
-    }
-
-    auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "took " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << " us\n";
+    Convolver conv(impulseResponse);
 
     return EXIT_SUCCESS;
 }
