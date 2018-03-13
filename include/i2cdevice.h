@@ -3,7 +3,6 @@
 
 #include <cstdint>
 
-
 class I2CDevice
 {
 public:
@@ -12,6 +11,8 @@ public:
     virtual ~I2CDevice();
 
     void writeRegister(uint8_t registerAddress, uint8_t value) const;
+
+    uint8_t readRegister(uint8_t registerAddress) const;
 private:
     int file;
 
