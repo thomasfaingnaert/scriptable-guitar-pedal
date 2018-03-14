@@ -9,6 +9,7 @@
 
 #include "NE10.h"
 #include "adder.h"
+#include "blockbuffer.h"
 #include "civetweb.h"
 #include "convolver.h"
 #include "delayeffect.h"
@@ -31,11 +32,6 @@ int main(int argc, char *argv[])
         std::cerr << "Could not initialise Ne10." << std::endl;
         return EXIT_FAILURE;
     }
-
-    std::vector<float> impulseResponse(256);
-    std::iota(impulseResponse.begin(), impulseResponse.end(), 1);
-
-    Convolver conv(impulseResponse);
 
     return EXIT_SUCCESS;
 }
