@@ -4,6 +4,7 @@
 
 #include "NE10.h"
 #include "civetweb.h"
+#include "codec.h"
 #include "webserver.h"
 
 int main(int argc, char *argv[])

@@ -10,11 +10,13 @@ public:
 
     virtual ~I2CDevice();
 
+protected:
     void writeRegister(uint8_t registerAddress, uint8_t value) const;
 
     uint8_t readRegister(uint8_t registerAddress) const;
 
     void updateRegister(uint8_t registerAddress, uint8_t mask, uint8_t value) const;
+
 private:
     int file;
 
