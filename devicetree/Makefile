@@ -9,4 +9,3 @@ clean:
 install:
 	cp beaglebone-black-codec-alsa.dtbo /lib/firmware/
 	cp beaglebone-black-codec-direct.dtbo /lib/firmware/
-
