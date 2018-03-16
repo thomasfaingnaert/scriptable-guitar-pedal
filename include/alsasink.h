@@ -1,0 +1,9 @@
+#ifndef SCRIPTABLE_GUITAR_PEDAL_ALSASINK_H
+#define SCRIPTABLE_GUITAR_PEDAL_ALSASINK_H
+
+class AlsaSink
+{
+
+};
+
+#endif

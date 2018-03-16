@@ -1,0 +1,9 @@
+#ifndef SCRIPTABLE_GUITAR_PEDAL_ALSASOURCE_H
+#define SCRIPTABLE_GUITAR_PEDAL_ALSASOURCE_H
+
+class AlsaSource
+{
+
+};
+
+#endif
