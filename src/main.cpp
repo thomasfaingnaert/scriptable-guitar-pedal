@@ -11,6 +11,7 @@
 #include "adder.h"
 #include "blockbuffer.h"
 #include "civetweb.h"
+#include "codec.h"
 #include "convolver.h"
 #include "delayeffect.h"
 #include "distortioneffect.h"
