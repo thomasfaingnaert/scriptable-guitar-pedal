@@ -9,7 +9,7 @@ classdef tremolo
             
             % construct sinewave vector
             t = (1:size(x,1))' ./ Fs;
-            sw = depth * sin(2*pi*t / rate) + 1;
+            sw = depth * sin(2*pi*t / rate) + (1 - depth);
             
             % calculate output
             y = sw .* x;

@@ -1,0 +1,12 @@
+dist: trusty
+sudo: false
+language: cpp
+
+addons:
+    apt:
+        packages:
+            - g++-arm-linux-gnueabihf
+
+script:
+    - cmake -DCMAKE_TOOLCHAIN_FILE="cmake/Toolchain.cmake" .
+    - cmake --build .

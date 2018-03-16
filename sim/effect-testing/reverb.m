@@ -29,9 +29,7 @@ classdef reverb
             y3 = c1 - c2 + c3 + c4;
             y4 = -y3;
             
-            x(maxL,:) = 0;
-            
-            y = x + volume * y1;
+            y = volume * y1;
         end
         
         function y = makeOutputSamples2(x, Fs, room_size, volume)
