@@ -1,4 +1,5 @@
 # A scriptable guitar pedal
+[![Build Status](https://travis-ci.org/thomasfaingnaert/scriptable-guitar-pedal.svg?branch=master)](https://travis-ci.org/thomasfaingnaert/scriptable-guitar-pedal)
 ## Building
 ### GNU/Linux (native compilation)
 The following instructions are for Debian-based distributions.
