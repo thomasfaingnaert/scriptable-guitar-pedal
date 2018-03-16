@@ -3,8 +3,6 @@ delayT = 0.2; % In seconds
 decay = 0.8;
 amount = 4; % only for formula 2
 
-formula = 2;
-
 if exist('formula', 'var') ~= 1
     disp('Please create a variable ''formula'' in the current workspace, set it to 1 or 2 and run this script again.');
     return;
