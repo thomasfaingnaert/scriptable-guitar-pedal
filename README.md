@@ -68,6 +68,38 @@ cmake -DCMAKE_TOOLCHAIN_FILE="../scriptable-guitar-pedal/cmake/Toolchain.cmake" 
 make
 ```
 
+## Building the ASoC codec driver
+
+### GNU/Linux - Fedora (cross compilation)
+These instructions are for Fedora based distributions.
+Change the commands according to the distribution you are using.
+
+1. Clone the official BeagleBoard and BeagleBone kernel repository and checkout the version the BeagleBone is running.
+```bash
+git clone https://github.com/beagleboard/linux
+cd linux
+git checkout 4.9.82-ti-r102
+```
+
+2. Make sure you have no stale .o files and dependencies lying around.
+```bash
+make mrproper
+``` 
+
+3. Modularize the ASoC codec driver.
+```bash
+mkdir ../build
+make O=../build ARCH=arm bb.org_defconfig
+make O=../build ARCH=arm menuconfig
+```
+Navigate to `Device Drivers/Sound Card Support/Advanced Linux Sound Architecture/ALSA for SoC audio support/CODEC drivers`
+and modularize Cirrus Logic CS4271 CODEC (I2C).
+
+4. Compile the kernel modules.
+```bash
+make O=../build ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- modules
+```
+
 ## Transferring to BeagleBone Black
 To transfer the executable to your BeagleBone Black, you can use SSH, e.g. using PSCP (PuTTY Secure Copy) on Windows or SCP (Secure Copy) on GNU/Linux:
 1. Copy the executable on your computer to the BeagleBone Black:
