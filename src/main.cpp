@@ -24,6 +24,7 @@
 #include "streamsink.h"
 #include "tremoloeffect.h"
 #include "webserver.h"
+#include "../include/webserver.h"
 
 int main(int argc, char *argv[])
 {
@@ -33,6 +34,10 @@ int main(int argc, char *argv[])
         std::cerr << "Could not initialise Ne10." << std::endl;
         return EXIT_FAILURE;
     }
+
+    WebServer server(8888);
+
+    while (server.isRunning());
 
     return EXIT_SUCCESS;
 }

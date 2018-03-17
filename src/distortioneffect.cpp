@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "distortioneffect.h"
+#include "../include/distortioneffect.h"
 
 DistortionEffect::DistortionEffect(float steepness, float mix)
     : DistortionEffect(steepness, steepness, mix, mix)
@@ -33,3 +34,27 @@ std::shared_ptr<std::vector<float>> DistortionEffect::process(const std::vector<
     return result;
 }
 
+void DistortionEffect::setPositiveGain(float positiveSteepness)
+{
+    DistortionEffect::positiveSteepness = positiveSteepness;
+}
+
+void DistortionEffect::setNegativeGain(float negativeSteepness)
+{
+    DistortionEffect::negativeSteepness = negativeSteepness;
+}
+
+void DistortionEffect::setPositiveMix(float positiveMix)
+{
+    DistortionEffect::positiveMix = positiveMix;
+}
+
+void DistortionEffect::setNegativeMix(float negativeMix)
+{
+    DistortionEffect::negativeMix = negativeMix;
+}
+
+void DistortionEffect::setNoiseTreshold(float noiseTreshold)
+{
+    DistortionEffect::noiseTreshold = noiseTreshold;
+}
