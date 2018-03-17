@@ -95,9 +95,9 @@ make O=../build ARCH=arm menuconfig
 Navigate to `Device Drivers/Sound Card Support/Advanced Linux Sound Architecture/ALSA for SoC audio support/CODEC drivers`
 and modularize Cirrus Logic CS4271 CODEC (I2C).
 
-4. Compile the kernel modules:
+4. Compile the kernel:
 ```bash
-make O=../build ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- modules
+make O=../build ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
 ```
 
 5. Copy the modules on your to the BeagleBone Black:
