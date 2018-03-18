@@ -60,14 +60,14 @@
             #address-cells = <1>;
             #size-cells = <0>;
 
-			status = "okay";
+            status = "okay";
 
-			clock-frequency = <100000>;
+            clock-frequency = <100000>;
 
-			pinctrl-names = "default";
-			pinctrl-0 = <&codec_i2c1_pins>;
+            pinctrl-names = "default";
+            pinctrl-0 = <&codec_i2c1_pins>;
 
-            beaglebone_black_codec: cs4271@10 {
+            codec_cs4271: cs4271@10 {
                 compatible = "cirrus,cs4271";
 
                 /*
@@ -183,7 +183,7 @@
                 simple-audio-card,bitclock-master = <&dailink0_master>;
 
                 dailink0_master: simple-audio-card,codec {
-                    sound-dai = <&beaglebone_black_codec>;
+                    sound-dai = <&codec_cs4271>;
 
                     system-clock-frequency = <24576000>;
                 };
