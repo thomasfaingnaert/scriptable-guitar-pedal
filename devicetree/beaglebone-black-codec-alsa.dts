@@ -2,7 +2,7 @@
 /plugin/; /* Allow undefined label references and record them */
 
 / {
-    compatible = "ti,beaglebone-black";
+    compatible = "ti,beaglebone", "ti,beaglebone-black";
 
     /* Identification */
     part-number = "beaglebone-black-codec-alsa";
@@ -10,6 +10,11 @@
 
     /* State the resources this cape uses */
     exclusive-use =
+        "gpio1_18",
+        "P9.14", /* cs4272_not_rst */
+        "i2c1",
+        "P9.17", /* i2c1_scl */
+        "P9.18", /* i2c1_sda */
         "mcasp0",
         "P9.25", /* mcasp0_ahclkx */
         "P9.28", /* mcasp0_axr2 */
@@ -22,7 +27,20 @@
         target = <&am33xx_pinmux>;
 
         __overlay__ {
-            beaglebone_black_codec_pins: pinmux_beaglebone_black_codec_pins {
+            codec_gpio_pins: pinmux_codec_gpio_pins {
+                pinctrl-single,pins = <
+                    0x048 0x37 /* cs4272_not_rst: output, pull up, mode 7 */
+                >;
+            };
+
+            codec_i2c1_pins: pinmux_codec_i2c1_pins {
+                pinctrl-single,pins = <
+                    0x158 0x72 /* i2c1_sda: slew control slow, input, pull up, mode 2 */
+                    0x15c 0x72 /* i2c1_scl: slew control slow, input, pull up, mode 2 */
+                >;
+            };
+
+            codec_mcasp0_pins: pinmux_codec_mcasp0_pins {
                 pinctrl-single,pins = <
                     0x190 0x20 /* mcasp0_aclkx:  output, pull down, mode 0 */
                     0x194 0x30 /* mcasp0_fsx:    output, pull up,   mode 0 */
@@ -36,9 +54,19 @@
 
     /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/i2c/i2c.txt */
     fragment@1 {
-        target = <&i2c2>;
+        target = <&i2c1>;
 
         __overlay__ {
+            #address-cells = <1>;
+            #size-cells = <0>;
+
+			status = "okay";
+
+			clock-frequency = <100000>;
+
+			pinctrl-names = "default";
+			pinctrl-0 = <&codec_i2c1_pins>;
+
             beaglebone_black_codec: cs4271@10 {
                 compatible = "cirrus,cs4271";
 
@@ -46,6 +74,11 @@
                     The I2C address.
                 */
                 reg = <0x10>;
+
+                /*
+                    A GPIO spec to define which pin is connected to the chip's !RESET pin
+                */
+                reset-gpio = <&gpio1 18 0>;
 
                 #sound-dai-cells = <0>;
             };
@@ -57,10 +90,10 @@
         target = <&mcasp0>;
 
         __overlay__ {
-            pinctrl-names = "default";
-            pinctrl-0 = <&beaglebone_black_codec_pins>;
-
             status = "okay";
+
+            pinctrl-names = "default";
+            pinctrl-0 = <&codec_mcasp0_pins>;
 
             /*
                 I2S/DIT ops mode. 0 for I2S mode. 1 for DIT mode used for S/PDIF,
@@ -149,11 +182,13 @@
                 */
                 simple-audio-card,bitclock-master = <&dailink0_master>;
 
-                dailink0_master: simple-audio-card,cpu {
+                dailink0_master: simple-audio-card,codec {
                     sound-dai = <&beaglebone_black_codec>;
+
+                    system-clock-frequency = <24576000>;
                 };
 
-                dailink0_slave: simple-audio-card,codec {
+                dailink0_slave: simple-audio-card,cpu {
                     sound-dai = <&mcasp0>;
                 };
             };
