@@ -11,7 +11,7 @@
     /* State the resources this cape uses */
     exclusive-use =
         "gpio1_18",
-        "P9.14", /* cs4272_not_rst */
+        "P9.14", /* cs4271_not_rst */
         "i2c1",
         "P9.17", /* i2c1_scl */
         "P9.18", /* i2c1_sda */
@@ -29,7 +29,7 @@
         __overlay__ {
             codec_gpio_pins: pinmux_codec_gpio_pins {
                 pinctrl-single,pins = <
-                    0x048 0x37 /* cs4272_not_rst: output, pull up, mode 7 */
+                    0x048 0x37 /* cs4271_not_rst: output, pull up, mode 7 */
                 >;
             };
 
