@@ -24,7 +24,6 @@
 #include "streamsink.h"
 #include "tremoloeffect.h"
 #include "webserver.h"
-#include "../include/webserver.h"
 
 int main(int argc, char *argv[])
 {
@@ -36,6 +35,8 @@ int main(int argc, char *argv[])
     }
 
     WebServer server(8888);
+
+    std::cout << "Server running" << std::endl;
 
     while (server.isRunning());
 

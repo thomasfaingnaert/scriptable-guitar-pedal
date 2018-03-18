@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -12,10 +13,12 @@
 #include "filtereffect.h"
 #include "sampledata.h"
 #include "webserver.h"
-#include "../include/webserver.h"
+#include "civetweb.h"
+#include "distortioneffect.h"
 #include "../include/civetweb/civetweb.h"
-#include "../include/sampledata.h"
-#include "../include/distortioneffect.h"
+
+
+#define DEBUG
 
 WebServer::WebServer(unsigned int port)
 {
@@ -189,7 +192,7 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
 
 int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
 {
-    mg_form_data_handler fdh = {};
+    mg_form_data_handler fdh = {0};
 
     struct vars_t
     {
@@ -199,31 +202,29 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
         float gain2;
         float mix;
         float mix2;
+        float threshold;
     } vars;
 
     fdh.user_data = &vars;
 
-    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
+    fdh.field_found = [](const char *key, const char *value, char *path, size_t pathlen, void *user_data) -> int
     {
+        vars_t *vars = static_cast<vars_t *>(user_data);
         // check if field is a file
-        if (filename && *filename)
+        if (value && *value)
         {
             // file, so save as tmp file
             //std::string tempPath = std::tmpnam(nullptr);
-            std::string tempPath = filename;
+            std::string tempPath = value;
             snprintf(path, pathlen, tempPath.c_str());
 
             // store path
-            vars_t *vars = static_cast<vars_t *>(user_data);
             if (std::string(key) == "input")
             {
                 vars->inputPath = tempPath;
             }
-
             return MG_FORM_FIELD_STORAGE_STORE;
         }
-
-        // not a file
         return MG_FORM_FIELD_STORAGE_GET;
     };
 
@@ -235,35 +236,41 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
     fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
     {
         std::string name = std::string(key);
-
         vars_t *vars = static_cast<vars_t *>(user_data);
+
+        std::string res = std::string(value);
+
+        res = res.substr(0, res.find('\r'));
 
         if (name == "type")
         {
-            vars->type = std::string(value);
+            vars->type = res;
         }
         else if (name == "gain")
         {
-            vars->gain1 = (float) atof(value);
+            vars->gain1 = std::stof(res, nullptr);
         }
         else if (name == "gain2")
         {
-            vars->gain2 = (float) atof(value);
+            vars->gain2 = std::stof(res, nullptr);
         }
         else if (name == "mix")
         {
-            vars->mix = (float) atof(value);
+            vars->mix = std::stof(res, nullptr);
         }
         else if (name == "mix2")
         {
-            vars->mix2 = (float) atof(value);
+            vars->mix2 = std::stof(res, nullptr);
+        }
+        else if (name == "threshold")
+        {
+            vars->threshold = std::stof(res, nullptr);
         }
 
         return MG_FORM_FIELD_STORAGE_GET;
     };
 
-    if (mg_handle_form_request(connection, &fdh
-    ) <= 0)
+    if (mg_handle_form_request(connection, &fdh) <= 0)
     {
         throw std::runtime_error("Error handling form request.");
     }
@@ -273,23 +280,41 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
     std::vector <Sample> inputSamples = input.getSamples()[0];
     std::vector <Sample> outputSamples;
 
+#ifdef DEBUG
+    std::cout << "line 285" << std::endl;
+#endif
+
     DistortionEffect dist(vars.gain1, vars.mix);
+    dist.setNoiseTreshold(vars.threshold);
     if (vars.type == "Asymmetric")
     {
         dist.setNegativeGain(vars.gain2);
         dist.setNegativeMix(vars.mix2);
     }
 
-    auto in = std::make_shared < std::vector < float > > (inputSamples);
-    std::vector < std::shared_ptr < std::vector < float > > > vec;
+    std::cout << vars.inputPath << ", " << vars.type << ", " << vars.gain1 << ", " << vars.gain2 << ", " << vars.mix
+              << ", " << vars.mix2 << ", " << vars.threshold << std::endl;
+#ifdef DEBUG
+    std::cout << "line 296" << std::endl;
+#endif
+    std::shared_ptr <std::vector<float>> in = std::make_shared < std::vector < float >> (inputSamples);
+    std::vector < std::shared_ptr < std::vector < float >> > vec;
     vec.push_back(in);
     outputSamples = *dist.process(vec);
+
+#ifdef DEBUG
+    std::cout << "line 304" << std::endl;
+#endif
 
     SampleData out({outputSamples}, input.getSampleRate());
     //std::string outputPath = std::tmpnam(nullptr);
     std::string outputPath = "output";
     outputPath += ".wav";
     out.save(outputPath);
+
+#ifdef DEBUG
+    std::cout << "line 312" << std::endl;
+#endif
 
     mg_send_file(connection, outputPath.c_str());
 
