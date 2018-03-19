@@ -159,10 +159,12 @@
                     the second being the connection's source.
                 */
                 simple-audio-card,routing =
-                    "AINL", "Line In Jack",
-                    "AINR", "Line In Jack",
-                    "Line Out Jack", "AOUTL",
-                    "Line Out Jack", "AOUTR";
+                    "AINA", "Line In Jack",
+                    "AINB", "Line In Jack",
+                    "Line Out Jack", "AOUTA+",
+                    "Line Out Jack", "AOUTA-",
+                    "Line Out Jack", "AOUTB+",
+                    "Line Out Jack", "AOUTB-";
 
                 /*
                     CPU/CODEC common audio format.
