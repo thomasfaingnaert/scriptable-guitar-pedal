@@ -6,16 +6,18 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 
+#include "civetweb.h"
+#include "distortioneffect.h"
+#include "filesink.h"
+#include "filesource.h"
 #include "filtereffect.h"
 #include "sampledata.h"
 #include "webserver.h"
-#include "civetweb.h"
-#include "distortioneffect.h"
-#include "../include/civetweb/civetweb.h"
 
 
 #define DEBUG
@@ -198,7 +200,7 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
     {
         std::string inputPath;
         std::string type;
-        float gain1;
+        float gain;
         float gain2;
         float mix;
         float mix2;
@@ -248,7 +250,7 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
         }
         else if (name == "gain")
         {
-            vars->gain1 = std::stof(res, nullptr);
+            vars->gain = std::stof(res, nullptr);
         }
         else if (name == "gain2")
         {
@@ -275,50 +277,28 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
         throw std::runtime_error("Error handling form request.");
     }
 
-    SampleData input(vars.inputPath);
-
-    std::vector <Sample> inputSamples = input.getSamples()[0];
-    std::vector <Sample> outputSamples;
-
-#ifdef DEBUG
-    std::cout << "line 285" << std::endl;
-#endif
-
-    DistortionEffect dist(vars.gain1, vars.mix);
-    dist.setNoiseTreshold(vars.threshold);
-    if (vars.type == "Asymmetric")
+    if (vars.type == "Symmetric")
     {
-        dist.setNegativeGain(vars.gain2);
-        dist.setNegativeMix(vars.mix2);
+        vars.gain2 = vars.gain;
+        vars.mix2 = vars.mix;
     }
 
-    std::cout << vars.inputPath << ", " << vars.type << ", " << vars.gain1 << ", " << vars.gain2 << ", " << vars.mix
-              << ", " << vars.mix2 << ", " << vars.threshold << std::endl;
-#ifdef DEBUG
-    std::cout << "line 296" << std::endl;
-#endif
-    std::shared_ptr <std::vector<float>> in = std::make_shared < std::vector < float >> (inputSamples);
-    std::vector < std::shared_ptr < std::vector < float >> > vec;
-    vec.push_back(in);
-    outputSamples = *dist.process(vec);
+    const std::string outputFileName = "output.wav";
 
-#ifdef DEBUG
-    std::cout << "line 304" << std::endl;
-#endif
+    FileSource src(vars.inputPath);
 
-    SampleData out({outputSamples}, input.getSampleRate());
-    //std::string outputPath = std::tmpnam(nullptr);
-    std::string outputPath = "output";
-    outputPath += ".wav";
-    out.save(outputPath);
+    auto dist = std::make_shared<DistortionEffect>(vars.gain, vars.gain2, vars.mix, vars.mix2, vars.threshold);
+    auto sink = std::make_shared<FileSink>(outputFileName);
 
-#ifdef DEBUG
-    std::cout << "line 312" << std::endl;
-#endif
+    src.connect(dist, 0);
+    dist->connect(sink, 0);
 
-    mg_send_file(connection, outputPath.c_str());
+    while (src.generate_next());
+
+    sink->write();
+
+    mg_send_file(connection, outputFileName.c_str());
 
     return 200;
-
 }
 

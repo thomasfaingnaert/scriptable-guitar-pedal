@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 
 #include "distortioneffect.h"
-#include "../include/distortioneffect.h"
 
 DistortionEffect::DistortionEffect(float steepness, float mix)
     : DistortionEffect(steepness, steepness, mix, mix)
@@ -22,6 +22,7 @@ DistortionEffect::DistortionEffect(float positiveSteepness, float negativeSteepn
 std::shared_ptr<std::vector<float>> DistortionEffect::process(const std::vector<std::shared_ptr<std::vector<float>>>& data)
 {
     auto result = std::make_shared<std::vector<float>>(BLOCK_SIZE);
+
     std::transform(data[0]->begin(), data[0]->end(), result->begin(), [this] (float x)
             {
                 if (x < -noiseTreshold)
