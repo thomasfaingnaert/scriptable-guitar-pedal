@@ -254,11 +254,11 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
         }
         else if (name == "gain")
         {
-            vars->gain = std::stof(res, nullptr);
+            vars->gain = std::stof(res, nullptr) * 2;
         }
         else if (name == "gain2")
         {
-            vars->gain2 = std::stof(res, nullptr);
+            vars->gain2 = std::stof(res, nullptr) * 2;
         }
         else if (name == "mix")
         {
