@@ -16,7 +16,7 @@ class DelayEffect : public Processor<float, float>
 
     private:
         float mainCoeff;
-        std::vector<unsigned int> delays;
+        std::vector<unsigned int> delays; // in blocks!
         std::vector<float> coeffs;
         std::deque<std::shared_ptr<std::vector<float>>> buffer;
 };
