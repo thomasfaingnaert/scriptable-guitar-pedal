@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Tremolo</title>
+    </head>
+    <body>
+        <form action="/tremolo/submit" method="post" accept-charset="utf-8" enctype="multipart/form-data">
+            <p>
+                Input:<br/>
+                <input type="file" name="input"/>
+            </p>
+            <p>
+                Depth:<br/>
+                0.05
+                <input type="range" name="depth" min="0.05" max="0.95" step="any"/>
+                0.95
+            </p>
+            <p>
+                Rate:<br/>
+                0.5 Hz
+                <input type="range" name="rate" min="0.5" max="10" step="any"/>
+                10 Hz
+            </p>
+            <p>
+                <input type="submit" value="Process"/>
+            </p>
+        </form>
+    </body>
+</html>
