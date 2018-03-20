@@ -1,24 +1,42 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width" />
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width"/>
         <title>Convolution Effect</title>
+
+        <link rel="stylesheet" type="text/css" href="assets/styles.css"/>
     </head>
     <body>
-        <form action="/conv/submit" method="post" accept-charset="utf-8" enctype="multipart/form-data">
-            <p>
-                Input:<br />
-                <input type="file" name="input" />
-            </p>
-            <p>
-                Impulse Response:<br />
-                <input type="file" name="impulse-response" />
-            </p>
-            <p>
-                <input type="submit" value="Process" />
-            </p>
-        </form>
-        <p><a href="/">Back</a></p>
+        <header>
+            <nav>
+                <div id="menu">
+                    <ul>
+                        <li><a href="/index.html">Home</a></li>
+                        <li><a href="">Convolution Effect</a></li>
+                        <li><a href="/dist.html">Distortion Effect</a></li>
+                        <li><a href="/delay.html">Delay Effect</a></li>
+                        <li><a href="/tremolo.html">Tremolo Effect</a></li>
+                        <li><a href="/exit">Exit</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+        <div class="container">
+            <h1>Convolution</h1>
+            <form action="/conv/submit" method="post" accept-charset="utf-8" enctype="multipart/form-data">
+                <p>
+                    Input:<br/>
+                    <input type="file" name="input"/>
+                </p>
+                <p>
+                    Impulse Response:<br/>
+                    <input type="file" name="impulse-response"/>
+                </p>
+                <p>
+                    <input type="submit" value="Process"/>
+                </p>
+            </form>
+        </div>
     </body>
 </html>

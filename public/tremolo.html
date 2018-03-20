@@ -3,30 +3,47 @@
     <head>
         <meta charset="UTF-8">
         <title>Tremolo</title>
+
+        <link rel="stylesheet" type="text/css" href="assets/styles.css"/>
     </head>
     <body>
-        <form action="/tremolo/submit" method="post" accept-charset="utf-8" enctype="multipart/form-data">
-            <p>
-                Input:<br/>
-                <input type="file" name="input"/>
-            </p>
-            <p>
-                Depth:<br/>
-                0.05
-                <input type="range" name="depth" min="0.05" max="0.95" step="any"/>
-                0.95
-            </p>
-            <p>
-                Rate:<br/>
-                0.5 Hz
-                <input type="range" name="rate" min="0.5" max="10" step="any"/>
-                10 Hz
-            </p>
-            <p>
-                <input type="submit" value="Process"/>
-            </p>
-        </form>
-
-        <a href="index.html">Back</a>
+        <header>
+            <nav>
+                <div id="menu">
+                    <ul>
+                        <li><a href="/index.html">Home</a></li>
+                        <li><a href="/conv.html">Convolution Effect</a></li>
+                        <li><a href="/dist.html">Distortion Effect</a></li>
+                        <li><a href="/delay.html">Delay Effect</a></li>
+                        <li><a href="">Tremolo Effect</a></li>
+                        <li><a href="/exit">Exit</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+        <div class="container">
+            <h1>Tremolo</h1>
+            <form action="/tremolo/submit" method="post" accept-charset="utf-8" enctype="multipart/form-data">
+                <p>
+                    Input:<br/>
+                    <input type="file" name="input"/>
+                </p>
+                <p>
+                    Depth:<br/>
+                    0.05
+                    <input type="range" name="depth" min="0.05" max="0.95" step="any"/>
+                    0.95
+                </p>
+                <p>
+                    Rate:<br/>
+                    0.5 Hz
+                    <input type="range" name="rate" min="0.5" max="10" step="any"/>
+                    10 Hz
+                </p>
+                <p>
+                    <input type="submit" value="Process"/>
+                </p>
+            </form>
+        </div>
     </body>
 </html>
