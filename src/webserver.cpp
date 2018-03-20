@@ -12,15 +12,14 @@
 #include <string>
 
 #include "civetweb.h"
+#include "delayeffect.h"
 #include "distortioneffect.h"
 #include "filesink.h"
 #include "filesource.h"
 #include "filtereffect.h"
 #include "sampledata.h"
+#include "source.h"
 #include "webserver.h"
-
-
-#define DEBUG
 
 WebServer::WebServer(unsigned int port)
 {
@@ -47,6 +46,7 @@ WebServer::WebServer(unsigned int port)
     mg_set_request_handler(context, "/exit$", handle_exit, this);
     mg_set_request_handler(context, "/conv/submit$", handle_conv_submit, this);
     mg_set_request_handler(context, "/dist/submit$", handle_dist_submit, this);
+    mg_set_request_handler(context, "/delay/submit$", handle_delay_submit, this);
 }
 
 WebServer::~WebServer()
@@ -209,6 +209,7 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
 
     fdh.user_data = &vars;
 
+    // If a field is found, it is checked if it is a file. If it is, it's processed here, else it's processed in field_get.
     fdh.field_found = [](const char *key, const char *value, char *path, size_t pathlen, void *user_data) -> int
     {
         vars_t *vars = static_cast<vars_t *>(user_data);
@@ -218,6 +219,122 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
             // file, so save as tmp file
             //std::string tempPath = std::tmpnam(nullptr);
             std::string tempPath = value;
+            snprintf(path, pathlen, tempPath.c_str());
+
+            // store path
+            if (std::string(key) == "input")
+            {
+                vars->inputPath = tempPath;
+            }
+            return MG_FORM_FIELD_STORAGE_STORE;
+        }
+        return MG_FORM_FIELD_STORAGE_GET;
+    };
+
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
+    {
+        return 0;
+    };
+
+    // If a field is not a file, it's processed here.
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
+    {
+        std::string name = std::string(key);
+        vars_t *vars = static_cast<vars_t *>(user_data);
+
+        std::string res = std::string(value);
+
+        // Extract relevant information from 'value'
+        res = res.substr(0, res.find('\r'));
+
+        // Fill in the right fields of the vars.
+        if (name == "type")
+        {
+            vars->type = res;
+        }
+        else if (name == "gain")
+        {
+            vars->gain = std::stof(res, nullptr);
+        }
+        else if (name == "gain2")
+        {
+            vars->gain2 = std::stof(res, nullptr);
+        }
+        else if (name == "mix")
+        {
+            vars->mix = std::stof(res, nullptr);
+        }
+        else if (name == "mix2")
+        {
+            vars->mix2 = std::stof(res, nullptr);
+        }
+        else if (name == "threshold")
+        {
+            vars->threshold = std::stof(res, nullptr);
+        }
+
+        return MG_FORM_FIELD_STORAGE_GET;
+    };
+
+    // Process the input from the form
+    if (mg_handle_form_request(connection, &fdh) <= 0)
+    {
+        throw std::runtime_error("Error handling form request.");
+    }
+
+    // Adjust input if type is symmetric.
+    if (vars.type == "symmetric")
+    {
+        vars.gain2 = vars.gain;
+        vars.mix2 = vars.mix;
+    }
+
+    const std::string outputFileName = "output.wav";
+
+    // Make source, effect and sink and connec them together to process the output.
+    FileSource src(vars.inputPath);
+
+    auto dist = std::make_shared<DistortionEffect>(vars.gain, vars.gain2, vars.mix, vars.mix2, vars.threshold);
+    auto sink = std::make_shared<FileSink>(outputFileName);
+
+    src.connect(dist, 0);
+    dist->connect(sink, 0);
+
+    // process output
+    while (src.generate_next());
+
+    // Write output to appropriate file
+    sink->write();
+
+    // Send HTTP response containing the file to the user
+    mg_send_file(connection, outputFileName.c_str());
+
+    return 200;
+}
+
+int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
+{
+    mg_form_data_handler fdh = {0};
+
+    struct vars_t
+    {
+        std::string inputPath;
+        std::string type;
+        float delayTime;
+        float decay;
+    } vars;
+
+    fdh.user_data = &vars;
+
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
+    {
+        vars_t *vars = static_cast<vars_t *>(user_data);
+        // check if field is a file
+        if (filename && *filename)
+        {
+            // file, so save as tmp file
+            //std::string tempPath = std::tmpnam(nullptr);
+            std::string tempPath = filename;
             snprintf(path, pathlen, tempPath.c_str());
 
             // store path
@@ -248,27 +365,14 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
         {
             vars->type = res;
         }
-        else if (name == "gain")
+        else if (name == "delay")
         {
-            vars->gain = std::stof(res, nullptr);
+            vars->delayTime = std::stof(res, nullptr);
         }
-        else if (name == "gain2")
+        else if (name == "decay")
         {
-            vars->gain2 = std::stof(res, nullptr);
+            vars->decay = std::stof(res, nullptr);
         }
-        else if (name == "mix")
-        {
-            vars->mix = std::stof(res, nullptr);
-        }
-        else if (name == "mix2")
-        {
-            vars->mix2 = std::stof(res, nullptr);
-        }
-        else if (name == "threshold")
-        {
-            vars->threshold = std::stof(res, nullptr);
-        }
-
         return MG_FORM_FIELD_STORAGE_GET;
     };
 
@@ -277,28 +381,47 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
         throw std::runtime_error("Error handling form request.");
     }
 
-    if (vars.type == "Symmetric")
+    // Process vars from form
+    float mainCoeff = 1.0;
+    std::vector<unsigned int> delays;
+    std::vector<float> coeffs;
+    float decay = 1 - vars.decay;
+
+    unsigned int delaySamples = (unsigned int)(vars.delayTime * 44100 / Source<float>::BLOCK_SIZE);
+
+    if (vars.type == "fir")
     {
-        vars.gain2 = vars.gain;
-        vars.mix2 = vars.mix;
+        delays = {delaySamples};
+        coeffs = {decay};
+    }
+    else // iir
+    {
+        int i = 1;
+        while (decay >= 0.05)
+        {
+            delays.push_back(delaySamples * i++);
+            coeffs.push_back(decay);
+            decay *= decay;
+        }
     }
 
-    const std::string outputFileName = "output.wav";
-
+    // Make FileSource
     FileSource src(vars.inputPath);
+    std::string outputFileName = "output.wav";
 
-    auto dist = std::make_shared<DistortionEffect>(vars.gain, vars.gain2, vars.mix, vars.mix2, vars.threshold);
+    auto delay = std::make_shared<DelayEffect>(mainCoeff, delays, coeffs);
     auto sink = std::make_shared<FileSink>(outputFileName);
 
-    src.connect(dist, 0);
-    dist->connect(sink, 0);
+    // connect
+    src.connect(delay, 0);
+    delay->connect(sink, 0);
 
-    while (src.generate_next());
+    while(src.generate_next());
 
     sink->write();
 
+    // Send HTTP response containing the file to the user
     mg_send_file(connection, outputFileName.c_str());
 
     return 200;
 }
-

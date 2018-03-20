@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Delay</title>
+    </head>
+    <body>
+        <form action="/delay/submit" method="post" accept-charset="utf-8" enctype="multipart/form-data">
+            <p>
+                Input:<br/>
+                <input type="file" name="input"/>
+            </p>
+            <p>
+                <input type="radio" name="type" value="fir"/> One Echo<br/>
+                <input type="radio" name="type" value="iir"/> Multiple Echoes
+            </p>
+            <p>
+                Delay Time:<br/>
+                0.05s
+                <input type="range" name="delay" min="0.05" max="2" step="any"/>
+                2s
+            </p>
+            <p>
+                Decay:<br/>
+                0.1
+                <input type="range" name="decay" min="0.1" max="0.9" step="any"/>
+                0.9
+            </p>
+            <p>
+                <input type="submit" value="Process" />
+            </p>
+        </form>
+    </body>
+</html>
