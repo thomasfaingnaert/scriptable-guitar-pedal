@@ -11,7 +11,7 @@
     /* State the resources this cape uses */
     exclusive-use =
         "gpio1_18",
-        "P9.14", /* cs4271_not_rst */
+        "P9.14", /* gpio1_18 */
         "i2c1",
         "P9.17", /* i2c1_scl */
         "P9.18", /* i2c1_sda */
@@ -29,7 +29,7 @@
         __overlay__ {
             codec_gpio_pins: pinmux_codec_gpio_pins {
                 pinctrl-single,pins = <
-                    0x048 0x37 /* cs4271_not_rst: output, pull up, mode 7 */
+                    0x048 0x27 /* gpio1_18: output, pull down, mode 7 */
                 >;
             };
 
@@ -52,8 +52,23 @@
         };
     };
 
-    /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/i2c/i2c.txt */
     fragment@1 {
+        target =<&ocp>;
+
+        __overlay__ {
+            codec_gpio {
+                compatible = "gpio-of-helper";
+
+                status = "okay";
+
+                pinctrl-names = "default";
+                pinctrl-0 = <&codec_gpio_pins>;
+            };
+        };
+    };
+
+    /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/i2c/i2c.txt */
+    fragment@2 {
         target = <&i2c1>;
 
         __overlay__ {
@@ -67,7 +82,7 @@
             pinctrl-names = "default";
             pinctrl-0 = <&codec_i2c1_pins>;
 
-            codec_cs4271: cs4271@10 {
+            codec: cs4271@10 {
                 compatible = "cirrus,cs4271";
 
                 /*
@@ -86,7 +101,7 @@
     };
 
     /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt */
-    fragment@2 {
+    fragment@3 {
         target = <&mcasp0>;
 
         __overlay__ {
@@ -134,7 +149,7 @@
         - https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/simple-card.txt
         - https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/widgets.txt
     */
-    fragment@3 {
+    fragment@4 {
         target-path= "/";
 
         __overlay__ {
@@ -185,7 +200,7 @@
                 simple-audio-card,bitclock-master = <&dailink0_master>;
 
                 dailink0_master: simple-audio-card,codec {
-                    sound-dai = <&codec_cs4271>;
+                    sound-dai = <&codec>;
 
                     system-clock-frequency = <24576000>;
                 };
