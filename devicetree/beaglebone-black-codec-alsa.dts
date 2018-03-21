@@ -52,23 +52,8 @@
         };
     };
 
-    fragment@1 {
-        target =<&ocp>;
-
-        __overlay__ {
-            codec_gpio {
-                compatible = "gpio-of-helper";
-
-                status = "okay";
-
-                pinctrl-names = "default";
-                pinctrl-0 = <&codec_gpio_pins>;
-            };
-        };
-    };
-
     /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/i2c/i2c.txt */
-    fragment@2 {
+    fragment@1 {
         target = <&i2c1>;
 
         __overlay__ {
@@ -84,6 +69,9 @@
 
             codec: cs4271@10 {
                 compatible = "cirrus,cs4271";
+
+                pinctrl-names = "default";
+                pinctrl-0 = <&codec_gpio_pins>;
 
                 /*
                     The I2C address.
@@ -101,7 +89,7 @@
     };
 
     /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt */
-    fragment@3 {
+    fragment@2 {
         target = <&mcasp0>;
 
         __overlay__ {
@@ -149,7 +137,7 @@
         - https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/simple-card.txt
         - https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/widgets.txt
     */
-    fragment@4 {
+    fragment@3 {
         target-path= "/";
 
         __overlay__ {
