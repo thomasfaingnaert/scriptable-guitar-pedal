@@ -2,16 +2,14 @@
  * This function makes sure the right form-fields are displayed based on the selection list.
  */
 $(document).ready(function () {
-    console.log("in the ready");
+    var effect = '';
+    var selection = $('#effect-select');
 
-    var effect="";
-    var selection = $("#effect-select");
-
-    effect = selection.find("option:selected").val();
+    effect = selection.find('option:selected').val();
     displayForm(effect);
 
     selection.change(function () {
-        effect = selection.find("option:selected").val();
+        effect = selection.find('option:selected').val();
         displayForm(effect);
     });
 });
@@ -21,7 +19,7 @@ $(document).ready(function () {
  * @param effect a string containing the effect for which the form fields should be displayed
  */
 function displayForm(effect) {
-    if (effect === "distortion") {
+    if (effect === 'distortion') {
         form = "<p>\n" +
             "                    <input type=\"radio\" name=\"type\" value=\"symmetric\"> Symmetric<br/>\n" +
             "                    <input type=\"radio\" name=\"type\" value=\"asymmetric\"> Asymmetric<br/>\n" +
@@ -57,8 +55,8 @@ function displayForm(effect) {
             "                    0.01\n" +
             "                </p>";
 
-        $("#parameter-form").html(form);
-    } else if (effect === "delay") {
+        $('#parameter-form').html(form);
+    } else if (effect === 'delay') {
         form = "<p>\n" +
             "                    <input type=\"radio\" name=\"type\" value=\"fir\"/> One Echo<br/>\n" +
             "                    <input type=\"radio\" name=\"type\" value=\"iir\"/> Multiple Echoes\n" +
@@ -76,8 +74,8 @@ function displayForm(effect) {
             "                    0.9\n" +
             "                </p>";
 
-        $("#parameter-form").html(form);
-    } else if (effect === "tremolo") {
+        $('#parameter-form').html(form);
+    } else if (effect === 'tremolo') {
         form = "<p>\n" +
             "                    Depth:<br/>\n" +
             "                    0.05\n" +
@@ -91,20 +89,42 @@ function displayForm(effect) {
             "                    10 Hz\n" +
             "                </p>";
 
-        $("#parameter-form").html(form);
-    } else if (effect === "conv") {
+        $('#parameter-form').html(form);
+    } else if (effect === 'conv') {
         form = " <p>\n" +
             "                    Impulse Response:<br/>\n" +
             "                    <input type=\"file\" name=\"impulse-response\"/>\n" +
             "                </p>";
-        $("#parameter-form").html(form);
+        $('#parameter-form').html(form);
     } else {
         alert("Select only 1 effect at a time please.");
     }
 }
 
+var numElements = 0;
+
 /**
  * This function will add an effect box to the jsplumb container when the button is clicked
  */
 function addEffect() {
+    if (numElements < 5) {
+        var effect = $('#effect-select').find('option:selected').val();
+        console.log(effect);
+        var box = '<div class="jsplumb-box" id="box-' + numElements + '">\n' +
+            '                <p>' + effect + '</p>\n' +
+            '            </div>';
+
+        $('#jsplumb-container').append(box);
+
+        //var left = (numElements % 3) * 150;
+
+        $('#box-' + numElements).css({
+            'left': (numElements % 3) * 150 + 'px',
+            'top': (numElements <= 2 ? 0 : 1) * 100 + 'px'
+        });
+
+        numElements++;
+    } else {
+        alert('Je kan maximaal 5 effecten tegelijk gebruiken!');
+    }
 }

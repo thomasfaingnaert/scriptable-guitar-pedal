@@ -1,4 +1,17 @@
 
 #jsplumb-container {
     border: 1px solid #2D2D2D;
+    padding: 50px;
+    min-height: 300px;
+    position: relative;
+}
+
+.jsplumb-box {
+    border: 1px solid mediumblue;
+    padding: 20px;
+    text-align: center;
+    position: absolute; /* Position needs to be absolute for element to be draggable */
+    margin: 20px;
+    min-height: 50px;
+    float: left;
 }

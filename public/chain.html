@@ -13,7 +13,7 @@
 
         <script src="assets/js/jsplumb.min.js"></script>
 
-        <script src="assets/js/effects-chain.js"></script>
+        <!-- <script src="assets/js/effects-chain.js"></script> -->
         <script src="assets/js/add-effect.js"></script>
     </head>
     <body>
@@ -37,12 +37,13 @@
         </nav>
         <div class="container-fluid">
             <h1>Effecten combineren</h1>
-            <p>Op deze pagina kan je verschillende effecten achter elkaar 'chainen'.</p>
+            <p>Op deze pagina kan je verschillende effecten achter elkaar 'chainen'.
+            Let op. Je kan maximaal 5 effecten tegelijk gebruiken.</p>
         </div>
         <div class="container">
             <h3>Voeg een effect toe</h3>
             <p>Vul hier in wel effect je wil en hoe je de parameters wil instellen</p>
-            <form>
+            <form onsubmit="addEffect(); return false;">
                 <p>
                     Effect:<br/>
                     <select name="effect" id="effect-select">
@@ -53,7 +54,7 @@
                     </select>
                 </p>
                 <div id="parameter-form"></div>
-                <button class="btn" onclick="addEffect()">Voeg toe</button>
+                <input type="submit" value="Voeg toe"/>
             </form>
 
             <h3>Verander/verwijder een effect</h3>
