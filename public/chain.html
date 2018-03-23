@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+        <title>Chaining effects</title>
+
+        <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css" href="assets/css/styles.css"
+        <script src="assets/js/bootstrap.min.js"></script>
+        <script src="assets/js/jquery-3.3.1.min.js"></script>
+        <script src="assets/js/popper.min.js"></script>
+
+        <script src="assets/js/jsplumb.min.js"></script>
+
+        <script src="assets/js/effects-chain.js"></script>
+        <script src="assets/js/add-effect.js"></script>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <a class="navbar-brand" href="/index.html">Scriptable Guitar Effects</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item"><a class="nav-link" href="/index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/conv.html">Convolution Effect</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/dist.html">Distortion Effect</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/delay.html">Delay Effect</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/tremolo.html">Tremolo Effect</a>
+                    <li class="nav-item active"><a class="nav-link" href="">Combining Effects</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/exit">Exit</a></li>
+                </ul>
+            </div>
+        </nav>
+        <div class="container-fluid">
+            <h1>Effecten combineren</h1>
+            <p>Op deze pagina kan je verschillende effecten achter elkaar 'chainen'.</p>
+        </div>
+        <div class="container">
+            <h3>Voeg een effect toe</h3>
+            <p>Vul hier in wel effect je wil en hoe je de parameters wil instellen</p>
+            <form>
+                <p>
+                    Effect:<br/>
+                    <select name="effect" id="effect-select">
+                        <option value="distortion">Distortion</option>
+                        <option value="delay">Delay</option>
+                        <option value="tremolo">Tremolo</option>
+                        <option value="conv">Convolution</option>
+                    </select>
+                </p>
+                <div id="parameter-form"></div>
+                <button class="btn" onclick="addEffect()">Voeg toe</button>
+            </form>
+
+            <h3>Verander/verwijder een effect</h3>
+            <p>Selecteer het effect uit de lijst hieronder om het te veranderen of te verwijderen.</p>
+            <!-- Hier komt een lijst met de effecten die tot nu toe toegevoegd werden -->
+        </div>
+        <div class="container" id="jsplumb-container">
+        </div>
+    </body>
+</html>
