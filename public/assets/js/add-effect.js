@@ -109,7 +109,6 @@ var numElements = 0;
 function addEffect() {
     if (numElements < 5) {
         var effect = $('#effect-select').find('option:selected').val();
-        console.log(effect);
         var box = '<div class="jsplumb-box" id="box-' + numElements + '">\n' +
             '                <p>' + effect + '</p>\n' +
             '            </div>';
@@ -123,8 +122,29 @@ function addEffect() {
             'top': (numElements <= 2 ? 0 : 1) * 100 + 'px'
         });
 
+        addEndPoints($('#box-' + numElements));
+
         numElements++;
     } else {
         alert('Je kan maximaal 5 effecten tegelijk gebruiken!');
     }
+}
+
+/**
+ * This function will add endpoints to the boxes in the jsplumb-container.
+ * @param box the box for which we want to add the endpoints
+ */
+function addEndPoints(box) {
+    var id = box.attr('id');
+    console.log(box.attr('id'));
+    var common = {
+        isSource: true,
+        isTarget: true,
+        connector: ["Straight"]
+    };
+
+    jsPlumb.addEndpoint(id,{anchor: 'Left'}, common);
+    jsPlumb.addEndpoint(id,{anchor: 'Right'}, common);
+
+    jsPlumb.draggable(id);
 }
