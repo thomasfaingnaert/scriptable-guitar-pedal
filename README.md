@@ -46,18 +46,24 @@ cmake -G"NMake Makefiles" -DCMAKE_TOOLCHAIN_FILE="../scriptable-guitar-pedal/cma
 nmake
 ```
 
-### GNU/Linux - Fedora (cross compilation)
-These instructions are for Fedora based distributions.
-Change the commands according to the distribution you are using.
-
+### GNU/Linux (cross compilation)
 1. Install the following prerequisites:
   - CMake
   - GNU Toolchain for ARM
   - Make
+
+If you are using Ubuntu or one of its derivatives:
+```bash
+sudo apt install make cmake binutils-arm-linux-gnueabihf gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+```
+
+If you are using Fedora:
 ```bash
 sudo dnf copr enable lantw44/arm-linux-gnueabihf-toolchain
 sudo dnf install make cmake arm-linux-gnueabihf-{binutils,gcc,glibc}
 ```
+
+Otherwise, change the commands according to the distribution you are using.
 
 2. Clone the repository and build the project:
 ```bash
