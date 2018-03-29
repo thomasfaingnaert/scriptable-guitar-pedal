@@ -32,6 +32,13 @@ extern "C"
 #include "lualib.h"
 }
 
+int lua_f(lua_State *state)
+{
+    int n = lua_tonumber(state, -1);
+    lua_pushnumber(state, 2 * n);
+    return 1;
+}
+
 int main(int argc, char *argv[])
 {
     // NE10 Initialisation
@@ -60,11 +67,18 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    // Register C function
+    lua_pushcfunction(state, lua_f);
+    lua_setglobal(state, "f");
+
     // Push global "main" function on the stack
     lua_getglobal(state, "main");
 
+    // Push argument on the stack
+    lua_pushnumber(state, 20);
+
     // Call
-    lua_call(state, 0, 1);
+    lua_call(state, 1, 1);
 
     // Convert to integer
     int result = lua_tonumber(state, -1);

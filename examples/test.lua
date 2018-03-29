@@ -1,4 +1,3 @@
-function main()
-    print "Hello from Lua"
-    return 42
+function main(arg)
+    return f(arg)
 end
