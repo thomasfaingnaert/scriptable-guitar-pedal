@@ -25,6 +25,13 @@
 #include "tremoloeffect.h"
 #include "webserver.h"
 
+extern "C"
+{
+#include "lauxlib.h"
+#include "lua.h"
+#include "lualib.h"
+}
+
 int main(int argc, char *argv[])
 {
     // NE10 Initialisation
@@ -34,11 +41,38 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    WebServer server(8888);
+    // Initialise Lua
+    lua_State *state = luaL_newstate();
 
-    std::cout << "Server running" << std::endl;
+    if (!state)
+    {
+        std::cerr << "Could not initialise Lua state." << std::endl;
+        return EXIT_FAILURE;
+    }
 
-    while (server.isRunning());
+    // Open all Lua standard libraries
+    luaL_openlibs(state);
+
+    // Load test script
+    if (luaL_dofile(state, "examples/test.lua") != LUA_OK)
+    {
+        std::cerr << "Could not load file" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    // Push global "main" function on the stack
+    lua_getglobal(state, "main");
+
+    // Call
+    lua_call(state, 0, 1);
+
+    // Convert to integer
+    int result = lua_tonumber(state, -1);
+
+    std::cout << result << std::endl;
+
+    // Clean up
+    lua_close(state);
 
     return EXIT_SUCCESS;
 }
