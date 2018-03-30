@@ -114,7 +114,7 @@ function addEffect() {
         effect = effect.charAt(0).toUpperCase() + effect.slice(1).toLowerCase();
 
         var box = '<div class="jsplumb-box" id="box-' + numElements + '"' +
-            'data-effect="' + formData + '" ' +
+            'data-effect=\'' + formData + '\' ' +
             'onclick="$(\'#changeEffectModal\').modal(\'show\'); changeEffect(this);">\n' +
             '               <p>' + effect + '</p>\n' +
             '            </div>';
