@@ -1,12 +1,21 @@
 function changeEffect(box) {
     var id = box.id;
-    var effect = $('#'+id).attr('data-effect');
+    var jsonData = $('#' + id).attr('data-effect');
+    var parameterData = JSON.parse(jsonData);
 
-    $('#effectModalLabel').html(effect);
+    var effect = parameterData['effect'];
 
-    var form = displayForm(effect.toLowerCase());
+    $('#effectModalLabel').html(effect.charAt(0).toUpperCase() + effect.slice(1).toLowerCase());
 
-    console.log(form);
+    var form = '<form onsubmit="changeJSON; return false;" id="changeEffectForm">' +
+        '   ' + displayForm(effect) +
+        '</form>'
 
     $('#effectModalBody').html(form);
+
+    // Set the parameter value to the previous one
+    $.each(parameterData, function(name, value) {
+        console.log(name + ': ' + value);
+        $('#changeEffectForm [name ="' + name + '"]').val(value);
+    });
 }

@@ -140,13 +140,10 @@ function addEffect() {
  * @returns {{}} An array of all the parameters in the desired format
  */
 function parseFormData(form) {
-    console.log(form);
     var unindexed = form.serializeArray();
-    console.log(unindexed);
     var jsonFormData = {};
 
     $.map(unindexed, function(element, i) {
-        console.log(element['value']);
         jsonFormData[element['name']] = element['value'];
     });
 
