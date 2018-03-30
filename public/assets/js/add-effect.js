@@ -6,19 +6,22 @@ $(document).ready(function () {
     var selection = $('#effect-select');
 
     effect = selection.find('option:selected').val();
-    displayForm(effect);
+    var form = displayForm(effect);
+    $('#parameter-form').html(form);
 
     selection.change(function () {
         effect = selection.find('option:selected').val();
-        displayForm(effect);
+        form = displayForm(effect);
+        $('#parameter-form').html(form);
     });
 });
 
 /**
  * This function changes the content of the form based on the effect that is selected
- * @param effect a string containing the effect for which the form fields should be displayed
+ * @param effect A string containing the effect for which the form fields should be displayed
  */
 function displayForm(effect) {
+    var form = "";
     if (effect === 'distortion') {
         form = "<p>\n" +
             "                    <input type=\"radio\" name=\"type\" value=\"symmetric\"> Symmetric<br/>\n" +
@@ -54,8 +57,6 @@ function displayForm(effect) {
             "                    <input type=\"range\" name=\"threshold\" min=\"0.0001\" max=\"0.01\" step=\"0.001\"/>\n" +
             "                    0.01\n" +
             "                </p>";
-
-        $('#parameter-form').html(form);
     } else if (effect === 'delay') {
         form = "<p>\n" +
             "                    <input type=\"radio\" name=\"type\" value=\"fir\"/> One Echo<br/>\n" +
@@ -73,8 +74,6 @@ function displayForm(effect) {
             "                    <input type=\"range\" name=\"decay\" min=\"0.1\" max=\"0.9\" step=\"any\"/>\n" +
             "                    0.9\n" +
             "                </p>";
-
-        $('#parameter-form').html(form);
     } else if (effect === 'tremolo') {
         form = "<p>\n" +
             "                    Depth:<br/>\n" +
@@ -88,17 +87,16 @@ function displayForm(effect) {
             "                    <input type=\"range\" name=\"rate\" min=\"0.5\" max=\"10\" step=\"any\"/>\n" +
             "                    10 Hz\n" +
             "                </p>";
-
-        $('#parameter-form').html(form);
     } else if (effect === 'conv') {
         form = " <p>\n" +
             "                    Impulse Response:<br/>\n" +
-            "                    <input type=\"file\" name=\"impulse-response\"/>\n" +
+            "                    <input type=\"file\" name=\"impulse-response\" />\n" +
             "                </p>";
-        $('#parameter-form').html(form);
     } else {
         alert("Select only 1 effect at a time please.");
     }
+
+    return form;
 }
 
 var numElements = 0;
@@ -108,17 +106,23 @@ var numElements = 0;
  */
 function addEffect() {
     if (numElements < 5) {
-        var effect = $('#effect-select').find('option:selected').val();
-        var box = '<div class="jsplumb-box" id="box-' + numElements + '">\n' +
-            '                <p>' + effect + '</p>\n' +
+        var effect = $('#effect-select').find('option:selected').val().toString().toLowerCase();
+
+        // parse form data to JSON
+        var formData = JSON.stringify(parseFormData($('#addEffectForm')));
+
+        effect = effect.charAt(0).toUpperCase() + effect.slice(1).toLowerCase();
+
+        var box = '<div class="jsplumb-box" id="box-' + numElements + '"' +
+            'data-effect="' + formData + '" ' +
+            'onclick="$(\'#changeEffectModal\').modal(\'show\'); changeEffect(this);">\n' +
+            '               <p>' + effect + '</p>\n' +
             '            </div>';
 
         $('#jsplumb-container').append(box);
 
-        //var left = (numElements % 3) * 150;
-
         $('#box-' + numElements).css({
-            'left': (numElements % 3) * 150 + 'px',
+            'left': (1 + (numElements % 3)) * 150 + 'px',
             'top': (numElements <= 2 ? 0 : 1) * 100 + 'px'
         });
 
@@ -131,20 +135,49 @@ function addEffect() {
 }
 
 /**
+ * This function takes the data from the form and parses it to the desired format
+ * @param form The selector of the form
+ * @returns {{}} An array of all the parameters in the desired format
+ */
+function parseFormData(form) {
+    console.log(form);
+    var unindexed = form.serializeArray();
+    console.log(unindexed);
+    var jsonFormData = {};
+
+    $.map(unindexed, function(element, i) {
+        console.log(element['value']);
+        jsonFormData[element['name']] = element['value'];
+    });
+
+    return jsonFormData;
+}
+
+/**
  * This function will add endpoints to the boxes in the jsplumb-container.
  * @param box the box for which we want to add the endpoints
  */
 function addEndPoints(box) {
     var id = box.attr('id');
-    console.log(box.attr('id'));
     var common = {
         isSource: true,
         isTarget: true,
         connector: ["Straight"]
     };
 
-    jsPlumb.addEndpoint(id,{anchor: 'Left'}, common);
-    jsPlumb.addEndpoint(id,{anchor: 'Right'}, common);
-
-    jsPlumb.draggable(id);
+    if (id !== 'inputbox') {
+        jsPlumb.addEndpoint(id, {anchor: 'Left'}, common);
+    }
+    if (id !== 'outputbox') {
+        jsPlumb.addEndpoint(id, {anchor: 'Right'}, common);
+    }
+    if (id !== 'inputbox' && id !== 'outputbox') {
+        jsPlumb.draggable(id, {containment: true});
+    }
 }
+
+jsPlumb.ready(function () {
+    // add endpoints to the input and output boxes
+    addEndPoints($('#inputbox'));
+    addEndPoints($('#outputbox'));
+});

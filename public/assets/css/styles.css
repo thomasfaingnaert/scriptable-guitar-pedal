@@ -1,7 +1,7 @@
 
 #jsplumb-container {
     border: 1px solid #2D2D2D;
-    padding: 50px;
+    padding: 30px;
     min-height: 300px;
     position: relative;
 }
@@ -14,4 +14,20 @@
     margin: 20px;
     min-height: 50px;
     float: left;
+}
+
+#inputbox {
+    position: absolute;
+    top: 30%;
+    left: 2%;
+}
+
+#outputbox {
+    position: absolute;
+    top: 30%;
+    right: 2%;
+}
+
+#footer {
+    min-height: 50px;
 }
