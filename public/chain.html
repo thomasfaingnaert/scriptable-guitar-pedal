@@ -14,6 +14,7 @@
 
         <script src="assets/js/add-effect.js"></script>
         <script src="assets/js/change-effect.js"></script>
+        <script src="assets/js/send-effect.js"></script>
     </head>
     <body>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -63,7 +64,7 @@
         <div class="container" id="footer">
             <div class="row">
                 <div class="col-11">
-                    <form onsubmit="sendEffect(); return false;">
+                    <form onsubmit="sendEffect(); return false;" method="post" enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="input">Input File:</label>
                             <input type="file" name="input" id="input"/>
