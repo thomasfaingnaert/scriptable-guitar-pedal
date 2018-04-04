@@ -1,6 +1,7 @@
 
 #jsplumb-container {
     border: 1px solid #2D2D2D;
+    margin: 30px auto 30px auto;
     padding: 30px;
     min-height: 300px;
     position: relative;

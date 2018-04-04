@@ -41,26 +41,38 @@
         </div>
         <div class="container">
             <h3>Voeg een effect toe</h3>
-            <p>Vul hier in wel effect je wil en hoe je de parameters wil instellen</p>
+            <p>Vul hier in welk effect je wil en hoe je de parameters wil instellen</p>
             <form onsubmit="addEffect(); return false;" id="addEffectForm">
-                <p>
-                    Effect:<br/>
-                    <select name="effect" id="effect-select">
+                <div class="form-group">
+                    <label for="effect-select">Effect:</label>
+                    <select class="form-control" name="effect" id="effect-select">
                         <option value="distortion">Distortion</option>
                         <option value="delay">Delay</option>
                         <option value="tremolo">Tremolo</option>
                         <option value="conv">Convolution</option>
                     </select>
-                </p>
+                </div>
                 <div id="parameter-form"></div>
-                <input type="submit" value="Voeg toe"/>
+                <button type="submit" class="btn btn-light">Add effect</button>
             </form>
         </div>
         <div class="container" id="jsplumb-container">
             <div class="jsplumb-box" id="inputbox"><p>Input</p></div>
             <div class="jsplumb-box" id="outputbox"><p>Output</p></div>
         </div>
-        <div class="container" id="footer"></div>
+        <div class="container" id="footer">
+            <div class="row">
+                <div class="col-11">
+                    <form onsubmit="sendEffect(); return false;">
+                        <div class="form-group">
+                            <label for="input">Input File:</label>
+                            <input type="file" name="input" id="input"/>
+                        </div>
+                        <button type="submit" class="btn btn-light">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
 
         <!-- Modal -->
         <div class="modal fade" id="changeEffectModal" tabindex="-1" role="dialog"
