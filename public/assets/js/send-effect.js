@@ -16,7 +16,7 @@ function sendEffect() {
     if (checkConnections(sources, targets)) {
         sources.splice(sources.indexOf('inputbox'), 1);
         var jsonString = makeJSON(sources); // sources always contains 'inputbox' at this point
-        
+
         // Send jsonString to server
         $.post("/chain/submit", jsonString);
     }
