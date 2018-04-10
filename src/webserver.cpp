@@ -49,6 +49,7 @@ WebServer::WebServer(unsigned int port)
     mg_set_request_handler(context, "/dist/submit$", handle_dist_submit, this);
     mg_set_request_handler(context, "/delay/submit$", handle_delay_submit, this);
     mg_set_request_handler(context, "/tremolo/submit$", handle_tremolo_submit, this);
+    mg_set_request_handler(context, "/chain/submit$", handle_chain_submit, this);
 }
 
 WebServer::~WebServer()
@@ -514,4 +515,68 @@ int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
     mg_send_file(connection, outputFileName.c_str());
 
     return 200;
+}
+
+int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
+{
+    std::cout << "Hello" << std::endl;
+    mg_form_data_handler fdh = {0};
+
+    struct vars_t
+    {
+        std::string inputPath;
+        std::string jsonString;
+    } vars;
+
+    fdh.user_data = &vars;
+
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
+    {
+        vars_t *vars = static_cast<vars_t *>(user_data);
+        // check if field is a file
+        if (filename && *filename)
+        {
+            // file, so save as tmp file
+            //std::string tempPath = std::tmpnam(nullptr);
+            std::string tempPath = filename;
+            snprintf(path, pathlen, tempPath.c_str());
+
+            // store path
+            if (std::string(key) == "input")
+            {
+                vars->inputPath = tempPath;
+            }
+            return MG_FORM_FIELD_STORAGE_STORE;
+        }
+        return MG_FORM_FIELD_STORAGE_GET;
+    };
+
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
+    {
+        return 0;
+    };
+
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
+    {
+        std::string name = std::string(key);
+        vars_t *vars = static_cast<vars_t *>(user_data);
+
+        std::string res = std::string(value);
+
+        res = res.substr(0, res.find('\r'));
+
+        if (name == "effect-info")
+        {
+            vars->jsonString = res;
+        }
+
+        return MG_FORM_FIELD_STORAGE_GET;
+    };
+
+    if (mg_handle_form_request(connection, &fdh) <= 0)
+    {
+        throw std::runtime_error("Error handling form request.");
+    }
+
+    // Processing starts
 }

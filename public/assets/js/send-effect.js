@@ -3,7 +3,6 @@
  * and then send a JSON string to the server for it to be processed over there
  */
 function sendEffect() {
-    //console.log(jsPlumb.getConnections());
     var sources = [];
     var targets = [];
 
@@ -13,12 +12,17 @@ function sendEffect() {
     });
 
 
-    if (checkConnections(sources, targets)) {
+    if (checkConnections(sources, targets) || $('#input').val() === "") {
         sources.splice(sources.indexOf('inputbox'), 1);
         var jsonString = makeJSON(sources); // sources always contains 'inputbox' at this point
 
-        // Send jsonString to server
-        $.post("/chain/submit", jsonString);
+        // Set value for hidden fields
+        $('#effect-info').val(jsonString);
+
+        return true;
+    } else {
+        alert("Please make sure your effects are chained correctly and you have selected a file!");
+        return false;
     }
 
 }

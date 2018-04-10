@@ -61,19 +61,21 @@
             <div class="jsplumb-box" id="inputbox"><p>Input</p></div>
             <div class="jsplumb-box" id="outputbox"><p>Output</p></div>
         </div>
-        <div class="container" id="footer">
+        <div class="container">
             <div class="row">
                 <div class="col-11">
-                    <form onsubmit="sendEffect(); return false;" method="post" enctype="multipart/form-data">
+                    <form action="/chain/submit" onsubmit="return sendEffect()" method="post" id="chain-form" enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="input">Input File:</label>
                             <input type="file" name="input" id="input"/>
                         </div>
+                        <input type="hidden" name="effect-info" id="effect-info" value=""/>
                         <button type="submit" class="btn btn-light">Submit</button>
                     </form>
                 </div>
             </div>
         </div>
+        <div class="container-fluid" id="footer"></div>
 
         <!-- Modal -->
         <div class="modal fade" id="changeEffectModal" tabindex="-1" role="dialog"

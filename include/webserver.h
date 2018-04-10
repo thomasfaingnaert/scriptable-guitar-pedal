@@ -24,6 +24,7 @@ class WebServer
         static int handle_dist_submit(mg_connection *connection, void *user_data);
         static int handle_delay_submit(mg_connection *connection, void *user_data);
         static int handle_tremolo_submit(mg_connection *connection, void *user_data);
+        static int handle_chain_submit(mg_connection *connection, void *user_data);
 };
 
 #endif /* end of include guard: WEBSERVER_H_LMKVHNTB */
