@@ -1,29 +1,12 @@
-#include <chrono>
-#include <cmath>
-#include <cstdlib>
+#include <algorithm>
 #include <iostream>
 #include <iterator>
 #include <memory>
 #include <numeric>
-#include <string>
+#include <vector>
 
 #include "NE10.h"
-#include "adder.h"
-#include "blockbuffer.h"
-#include "civetweb.h"
-#include "codec.h"
-#include "convolver.h"
-#include "delayeffect.h"
-#include "distortioneffect.h"
-#include "filesink.h"
-#include "filesource.h"
-#include "processor.h"
-#include "sinesource.h"
-#include "sink.h"
-#include "source.h"
-#include "streamsink.h"
-#include "tremoloeffect.h"
-#include "webserver.h"
+#include "luaeffect.h"
 
 int main(int argc, char *argv[])
 {
@@ -34,11 +17,18 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    WebServer server(8888);
+    LuaEffect effect("examples/test.lua");
 
-    std::cout << "Server running" << std::endl;
+    auto data = std::make_shared<std::vector<float>>(10);
+    std::iota(data->begin(), data->end(), 0);
 
-    while (server.isRunning());
+    auto result = effect.process({data});
+
+    std::cout << "Got result:\n";
+    std::copy(result->begin(), result->end(), std::ostream_iterator<float>(std::cout, " "));
+
+    std::cout << "\n";
 
     return EXIT_SUCCESS;
 }
+
