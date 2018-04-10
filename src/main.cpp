@@ -1,43 +1,12 @@
-#include <chrono>
-#include <cmath>
-#include <cstdlib>
+#include <algorithm>
 #include <iostream>
 #include <iterator>
 #include <memory>
 #include <numeric>
-#include <string>
+#include <vector>
 
 #include "NE10.h"
-#include "adder.h"
-#include "blockbuffer.h"
-#include "civetweb.h"
-#include "codec.h"
-#include "convolver.h"
-#include "delayeffect.h"
-#include "distortioneffect.h"
-#include "filesink.h"
-#include "filesource.h"
-#include "processor.h"
-#include "sinesource.h"
-#include "sink.h"
-#include "source.h"
-#include "streamsink.h"
-#include "tremoloeffect.h"
-#include "webserver.h"
-
-extern "C"
-{
-#include "lauxlib.h"
-#include "lua.h"
-#include "lualib.h"
-}
-
-int lua_f(lua_State *state)
-{
-    int n = lua_tonumber(state, -1);
-    lua_pushnumber(state, 2 * n);
-    return 1;
-}
+#include "luaeffect.h"
 
 int main(int argc, char *argv[])
 {
@@ -48,45 +17,18 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    // Initialise Lua
-    lua_State *state = luaL_newstate();
+    LuaEffect effect("examples/test.lua");
 
-    if (!state)
-    {
-        std::cerr << "Could not initialise Lua state." << std::endl;
-        return EXIT_FAILURE;
-    }
+    auto data = std::make_shared<std::vector<float>>(10);
+    std::iota(data->begin(), data->end(), 0);
 
-    // Open all Lua standard libraries
-    luaL_openlibs(state);
+    auto result = effect.process({data});
 
-    // Load test script
-    if (luaL_dofile(state, "examples/test.lua") != LUA_OK)
-    {
-        std::cerr << "Could not load file" << std::endl;
-        return EXIT_FAILURE;
-    }
+    std::cout << "Got result:\n";
+    std::copy(result->begin(), result->end(), std::ostream_iterator<float>(std::cout, " "));
 
-    // Register C function
-    lua_pushcfunction(state, lua_f);
-    lua_setglobal(state, "f");
-
-    // Push global "main" function on the stack
-    lua_getglobal(state, "main");
-
-    // Push argument on the stack
-    lua_pushnumber(state, 20);
-
-    // Call
-    lua_call(state, 1, 1);
-
-    // Convert to integer
-    int result = lua_tonumber(state, -1);
-
-    std::cout << result << std::endl;
-
-    // Clean up
-    lua_close(state);
+    std::cout << "\n";
 
     return EXIT_SUCCESS;
 }
+
