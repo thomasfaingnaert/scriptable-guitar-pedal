@@ -14,6 +14,7 @@
 #include "civetweb.h"
 #include "delayeffect.h"
 #include "distortioneffect.h"
+#include "document.h"
 #include "filesink.h"
 #include "filesource.h"
 #include "filtereffect.h"
@@ -519,13 +520,12 @@ int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
 
 int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
 {
-    std::cout << "Hello" << std::endl;
     mg_form_data_handler fdh = {0};
 
     struct vars_t
     {
         std::string inputPath;
-        std::string jsonString;
+        const char *jsonString;
     } vars;
 
     fdh.user_data = &vars;
@@ -567,7 +567,7 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
 
         if (name == "effect-info")
         {
-            vars->jsonString = res;
+            vars->jsonString = res.c_str();
         }
 
         return MG_FORM_FIELD_STORAGE_GET;
@@ -578,5 +578,125 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
         throw std::runtime_error("Error handling form request.");
     }
 
-    // Processing starts
+    // Parse
+    rapidjson::Document chain;
+    chain.Parse(vars.jsonString); // Contains array of JSON objects
+
+    std::vector < std::shared_ptr < Processor < float, float >> > effects;
+
+    // Iterate through array
+    for (auto &obj : chain.GetArray())
+    {
+        std::string effect(obj["effect"].GetString());
+        if (effect == "distortion")
+        {
+            std::string type = "symmetric";
+            if (obj.HasMember("type"))
+            {
+                type = std::string(obj["type"].GetString());
+            }
+
+            float gain1 = stof(std::string(obj["gain1"].GetString()));
+            float gain2 = (type == "asymmetric") ? stof(std::string(obj["gain2"].GetString())) : gain1;
+            float mix1 = stof(std::string(obj["mix1"].GetString()));
+            float mix2 = (type == "asymmetric") ? stof(std::string(obj["mix2"].GetString())) : mix1;
+            float threshold = stof(std::string(obj["threshold"].GetString()));
+
+            // Make effect and add to vector
+            auto dist = std::make_shared<DistortionEffect>(gain1, gain2, mix1, mix2, threshold);
+            effects.push_back(dist);
+        }
+        else if (effect == "delay")
+        {
+            std::string type = "fir";
+            if (obj.HasMember("type"))
+            {
+                std::string tmp(obj["type"].GetString());
+                type = tmp;
+            }
+            float delayTime = stof(std::string(obj["delay"].GetString()));
+            float decayCoeff = stof(std::string(obj["decay"].GetString()));
+
+            // Process vars
+            float mainCoeff = 1.0;
+            std::vector<unsigned int> delays;
+            std::vector<float> coeffs;
+            float decay = 1 - decayCoeff;
+
+            unsigned int delaySamples = (unsigned int) (delayTime * 44100 / Source<float>::BLOCK_SIZE);
+
+            if (type == "fir")
+            {
+                delays = {delaySamples};
+                coeffs = {decay};
+            }
+            else // iir
+            {
+                int i = 1;
+                while (decay >= 0.05)
+                {
+                    delays.push_back(delaySamples * i++);
+                    coeffs.push_back(decay);
+                    decay *= decay;
+                }
+            }
+
+            // Create effect and add to vector
+            auto delay = std::make_shared<DelayEffect>(mainCoeff, delays, coeffs);
+            effects.push_back(delay);
+        }
+        else if (effect == "tremolo")
+        {
+            float depth = stof(std::string(obj["depth"].GetString()));
+            float rate = stof(std::string(obj["rate"].GetString()));
+
+            unsigned int period = (unsigned int) ((1 / rate) * 44100);
+
+            // Create effect and add to vector
+            auto tremolo = std::make_shared<TremoloEffect>(depth, period);
+            effects.push_back(tremolo);
+        }
+        else if (effect == "convolution")
+        {
+            std::cout << "Later alligator" << std::endl;
+        }
+    }
+
+    std::string outputFileName = "output.wav";
+    // Make file source
+    FileSource src(vars.inputPath);
+
+    // Make file sink
+    auto sink = std::make_shared<FileSink>(outputFileName);
+
+    if (effects.empty())
+    {
+        src.connect(sink, 0);
+    }
+    else
+    {
+        std::shared_ptr <Processor<float, float>> lastEffect;
+        for (auto it = effects.begin(); it != effects.end(); ++it)
+        {
+            if (it == effects.begin())
+            {
+                lastEffect = *it;
+                src.connect(lastEffect, 0);
+            }
+            else
+            {
+                lastEffect->connect(*it, 0);
+                lastEffect = *it;
+            }
+        }
+        lastEffect->connect(sink, 0);
+    }
+
+    while (src.generate_next());
+
+    sink->write();
+
+    mg_send_file(connection, outputFileName.c_str());
+
+    return 200;
 }

@@ -18,7 +18,6 @@
 #include "filesink.h"
 #include "filesource.h"
 #include "processor.h"
-#include "rapidjson/document.h"
 #include "sinesource.h"
 #include "sink.h"
 #include "source.h"
@@ -34,12 +33,6 @@ int main(int argc, char *argv[])
         std::cerr << "Could not initialise Ne10." << std::endl;
         return EXIT_FAILURE;
     }
-
-    // RapidJson test
-    const char* json = " { \"hello\": \"world\", \"name\": \"Robbe\" }";
-    rapidjson::Document document;
-    document.Parse(json);
-    std::cout << "hello = " << document["hello"].GetString() << std::endl;
 
     WebServer server(8888);
 
