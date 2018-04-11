@@ -1,11 +1,14 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
+#include <cstring>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <memory>
 #include <numeric>
+#include <pthread.h>
+#include <thread>
 #include <vector>
 
 #include "NE10.h"
@@ -84,6 +87,28 @@ void testFFTConv()
     }
 }
 
+void f(int id, int priority) // priority: higher = more priority
+{
+    sched_param params;
+    params.sched_priority = priority;
+    if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &params))
+    {
+        std::cerr << "Failed to set priority for thread: " << std::strerror(errno) << "\n";
+    }
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    for (int i = 0; i < 10; ++i)
+    {
+        std::cout << "thread " << id << " : " << i << "\n";
+
+        // artificial delay
+        volatile int sum = 0;
+        for (int j = 0; j < 100 * 1000 * 1000; ++j)
+            sum += j;
+    }
+}
+
 int main(int argc, char *argv[])
 {
     // NE10 Initialisation
@@ -93,8 +118,14 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    std::thread t1(f, 1, 1), t2(f, 2, 2), t3(f, 3, 3);
+    t1.join();
+    t2.join();
+    t3.join();
+
     //testFFTConv();
 
+#if 0
     SampleData input("input.wav");
     SampleData impulse("impulse.wav");
 
@@ -126,6 +157,7 @@ int main(int argc, char *argv[])
 
     SampleData output({result}, input.getSampleRate());
     output.save("output.wav");
+#endif
 
 #if 0
     constexpr unsigned int FIELD_WIDTH = 30;
