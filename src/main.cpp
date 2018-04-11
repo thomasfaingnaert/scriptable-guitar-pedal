@@ -91,7 +91,7 @@ void f(int id, int priority) // priority: higher = more priority
 {
     sched_param params;
     params.sched_priority = priority;
-    if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &params))
+    if (pthread_setschedparam(pthread_self(), SCHED_RR, &params))
     {
         std::cerr << "Failed to set priority for thread: " << std::strerror(errno) << "\n";
     }
@@ -118,9 +118,9 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    std::thread t1(f, 1, 1), t2(f, 2, 2), t3(f, 3, 3);
+    std::thread t1(f, 1, 1), t2(f, 2, 2), t3(f, 3, 2);
 
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     for (int i = 0; i < 10; ++i)
     {
         std::cout << "main thread : " << i << "\n";
