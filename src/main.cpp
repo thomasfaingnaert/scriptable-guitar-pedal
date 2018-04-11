@@ -119,6 +119,17 @@ int main(int argc, char *argv[])
     }
 
     std::thread t1(f, 1, 1), t2(f, 2, 2), t3(f, 3, 3);
+
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    for (int i = 0; i < 10; ++i)
+    {
+        std::cout << "main thread : " << i << "\n";
+        // artificial delay
+        volatile int sum = 0;
+        for (int j = 0; j < 100 * 1000 * 1000; ++j)
+            sum += j;
+    }
+
     t1.join();
     t2.join();
     t3.join();
