@@ -10,6 +10,7 @@
 
 #include "NE10.h"
 #include "directformconvolver.h"
+#include "fftconvolver.h"
 
 float timeDirectForm(const unsigned int impulseSize, const unsigned int blockSize, const unsigned int numBlocks)
 {
@@ -33,6 +34,33 @@ float timeDirectForm(const unsigned int impulseSize, const unsigned int blockSiz
     return 100.0 * executionTime / inputTime;
 }
 
+void testFFTConv()
+{
+    unsigned int blockSize = 16;
+    unsigned int impulseLength = 1024;
+
+    std::vector<float> impulse(impulseLength);
+    std::generate(impulse.begin(), impulse.end(), std::rand);
+
+    FFTConvolver conv(impulse, blockSize);
+    DirectFormConvolver conv2(impulse, blockSize);
+
+    for (int i = 0; i < 10; ++i)
+    {
+        std::vector<float> input(blockSize);
+        std::generate(input.begin(), input.end(), std::rand);
+
+        std::vector<float> result = conv.process(input);
+        std::vector<float> result2 = conv2.process(input);
+
+        std::cout << "Block " << i << ":\n";
+        std::copy(result.begin(), result.end(), std::ostream_iterator<float>(std::cout, " "));
+        std::cout << "\n";
+        std::copy(result2.begin(), result2.end(), std::ostream_iterator<float>(std::cout, " "));
+        std::cout << "\n\n\n";
+    }
+}
+
 int main(int argc, char *argv[])
 {
     // NE10 Initialisation
@@ -42,9 +70,11 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    testFFTConv();
+
+#if 0
     constexpr unsigned int FIELD_WIDTH = 30;
     constexpr unsigned int NUM_TRIALS = 10;
-
 
     const std::vector<float> impulseDurations = {0.01, 0.02, 0.05, 0.1, 0.2};
 
@@ -71,6 +101,7 @@ int main(int argc, char *argv[])
             std::cout << std::setw(FIELD_WIDTH) << blockSize << std::setw(FIELD_WIDTH) << load / NUM_TRIALS << std::endl;
         }
     }
+#endif
 
     return EXIT_SUCCESS;
 }
