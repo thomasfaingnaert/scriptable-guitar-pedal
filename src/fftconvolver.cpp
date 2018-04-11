@@ -1,4 +1,5 @@
 #include "fftconvolver.h"
+#include <cmath>
 #include <stdexcept>
 
 FFTConvolver::FFTConvolver(const std::vector<float>& impulseResponse, unsigned int blockSize)
