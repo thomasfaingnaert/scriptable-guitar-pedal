@@ -11,6 +11,7 @@
 #include "NE10.h"
 #include "directformconvolver.h"
 #include "fftconvolver.h"
+#include "sampledata.h"
 
 float timeDirectForm(const unsigned int impulseSize, const unsigned int blockSize, const unsigned int numBlocks)
 {
@@ -94,7 +95,39 @@ int main(int argc, char *argv[])
 
     //testFFTConv();
 
-#if 1
+    SampleData input("input.wav");
+    SampleData impulse("impulse.wav");
+
+    std::vector<float> inputSamples = input.getSamples()[0];
+    std::vector<float> impulseSamples = impulse.getSamples()[0];
+
+    std::vector<float> result;
+
+    unsigned int blockSize = impulseSamples.size() * 2;
+    FFTConvolver conv(impulseSamples, blockSize);
+
+    auto begin = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i + blockSize < inputSamples.size(); i += blockSize)
+    {
+        std::vector<float> block(inputSamples.begin() + i, inputSamples.begin() + i + blockSize);
+        std::vector<float> res = conv.process(block);
+        result.insert(result.end(), res.begin(), res.end());
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Took " << std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << " ms" << "\n";
+
+    float max = 0;
+
+    for (float r : result)
+        max = std::max(max, std::abs(r));
+
+    for (float& r : result)
+        r /= max;
+
+    SampleData output({result}, input.getSampleRate());
+    output.save("output.wav");
+
+#if 0
     constexpr unsigned int FIELD_WIDTH = 30;
     constexpr unsigned int NUM_TRIALS = 10;
 
