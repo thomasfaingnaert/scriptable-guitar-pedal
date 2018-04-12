@@ -9,6 +9,7 @@
 
 #include "NE10.h"
 #include "adder.h"
+#include "alsasink.h"
 #include "blockbuffer.h"
 #include "civetweb.h"
 #include "codec.h"
@@ -33,6 +34,14 @@ int main(int argc, char *argv[])
         std::cerr << "Could not initialise Ne10." << std::endl;
         return EXIT_FAILURE;
     }
+
+    FileSource fileSource("perfect.wav");
+
+    auto alsaSink = std::make_shared<AlsaSink>(0, 0, 44100);
+
+    fileSource.connect(alsaSink, 0);
+
+    while(fileSource.generate_next());
 
     return EXIT_SUCCESS;
 }
