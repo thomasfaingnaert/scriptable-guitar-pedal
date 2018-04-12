@@ -1,7 +1,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "tinyalsa/pcm.h"
+#include "pcm.h"
 
 #include "alsasink.h"
 
@@ -19,10 +19,12 @@ AlsaSink::AlsaSink(unsigned int card, unsigned int device, unsigned int sampling
 
     pcm = pcm_open(card, device, flags, &config);
 
-    if (pcm == nullptr) {
+    if (pcm == nullptr)
+    {
         std::cerr << "failed to allocate memory for PCM";
-
-    } else if (!pcm_is_ready(pcm)){
+    }
+    else if (!pcm_is_ready(pcm))
+    {
         pcm_close(pcm);
 
         std::cerr << "failed to open PCM";
