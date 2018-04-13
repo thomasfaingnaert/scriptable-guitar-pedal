@@ -29,7 +29,7 @@
         __overlay__ {
             codec_gpio_pins: pinmux_codec_gpio_pins {
                 pinctrl-single,pins = <
-                    0x048 0x27 /* gpio1_18: output, pull down, mode 7 */
+                    0x048 0x07 /* gpio1_18: output, pull down, mode 7 */
                 >;
             };
 
@@ -42,11 +42,11 @@
 
             codec_mcasp0_pins: pinmux_codec_mcasp0_pins {
                 pinctrl-single,pins = <
-                    0x190 0x20 /* mcasp0_aclkx:  output, pull down, mode 0 */
-                    0x194 0x30 /* mcasp0_fsx:    output, pull up,   mode 0 */
-                    0x198 0x00 /* mcasp0_axr0:   input,  pull down, mode 0 */
-                    0x19c 0x22 /* mcasp0_axr2:   output, pull down, mode 2 */
-                    0x1ac 0x10 /* mcasp0_ahclkx: input,  pull up,   mode 0 */
+                    0x190 0x20 /* mcasp0_aclkx:  input,  pull down, mode 0 */
+                    0x194 0x30 /* mcasp0_fsx:    input,  pull up,   mode 0 */
+                    0x198 0x20 /* mcasp0_axr0:   input,  pull down, mode 0 */
+                    0x19c 0x02 /* mcasp0_axr2:   output, pull down, mode 2 */
+                    0x1ac 0x30 /* mcasp0_ahclkx: input,  pull up,   mode 0 */
                 >;
             };
         };

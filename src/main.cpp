@@ -35,11 +35,15 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    FileSource fileSource("perfect.wav");
+    FileSource fileSource("test.wav");
 
-    auto alsaSink = std::make_shared<AlsaSink>(0, 0, 44100);
+    auto distortionEffect = std::make_shared<DistortionEffect>(25.0f, 1.0f);
 
-    fileSource.connect(alsaSink, 0);
+    auto alsaSink = std::make_shared<AlsaSink>(0, 0, 48000);
+
+    fileSource.connect(distortionEffect, 0);
+
+    distortionEffect->connect(alsaSink, 0);
 
     while(fileSource.generate_next());
 

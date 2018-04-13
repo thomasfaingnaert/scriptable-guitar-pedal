@@ -33,15 +33,15 @@ AlsaSink::AlsaSink(unsigned int card, unsigned int device, unsigned int sampling
 
 void AlsaSink::push(const std::shared_ptr <std::vector<float>> &samples_float, unsigned int channel)
 {
-    std::vector<uint16_t> samples;
+    std::vector<int16_t> samples;
 
     samples.reserve(2 * samples_float->size());
 
     for (auto sample_float : *samples_float)
     {
-        samples.push_back(static_cast<uint16_t>(std::floor(INT16_MAX * sample_float)));
+        samples.push_back(static_cast<int16_t>(std::floor(INT16_MAX * sample_float)));
         samples.push_back(0);
     }
 
-    pcm_writei(pcm, samples.data(), pcm_bytes_to_frames(pcm, sizeof(uint16_t) * samples.size()));
+    pcm_writei(pcm, samples.data(), pcm_bytes_to_frames(pcm, sizeof(int16_t) * samples.size()));
 }
