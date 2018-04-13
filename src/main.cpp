@@ -14,6 +14,8 @@
 #include "NE10.h"
 #include "directformconvolver.h"
 #include "fftconvolver.h"
+#include "filesink.h"
+#include "filesource.h"
 #include "sampledata.h"
 
 float timeDirectForm(const unsigned int impulseSize, const unsigned int blockSize, const unsigned int numBlocks)
@@ -118,6 +120,36 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    sched_param params;
+    params.sched_priority = 63;
+    if (pthread_setschedparam(pthread_self(), SCHED_RR, &params))
+    {
+        std::cerr << "Failed to set priority for thread: " << std::strerror(errno) << "\n";
+    }
+
+    FileSource input("input.wav");
+    auto output = std::make_shared<FileSink>("output.wav");
+    input.connect(output, 0);
+
+    bool stop = false;
+    auto blockDuration = std::chrono::milliseconds(Source<float>::BLOCK_SIZE / 48);
+
+    auto time_begin = std::chrono::high_resolution_clock::now();
+    while (!stop)
+    {
+        auto begin = std::chrono::high_resolution_clock::now();
+        stop = !input.generate_next();
+        auto end = std::chrono::high_resolution_clock::now();
+        auto sleepDuration = blockDuration - (end - begin);
+        std::this_thread::sleep_for(sleepDuration);
+    }
+    auto time_end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Processing took " << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_begin).count() << " ms\n";
+
+    output->write();
+
+#if 0
     std::thread t1(f, 1, 1), t2(f, 2, 2), t3(f, 3, 2);
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -135,6 +167,7 @@ int main(int argc, char *argv[])
     t3.join();
 
     //testFFTConv();
+#endif
 
 #if 0
     SampleData input("input.wav");
