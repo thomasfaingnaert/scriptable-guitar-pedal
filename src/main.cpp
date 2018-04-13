@@ -171,11 +171,11 @@ int main(int argc, char *argv[])
     auto time_begin = std::chrono::high_resolution_clock::now();
     while (!stop)
     {
-        auto begin = std::chrono::high_resolution_clock::now();
+        //auto begin = std::chrono::high_resolution_clock::now();
         stop = !input.generate_next();
-        auto end = std::chrono::high_resolution_clock::now();
+        //auto end = std::chrono::high_resolution_clock::now();
 
-        std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "\n";
+        //std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "\n";
 
         //auto sleepDuration = blockDuration - (end - begin);
         //std::this_thread::sleep_for(sleepDuration);
