@@ -98,33 +98,18 @@ std::shared_ptr<std::vector<float>> FilterEffect::process(const std::vector<std:
 }
 
 FilterEffect::MiniConvolver::MiniConvolver(const std::vector<float>& impulseResponse, unsigned int delay)
-    : conv(impulseResponse, impulseResponse.size()), blockSize(impulseResponse.size()), outputBuffer(delay), mutex(new std::mutex()), cond_var(new std::condition_variable())
+    : conv(impulseResponse, impulseResponse.size()), blockSize(impulseResponse.size()), outputBuffer(delay)
 {
 }
 
 void FilterEffect::MiniConvolver::calculate(const std::vector<float>& input)
 {
-    if (thread.joinable())
-        thread.join();
-
-    thread = std::thread([this,input]
-            {
-                std::vector<float> result = conv.process(input);
-                {
-                    std::unique_lock<std::mutex> lock(*mutex);
-                    outputBuffer.insert(outputBuffer.end(), result.begin(), result.end());
-                    lock.unlock();
-                    cond_var->notify_one();
-                }
-            });
+    std::vector<float> result = conv.process(input);
+    outputBuffer.insert(outputBuffer.end(), result.begin(), result.end());
 }
 
 std::vector<float> FilterEffect::MiniConvolver::getNextBlock()
 {
-    // wait until new data is available
-    std::unique_lock<std::mutex> lock(*mutex);
-    cond_var->wait(lock, [this]{ return !outputBuffer.empty(); });
-
     std::vector<float> block(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
     outputBuffer.erase(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
     return block;
