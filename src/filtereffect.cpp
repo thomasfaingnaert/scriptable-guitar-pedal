@@ -1,3 +1,7 @@
+#include <cstring>
+#include <iostream>
+#include <pthread.h>
+
 #include "NE10.h"
 #include "filtereffect.h"
 
@@ -13,6 +17,7 @@ FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
     unsigned int blockSize = BLOCK_SIZE;
     unsigned int delay = BLOCK_SIZE;
     unsigned int largestBlockSize = BLOCK_SIZE;
+    unsigned int priority = 99;
 
     while (it != impulseResponse.end())
     {
@@ -31,12 +36,16 @@ FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
         }
 
         // Create new mini-convolver
-        convolvers.emplace_back(impulseFragment, delay);
+        convolvers.emplace_back(impulseFragment, delay, priority);
 
         // Update parameters
         largestBlockSize = blockSize;
         if (!isEvenBlock)
+        {
             blockSize *= 2; // only double blocksize every two segments
+            if (priority > 1)
+                --priority;
+        }
         isEvenBlock = !isEvenBlock;
         delay += impulseFragment.size();
     }
@@ -97,8 +106,8 @@ std::shared_ptr<std::vector<float>> FilterEffect::process(const std::vector<std:
     return std::make_shared<std::vector<float>>(output);
 }
 
-FilterEffect::MiniConvolver::MiniConvolver(const std::vector<float>& impulseResponse, unsigned int delay)
-    : conv(impulseResponse, impulseResponse.size()), blockSize(impulseResponse.size()), outputBuffer(delay), mutex(new std::mutex()), cond_var(new std::condition_variable())
+FilterEffect::MiniConvolver::MiniConvolver(const std::vector<float>& impulseResponse, unsigned int delay, unsigned int priority)
+    : conv(impulseResponse, impulseResponse.size()), blockSize(impulseResponse.size()), outputBuffer(delay), mutex(new std::mutex()), cond_var(new std::condition_variable()), priority(priority)
 {
 }
 
@@ -111,6 +120,13 @@ void FilterEffect::MiniConvolver::calculate(const std::vector<float>& input)
             {
                 std::vector<float> result = conv.process(input);
                 {
+                    sched_param params;
+                    params.sched_priority = priority;
+                    if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &params))
+                    {
+                        std::cerr << "Failed to set priority for thread: " << std::strerror(errno) << "\n";
+                    }
+
                     std::unique_lock<std::mutex> lock(*mutex);
                     outputBuffer.insert(outputBuffer.end(), result.begin(), result.end());
                     lock.unlock();

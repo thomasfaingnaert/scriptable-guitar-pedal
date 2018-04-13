@@ -21,7 +21,7 @@ class FilterEffect : public Processor<float, float>
         class MiniConvolver // convolver for only part of impulse response
         {
             public:
-                MiniConvolver(const std::vector<float>& impulseResponse, unsigned int delay);
+                MiniConvolver(const std::vector<float>& impulseResponse, unsigned int delay, unsigned int priority);
                 unsigned int getBlockSize() const { return blockSize; }
                 void calculate(const std::vector<float>& input);
                 std::vector<float> getNextBlock();
@@ -33,6 +33,7 @@ class FilterEffect : public Processor<float, float>
                 std::unique_ptr<std::mutex> mutex; // unique_ptr needed because std::mutex is not movable nor copyable
                 std::unique_ptr<std::condition_variable> cond_var; // same thing here
                 std::thread thread;
+                unsigned int priority;
         };
 
         std::vector<MiniConvolver> convolvers; // each convolver is responsible for one part of impulse response
