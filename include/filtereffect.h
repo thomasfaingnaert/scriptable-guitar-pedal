@@ -1,6 +1,9 @@
 #ifndef FILTEREFFECT_H_MXLN2IIZ
 #define FILTEREFFECT_H_MXLN2IIZ
 
+#include <deque>
+#include <vector>
+
 #include "fftconvolver.h"
 #include "processor.h"
 
@@ -22,7 +25,7 @@ class FilterEffect : public Processor<float, float>
             private:
                 FFTConvolver conv;
                 unsigned int blockSize;
-                std::vector<float> outputBuffer;
+                std::deque<float> outputBuffer;
         };
 
         std::vector<MiniConvolver> convolvers; // each convolver is responsible for one part of impulse response
