@@ -1,7 +1,11 @@
 #ifndef FILTEREFFECT_H_MXLN2IIZ
 #define FILTEREFFECT_H_MXLN2IIZ
 
+#include <condition_variable>
 #include <deque>
+#include <memory>
+#include <mutex>
+#include <thread>
 #include <vector>
 
 #include "fftconvolver.h"
@@ -17,7 +21,7 @@ class FilterEffect : public Processor<float, float>
         class MiniConvolver // convolver for only part of impulse response
         {
             public:
-                MiniConvolver(const std::vector<float>& impulseResponse, unsigned int delay);
+                MiniConvolver(const std::vector<float>& impulseResponse, unsigned int delay, bool inBackground);
                 unsigned int getBlockSize() const { return blockSize; }
                 void calculate(const std::vector<float>& input);
                 std::vector<float> getNextBlock();
@@ -26,6 +30,11 @@ class FilterEffect : public Processor<float, float>
                 FFTConvolver conv;
                 unsigned int blockSize;
                 std::deque<float> outputBuffer;
+                bool inBackground;
+
+                std::thread thread;
+                std::unique_ptr<std::mutex> mutex;
+                std::unique_ptr<std::condition_variable> cond_var;
         };
 
         std::vector<MiniConvolver> convolvers; // each convolver is responsible for one part of impulse response

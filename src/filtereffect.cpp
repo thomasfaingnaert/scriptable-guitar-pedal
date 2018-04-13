@@ -31,7 +31,7 @@ FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
         }
 
         // Create new mini-convolver
-        convolvers.emplace_back(impulseFragment, delay);
+        convolvers.emplace_back(impulseFragment, delay, blockSize >= 16000);
 
         // Update parameters
         largestBlockSize = blockSize;
@@ -97,21 +97,52 @@ std::shared_ptr<std::vector<float>> FilterEffect::process(const std::vector<std:
     return std::make_shared<std::vector<float>>(output);
 }
 
-FilterEffect::MiniConvolver::MiniConvolver(const std::vector<float>& impulseResponse, unsigned int delay)
-    : conv(impulseResponse, impulseResponse.size()), blockSize(impulseResponse.size()), outputBuffer(delay)
+FilterEffect::MiniConvolver::MiniConvolver(const std::vector<float>& impulseResponse, unsigned int delay, bool inBackground)
+    : conv(impulseResponse, impulseResponse.size()), blockSize(impulseResponse.size()), outputBuffer(delay), inBackground(inBackground), mutex(new std::mutex()), cond_var(new std::condition_variable())
 {
 }
 
 void FilterEffect::MiniConvolver::calculate(const std::vector<float>& input)
 {
-    std::vector<float> result = conv.process(input);
-    outputBuffer.insert(outputBuffer.end(), result.begin(), result.end());
+    if (!inBackground)
+    {
+        std::vector<float> result = conv.process(input);
+        outputBuffer.insert(outputBuffer.end(), result.begin(), result.end());
+    }
+    else
+    {
+        if (thread.joinable())
+            thread.join();
+        thread = std::thread([this,input]
+                {
+                std::vector<float> result = conv.process(input);
+                {
+                std::unique_lock<std::mutex> lock(*mutex);
+                outputBuffer.insert(outputBuffer.end(), result.begin(), result.end());
+                lock.unlock();
+                cond_var->notify_one();
+                }
+                });
+    }
 }
 
 std::vector<float> FilterEffect::MiniConvolver::getNextBlock()
 {
-    std::vector<float> block(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
-    outputBuffer.erase(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
-    return block;
+    if (!inBackground)
+    {
+        std::vector<float> block(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
+        outputBuffer.erase(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
+        return block;
+    }
+    else
+    {
+        // wait until new data is available
+        std::unique_lock<std::mutex> lock(*mutex);
+        cond_var->wait(lock, [this]{ return !outputBuffer.empty(); });
+
+        std::vector<float> block(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
+        outputBuffer.erase(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
+        return block;
+    }
 }
 
