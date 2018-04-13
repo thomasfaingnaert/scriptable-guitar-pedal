@@ -131,6 +131,7 @@ int main(int argc, char *argv[])
     }
 #endif
 
+#if 0
     std::vector<float> impulseResponse(256*4 + 1);
     impulseResponse[impulseResponse.size() - 1] = 1;
 
@@ -152,10 +153,14 @@ int main(int argc, char *argv[])
     }
 
     std::cout << "\n";
+#endif
 
-#if 0
+#if 1
+    SampleData impulse("impulse.wav");
+    std::vector<float> impulseSamples = impulse.getSamples()[0];
+
     FileSource input("input.wav");
-    auto filter = std::make_shared<FilterEffect>();
+    auto filter = std::make_shared<FilterEffect>(impulseSamples);
     auto output = std::make_shared<FileSink>("output.wav");
     input.connect(filter, 0);
     filter->connect(output, 0);
@@ -166,11 +171,11 @@ int main(int argc, char *argv[])
     auto time_begin = std::chrono::high_resolution_clock::now();
     while (!stop)
     {
-        auto begin = std::chrono::high_resolution_clock::now();
+        //auto begin = std::chrono::high_resolution_clock::now();
         stop = !input.generate_next();
-        auto end = std::chrono::high_resolution_clock::now();
-        auto sleepDuration = blockDuration - (end - begin);
-        std::this_thread::sleep_for(sleepDuration);
+        //auto end = std::chrono::high_resolution_clock::now();
+        //auto sleepDuration = blockDuration - (end - begin);
+        //std::this_thread::sleep_for(sleepDuration);
     }
     auto time_end = std::chrono::high_resolution_clock::now();
 

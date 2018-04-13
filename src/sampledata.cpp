@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <iterator>
 #include <vector>
@@ -80,10 +81,17 @@ void SampleData::load(const std::string& filename)
 
 void SampleData::save(const std::string& filename) const
 {
+    std::vector<float> samples = sampleData;
+    float max = 0.0;
+    for (float f : samples)
+        max = std::max(max, std::abs(f));
+    for (float& f : samples)
+        f /= max;
+
     // open file for writing
     SndfileHandle file(filename, SFM_WRITE, SF_FORMAT_WAV | SF_FORMAT_PCM_24, numChannels, sampleRate);
     // write all samples
-    file.write(sampleData.data(), sampleData.size());
+    file.write(samples.data(), samples.size());
 }
 
 std::vector<std::vector<Sample>> SampleData::getSamples() const
