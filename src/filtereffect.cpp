@@ -1,6 +1,4 @@
 #include "filtereffect.h"
-#include <iostream>
-#include <iterator>
 
 FilterEffect::FilterEffect()
     : Processor(1), numBlocksReceived(0)
@@ -8,6 +6,7 @@ FilterEffect::FilterEffect()
     // Make input buffer big enough to remember enough blocks
     inputBuffer.resize(2 * BLOCK_SIZE);
 
+    // TODO: Fix MiniConvolver not being copyable! (#3)
     convolvers.reserve(10);
 
     // Make convolvers
@@ -33,9 +32,6 @@ std::shared_ptr<std::vector<float>> FilterEffect::process(const std::vector<std:
     inputBuffer.erase(inputBuffer.begin(), inputBuffer.begin() + BLOCK_SIZE);
     inputBuffer.insert(inputBuffer.end(), data[0]->begin(), data[0]->end());
 
-    // Output
-    std::cout << "Block " << numBlocksReceived - 1 << ":\n";
-
     // Calculate output
     std::vector<float> output(BLOCK_SIZE);
 
@@ -48,11 +44,6 @@ std::shared_ptr<std::vector<float>> FilterEffect::process(const std::vector<std:
         }
     }
 
-    std::cout << "Result:\n";
-    for (float f : output)
-        std::cout << std::round(f) << " ";
-    std::cout << "\n\n";
-
     // Check all convolvers to see if they should recalculate samples
     for (MiniConvolver& conv : convolvers)
     {
@@ -63,7 +54,7 @@ std::shared_ptr<std::vector<float>> FilterEffect::process(const std::vector<std:
         }
     }
 
-    return data[0];
+    return std::make_shared<std::vector<float>>(output);
 }
 
 FilterEffect::MiniConvolver::MiniConvolver(const std::vector<float>& impulseResponse, unsigned int delay)

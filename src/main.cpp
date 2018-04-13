@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <iomanip>
@@ -133,13 +134,21 @@ int main(int argc, char *argv[])
     auto in = std::make_shared<std::vector<float>>(256);
     std::iota(in->begin(), in->end(), 1);
     FilterEffect filter;
-    filter.process({in});
+    auto res = filter.process({in});
+    for (float f : *res)
+        std::cout << std::round(f) << " ";
+    std::cout << "\n\n";
 
     for (int i = 0; i < 5; ++i)
     {
         auto zero = std::make_shared<std::vector<float>>(256);
-        filter.process({zero});
+        auto res = filter.process({zero});
+        for (float f : *res)
+            std::cout << std::round(f) << " ";
+        std::cout << "\n\n";
     }
+
+    std::cout << "\n";
 
 #if 0
     FileSource input("input.wav");
