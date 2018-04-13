@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
     FilterEffect filter;
     filter.process({in});
 
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < 5; ++i)
     {
         auto zero = std::make_shared<std::vector<float>>(256);
         filter.process({zero});

@@ -14,19 +14,15 @@ class FilterEffect : public Processor<float, float>
         class MiniConvolver // convolver for only part of impulse response
         {
             public:
-                MiniConvolver(const std::vector<float>& impulseResponse);
+                MiniConvolver(const std::vector<float>& impulseResponse, unsigned int delay);
                 unsigned int getBlockSize() const { return blockSize; }
                 void calculate(const std::vector<float>& input);
-                std::vector<float> getPreviousResult() const { return prevResult; }
-                std::vector<float> getLastResult() const { return result; }
-
-                unsigned int index;
+                std::vector<float> getNextBlock();
 
             private:
                 FFTConvolver conv;
                 unsigned int blockSize;
-                std::vector<float> result;
-                std::vector<float> prevResult;
+                std::vector<float> outputBuffer;
         };
 
         std::vector<MiniConvolver> convolvers; // each convolver is responsible for one part of impulse response
