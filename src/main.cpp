@@ -16,6 +16,7 @@
 #include "fftconvolver.h"
 #include "filesink.h"
 #include "filesource.h"
+#include "filtereffect.h"
 #include "sampledata.h"
 
 float timeDirectForm(const unsigned int impulseSize, const unsigned int blockSize, const unsigned int numBlocks)
@@ -120,16 +121,32 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+#if 0
     sched_param params;
     params.sched_priority = 63;
     if (pthread_setschedparam(pthread_self(), SCHED_RR, &params))
     {
         std::cerr << "Failed to set priority for thread: " << std::strerror(errno) << "\n";
     }
+#endif
 
+    auto in = std::make_shared<std::vector<float>>(256);
+    std::iota(in->begin(), in->end(), 1);
+    FilterEffect filter;
+    filter.process({in});
+
+    for (int i = 0; i < 3; ++i)
+    {
+        auto zero = std::make_shared<std::vector<float>>(256);
+        filter.process({zero});
+    }
+
+#if 0
     FileSource input("input.wav");
+    auto filter = std::make_shared<FilterEffect>();
     auto output = std::make_shared<FileSink>("output.wav");
-    input.connect(output, 0);
+    input.connect(filter, 0);
+    filter->connect(output, 0);
 
     bool stop = false;
     auto blockDuration = std::chrono::milliseconds(Source<float>::BLOCK_SIZE / 48);
@@ -148,6 +165,7 @@ int main(int argc, char *argv[])
     std::cout << "Processing took " << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_begin).count() << " ms\n";
 
     output->write();
+#endif
 
 #if 0
     std::thread t1(f, 1, 1), t2(f, 2, 2), t3(f, 3, 2);
