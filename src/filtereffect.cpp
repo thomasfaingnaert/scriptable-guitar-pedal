@@ -1,3 +1,4 @@
+#include "NE10.h"
 #include "filtereffect.h"
 
 FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
@@ -80,10 +81,7 @@ std::shared_ptr<std::vector<float>> FilterEffect::process(const std::vector<std:
     for (MiniConvolver& conv : convolvers)
     {
         std::vector<float> result = conv.getNextBlock();
-        for (unsigned int i = 0; i < BLOCK_SIZE; ++i)
-        {
-            output[i] += result[i];
-        }
+        ne10_add_float(output.data(), output.data(), result.data(), BLOCK_SIZE);
     }
 
     // Check all convolvers to see if they should recalculate samples
