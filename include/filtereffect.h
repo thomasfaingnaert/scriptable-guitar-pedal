@@ -7,7 +7,7 @@
 class FilterEffect : public Processor<float, float>
 {
     public:
-        FilterEffect();
+        FilterEffect(const std::vector<float>& impulseResponse);
         virtual std::shared_ptr<std::vector<float>> process(const std::vector<std::shared_ptr<std::vector<float>>> &data);
 
     private:

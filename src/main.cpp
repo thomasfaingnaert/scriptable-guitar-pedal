@@ -131,9 +131,12 @@ int main(int argc, char *argv[])
     }
 #endif
 
+    std::vector<float> impulseResponse(256*4 + 1);
+    impulseResponse[impulseResponse.size() - 1] = 1;
+
     auto in = std::make_shared<std::vector<float>>(256);
     std::iota(in->begin(), in->end(), 1);
-    FilterEffect filter;
+    FilterEffect filter(impulseResponse);
     auto res = filter.process({in});
     for (float f : *res)
         std::cout << std::round(f) << " ";

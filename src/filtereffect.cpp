@@ -1,8 +1,49 @@
 #include "filtereffect.h"
 
-FilterEffect::FilterEffect()
+FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
     : Processor(1), numBlocksReceived(0)
 {
+    // TODO: Fix MiniConvolver not being copyable! (#3)
+    convolvers.reserve(20);
+
+    // Split the impulse response in blocks
+    auto it = impulseResponse.begin();
+    bool isEvenBlock = true;
+    unsigned int blockSize = BLOCK_SIZE;
+    unsigned int delay = BLOCK_SIZE;
+    unsigned int largestBlockSize = BLOCK_SIZE;
+
+    while (it != impulseResponse.end())
+    {
+        // Create impulse response fragment
+        std::vector<float> impulseFragment;
+        if (it + blockSize < impulseResponse.end())
+        {
+            impulseFragment = std::vector<float>(it, it + blockSize);
+            it += blockSize;
+        }
+        else
+        {
+            impulseFragment = std::vector<float>(it, impulseResponse.end());
+            impulseFragment.resize(blockSize);
+            it = impulseResponse.end();
+        }
+
+        // Create new mini-convolver
+        convolvers.emplace_back(impulseFragment, delay);
+
+        // Update parameters
+        largestBlockSize = blockSize;
+        if (!isEvenBlock)
+            blockSize *= 2; // only double blocksize every two segments
+        isEvenBlock = !isEvenBlock;
+        delay += impulseFragment.size();
+    }
+
+    // Make input buffer big enough to remember enough blocks
+    inputBuffer.resize(largestBlockSize);
+
+#if 0
     // Make input buffer big enough to remember enough blocks
     inputBuffer.resize(2 * BLOCK_SIZE);
 
@@ -21,6 +62,7 @@ FilterEffect::FilterEffect()
     convolvers.emplace_back(impulse2, BLOCK_SIZE * 2);
     convolvers.emplace_back(impulse3, BLOCK_SIZE * 3);
     convolvers.emplace_back(impulse4, BLOCK_SIZE * 5);
+#endif
 }
 
 std::shared_ptr<std::vector<float>> FilterEffect::process(const std::vector<std::shared_ptr<std::vector<float>>> &data)
