@@ -1,7 +1,11 @@
 #ifndef FILTEREFFECT_H_MXLN2IIZ
 #define FILTEREFFECT_H_MXLN2IIZ
 
+#include <condition_variable>
 #include <deque>
+#include <memory>
+#include <mutex>
+#include <thread>
 #include <vector>
 
 #include "fftconvolver.h"
@@ -26,6 +30,9 @@ class FilterEffect : public Processor<float, float>
                 FFTConvolver conv;
                 unsigned int blockSize;
                 std::deque<float> outputBuffer;
+                std::unique_ptr<std::mutex> mutex; // unique_ptr needed because std::mutex is not movable nor copyable
+                std::unique_ptr<std::condition_variable> cond_var; // same thing here
+                std::thread thread;
         };
 
         std::vector<MiniConvolver> convolvers; // each convolver is responsible for one part of impulse response
