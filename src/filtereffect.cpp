@@ -43,27 +43,6 @@ FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
 
     // Make input buffer big enough to remember enough blocks
     inputBuffer.resize(largestBlockSize);
-
-#if 0
-    // Make input buffer big enough to remember enough blocks
-    inputBuffer.resize(2 * BLOCK_SIZE);
-
-    // TODO: Fix MiniConvolver not being copyable! (#3)
-    convolvers.reserve(10);
-
-    // Make convolvers
-    std::vector<float> impulse1(BLOCK_SIZE);
-    std::vector<float> impulse2(BLOCK_SIZE);
-    std::vector<float> impulse3(2 * BLOCK_SIZE);
-    std::vector<float> impulse4(2 * BLOCK_SIZE);
-
-    impulse4[0] = 1;
-
-    convolvers.emplace_back(impulse1, BLOCK_SIZE * 1);
-    convolvers.emplace_back(impulse2, BLOCK_SIZE * 2);
-    convolvers.emplace_back(impulse3, BLOCK_SIZE * 3);
-    convolvers.emplace_back(impulse4, BLOCK_SIZE * 5);
-#endif
 }
 
 std::shared_ptr<std::vector<float>> FilterEffect::process(const std::vector<std::shared_ptr<std::vector<float>>> &data)
