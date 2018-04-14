@@ -1,7 +1,7 @@
 #ifndef SCRIPTABLE_GUITAR_PEDAL_ALSADEVICE_H
 #define SCRIPTABLE_GUITAR_PEDAL_ALSADEVICE_H
 
-#include "pcm.h"
+#include "tinyalsa/asoundlib.h"
 
 #include "sink.h"
 #include "source.h"
