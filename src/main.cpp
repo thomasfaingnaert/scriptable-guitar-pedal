@@ -1,9 +1,5 @@
-#include <algorithm>
+#include <cstdlib>
 #include <iostream>
-#include <iterator>
-#include <memory>
-#include <numeric>
-#include <vector>
 
 #include "NE10.h"
 #include "adder.h"
@@ -33,17 +29,6 @@ int main(int argc, char *argv[])
         std::cerr << "Could not initialise Ne10." << std::endl;
         return EXIT_FAILURE;
     }
-
-    auto alsaDevice = std::make_shared<AlsaDevice>(1, 0, 48000, 2, 2, 1024, 1024, 2, 2);
-
-    auto fileSink = std::make_shared<FileSink>("input.wav");
-
-    alsaDevice->connect(fileSink, 0);
-
-    for (int i = 0; i < 3750; i++)
-        alsaDevice->generate_next();
-
-    fileSink->write();
 
     return EXIT_SUCCESS;
 }

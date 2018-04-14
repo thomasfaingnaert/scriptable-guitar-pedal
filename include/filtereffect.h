@@ -1,34 +1,45 @@
-#include <cmath>
+#ifndef FILTEREFFECT_H_MXLN2IIZ
+#define FILTEREFFECT_H_MXLN2IIZ
+
+#include <condition_variable>
+#include <deque>
+#include <memory>
+#include <mutex>
+#include <thread>
 #include <vector>
 
-#include "dspmath.h"
-#include "sampledata.h"
-#include "NE10.h"
+#include "fftconvolver.h"
+#include "processor.h"
 
-#ifndef FILTEREFFECT_H_DQGPDEBX
-#define FILTEREFFECT_H_DQGPDEBX
-
-class FilterEffect
+class FilterEffect : public Processor<float, float>
 {
     public:
-        ~FilterEffect();
-        void setImpulseResponse(const std::vector<Sample>& impulseResponse);
-        std::vector<Complex> getFrequencyResponse() const;
-        unsigned int getBlockSize() const;
-        void addInputBlock(const std::vector<Sample>& block);
-        std::vector<Sample> getOutputBlock();
+        FilterEffect(const std::vector<float>& impulseResponse);
+        virtual std::shared_ptr<std::vector<float>> process(const std::vector<std::shared_ptr<std::vector<float>>> &data);
 
     private:
-        ne10_fft_r2c_cfg_float32_t config = 0;
+        class MiniConvolver // convolver for only part of impulse response
+        {
+            public:
+                MiniConvolver(const std::vector<float>& impulseResponse, unsigned int delay, bool inBackground);
+                unsigned int getBlockSize() const { return blockSize; }
+                void calculate(const std::vector<float>& input);
+                std::vector<float> getNextBlock();
 
-        unsigned int overlap;
-        unsigned int period;
-        unsigned int blockSize;
+            private:
+                FFTConvolver conv;
+                unsigned int blockSize;
+                std::deque<float> outputBuffer;
+                bool inBackground;
 
-        std::vector<Complex> frequencyResponse;
-        std::vector<Sample> inputBuffer;
+                std::thread thread;
+                std::unique_ptr<std::mutex> mutex;
+                std::unique_ptr<std::condition_variable> cond_var;
+        };
 
-        unsigned int nextPowerOfTwo(unsigned int n) const;
+        std::vector<MiniConvolver> convolvers; // each convolver is responsible for one part of impulse response
+        std::vector<float> inputBuffer; // used to accumulate enough input samples for the convolvers
+        unsigned int numBlocksReceived; // used to remember how many blocks have arrived
 };
 
-#endif /* end of include guard: FILTEREFFECT_H_DQGPDEBX */
+#endif /* end of include guard: FILTEREFFECT_H_MXLN2IIZ */

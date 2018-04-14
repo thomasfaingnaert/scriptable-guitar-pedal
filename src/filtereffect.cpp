@@ -1,102 +1,127 @@
-#include <iostream>
-#include <stdexcept>
-
+#include "NE10.h"
 #include "filtereffect.h"
 
-FilterEffect::~FilterEffect()
+FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
+    : Processor(1), numBlocksReceived(0)
 {
-    if (config)
+    // TODO: Fix MiniConvolver not being copyable! (#3)
+    convolvers.reserve(20);
+
+    // Split the impulse response in blocks
+    auto it = impulseResponse.begin();
+    bool isEvenBlock = true;
+    unsigned int blockSize = BLOCK_SIZE;
+    unsigned int delay = BLOCK_SIZE;
+    unsigned int largestBlockSize = BLOCK_SIZE;
+
+    while (it != impulseResponse.end())
     {
-        ne10_fft_destroy_r2c_float32(config);
-    }
-}
+        // Create impulse response fragment
+        std::vector<float> impulseFragment;
+        if (it + blockSize < impulseResponse.end())
+        {
+            impulseFragment = std::vector<float>(it, it + blockSize);
+            it += blockSize;
+        }
+        else
+        {
+            impulseFragment = std::vector<float>(it, impulseResponse.end());
+            impulseFragment.resize(blockSize);
+            it = impulseResponse.end();
+        }
 
-void FilterEffect::setImpulseResponse(const std::vector<Sample>& impulseResponse)
-{
-    // set parameters
-    overlap = impulseResponse.size() - 1;
-    period = nextPowerOfTwo(4 * overlap);
-    blockSize = period - overlap;
+        // Create new mini-convolver
+        convolvers.emplace_back(impulseFragment, delay, blockSize >= 16000);
 
-    // add zeros before first block
-    inputBuffer.insert(inputBuffer.begin(), overlap, 0);
-
-    // delete old config
-    if (config)
-    {
-        ne10_fft_destroy_r2c_float32(config);
-    }
-
-    // create new config
-    config = ne10_fft_alloc_r2c_float32(period);
-
-    // calculate frequency reponse
-    frequencyResponse = fft(impulseResponse, period, config);
-}
-
-std::vector<Complex> FilterEffect::getFrequencyResponse() const
-{
-    return frequencyResponse;
-}
-
-unsigned int FilterEffect::getBlockSize() const
-{
-    return blockSize;
-}
-
-void FilterEffect::addInputBlock(const std::vector<Sample>& block)
-{
-    if (block.size() != blockSize)
-    {
-        throw std::invalid_argument("Block must have blockSize elements.");
+        // Update parameters
+        largestBlockSize = blockSize;
+        if (!isEvenBlock)
+            blockSize *= 2; // only double blocksize every two segments
+        isEvenBlock = !isEvenBlock;
+        delay += impulseFragment.size();
     }
 
-    inputBuffer.insert(inputBuffer.end(), block.begin(), block.end());
+    // Make input buffer big enough to remember enough blocks
+    inputBuffer.resize(largestBlockSize);
 }
 
-std::vector<Sample> FilterEffect::getOutputBlock()
+std::shared_ptr<std::vector<float>> FilterEffect::process(const std::vector<std::shared_ptr<std::vector<float>>> &data)
 {
-    // get input segment = overlap samples from previous block + all samples from current block
-    std::vector<Sample> inputSegment(inputBuffer.begin(), inputBuffer.begin() + blockSize + overlap);
+    // New block received
+    ++numBlocksReceived;
 
-    // fourier transform of input segment
-    std::vector<Complex> inputFourier = fft(inputSegment, period, config);
+    // Remove first block and add new block to buffer
+    inputBuffer.erase(inputBuffer.begin(), inputBuffer.begin() + BLOCK_SIZE);
+    inputBuffer.insert(inputBuffer.end(), data[0]->begin(), data[0]->end());
 
-    // multiply by frequency response to get output FT
-    std::vector<Complex> outputFourier = multiplyComplex(inputFourier, frequencyResponse);
+    // Calculate output
+    std::vector<float> output(BLOCK_SIZE);
 
-    // inverse transform
-    std::vector<Sample> output = ifft(outputFourier, period, config);
-
-    // remove unneeded samples
-    output.erase(output.begin(), output.begin() + overlap);
-
-    // remove block from input buffer
-    inputBuffer.erase(inputBuffer.begin(), inputBuffer.begin() + blockSize);
-
-    return output;
-}
-
-unsigned int FilterEffect::nextPowerOfTwo(unsigned int n) const
-{
-    if (sizeof(n) != 4)
+    for (MiniConvolver& conv : convolvers)
     {
-        return 1 << static_cast<unsigned int>(std::ceil(std::log(n)/std::log(2)));
+        std::vector<float> result = conv.getNextBlock();
+        ne10_add_float(output.data(), output.data(), result.data(), BLOCK_SIZE);
+    }
+
+    // Check all convolvers to see if they should recalculate samples
+    for (MiniConvolver& conv : convolvers)
+    {
+        // Check if this convolver has enough samples
+        if ((numBlocksReceived * BLOCK_SIZE) % conv.getBlockSize() == 0)
+        {
+            conv.calculate(std::vector<float>(inputBuffer.end() - conv.getBlockSize(), inputBuffer.end()));
+        }
+    }
+
+    return std::make_shared<std::vector<float>>(output);
+}
+
+FilterEffect::MiniConvolver::MiniConvolver(const std::vector<float>& impulseResponse, unsigned int delay, bool inBackground)
+    : conv(impulseResponse, impulseResponse.size()), blockSize(impulseResponse.size()), outputBuffer(delay), inBackground(inBackground), mutex(new std::mutex()), cond_var(new std::condition_variable())
+{
+}
+
+void FilterEffect::MiniConvolver::calculate(const std::vector<float>& input)
+{
+    if (!inBackground)
+    {
+        std::vector<float> result = conv.process(input);
+        outputBuffer.insert(outputBuffer.end(), result.begin(), result.end());
     }
     else
     {
-        // see https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-        --n;
+        if (thread.joinable())
+            thread.join();
+        thread = std::thread([this,input]
+                {
+                std::vector<float> result = conv.process(input);
+                {
+                std::unique_lock<std::mutex> lock(*mutex);
+                outputBuffer.insert(outputBuffer.end(), result.begin(), result.end());
+                lock.unlock();
+                cond_var->notify_one();
+                }
+                });
+    }
+}
 
-        n |= n >> 1;
-        n |= n >> 2;
-        n |= n >> 4;
-        n |= n >> 8;
-        n |= n >> 16;
+std::vector<float> FilterEffect::MiniConvolver::getNextBlock()
+{
+    if (!inBackground)
+    {
+        std::vector<float> block(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
+        outputBuffer.erase(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
+        return block;
+    }
+    else
+    {
+        // wait until new data is available
+        std::unique_lock<std::mutex> lock(*mutex);
+        cond_var->wait(lock, [this]{ return !outputBuffer.empty(); });
 
-        ++n;
-
-        return n;
+        std::vector<float> block(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
+        outputBuffer.erase(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
+        return block;
     }
 }
 

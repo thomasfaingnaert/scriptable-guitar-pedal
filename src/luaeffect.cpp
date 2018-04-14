@@ -58,7 +58,7 @@ std::shared_ptr<std::vector<float>> LuaEffect::process(const std::vector<std::sh
     auto result = std::make_shared<std::vector<float>>(data[0]->size());
 
     // Get the return value from calling 'process' and convert to std::vector
-    for (int i = 1; i <= 10; ++i)
+    for (int i = 1; i <= BLOCK_SIZE; ++i)
     {
         // Push the desired index
         lua_pushinteger(state, i);

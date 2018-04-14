@@ -16,7 +16,6 @@
 #include "distortioneffect.h"
 #include "filesink.h"
 #include "filesource.h"
-#include "filtereffect.h"
 #include "sampledata.h"
 #include "source.h"
 #include "tremoloeffect.h"
@@ -92,6 +91,7 @@ int WebServer::handle_exit(mg_connection *connection, void *user_data)
 
 int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
 {
+#if 0
     mg_form_data_handler fdh = {0};
 
     // used to save paths
@@ -192,6 +192,7 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
     mg_send_file(connection, outputPath.c_str());
 
     return 200;
+#endif
 }
 
 int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
