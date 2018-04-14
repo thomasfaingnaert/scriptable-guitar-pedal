@@ -9,7 +9,7 @@
 
 #include "NE10.h"
 #include "adder.h"
-#include "alsasink.h"
+#include "alsadevice.h"
 #include "blockbuffer.h"
 #include "civetweb.h"
 #include "codec.h"
@@ -35,17 +35,16 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    FileSource fileSource("test.wav");
+    auto alsaDevice = std::make_shared<AlsaDevice>(1, 0, 48000, 2, 2, 1024, 1024, 2, 2);
 
-    auto distortionEffect = std::make_shared<DistortionEffect>(25.0f, 1.0f);
+    auto fileSink = std::make_shared<FileSink>("input.wav");
 
-    auto alsaSink = std::make_shared<AlsaSink>(0, 0, 48000);
+    alsaDevice->connect(fileSink, 0);
 
-    fileSource.connect(distortionEffect, 0);
+    for (int i = 0; i < 3750; i++)
+        alsaDevice->generate_next();
 
-    distortionEffect->connect(alsaSink, 0);
-
-    while(fileSource.generate_next());
+    fileSink->write();
 
     return EXIT_SUCCESS;
 }
