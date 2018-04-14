@@ -1,6 +1,6 @@
 all:
-	dtc -I dts -o beaglebone-black-codec.dtbo -O dtb -b 0 -@ beaglebone-black-codec-alsa.dts
-	dtc -I dts -o beaglebone-black-codec.dtbo -O dtb -b 0 -@ beaglebone-black-codec-direct.dts
+	dtc -I dts -o beaglebone-black-codec-alsa.dtbo -O dtb -b 0 -@ beaglebone-black-codec-alsa.dts
+	dtc -I dts -o beaglebone-black-codec-direct.dtbo -O dtb -b 0 -@ beaglebone-black-codec-direct.dts
 
 clean:
 	rm beaglebone-black-codec-alsa.dtbo

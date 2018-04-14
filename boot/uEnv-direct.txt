@@ -1,0 +1,14 @@
+uname_r=4.9.82-ti-r102
+
+# U-Boot Overlays
+## Master Enable
+enable_uboot_overlays=1
+
+## Custom Cape
+dtb_overlay=/lib/firmware/beaglebone-black-codec-direct.dtbo
+
+## Disable auto loading of virtual capes
+disable_uboot_overlay_video=1
+disable_uboot_overlay_audio=1
+
+cmdline=coherent_pool=1M net.ifnames=0 quiet

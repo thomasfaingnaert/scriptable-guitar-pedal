@@ -6,7 +6,24 @@
 #include <vector>
 
 #include "NE10.h"
+#include "adder.h"
+#include "alsadevice.h"
+#include "blockbuffer.h"
+#include "civetweb.h"
+#include "codec.h"
+#include "convolver.h"
+#include "delayeffect.h"
+#include "distortioneffect.h"
+#include "filesink.h"
+#include "filesource.h"
 #include "luaeffect.h"
+#include "processor.h"
+#include "sinesource.h"
+#include "sink.h"
+#include "source.h"
+#include "streamsink.h"
+#include "tremoloeffect.h"
+#include "webserver.h"
 
 int main(int argc, char *argv[])
 {
@@ -17,17 +34,16 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    LuaEffect effect("examples/test.lua");
+    auto alsaDevice = std::make_shared<AlsaDevice>(1, 0, 48000, 2, 2, 1024, 1024, 2, 2);
 
-    auto data = std::make_shared<std::vector<float>>(10);
-    std::iota(data->begin(), data->end(), 0);
+    auto fileSink = std::make_shared<FileSink>("input.wav");
 
-    auto result = effect.process({data});
+    alsaDevice->connect(fileSink, 0);
 
-    std::cout << "Got result:\n";
-    std::copy(result->begin(), result->end(), std::ostream_iterator<float>(std::cout, " "));
+    for (int i = 0; i < 3750; i++)
+        alsaDevice->generate_next();
 
-    std::cout << "\n";
+    fileSink->write();
 
     return EXIT_SUCCESS;
 }
