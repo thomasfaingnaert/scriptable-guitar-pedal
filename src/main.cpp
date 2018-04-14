@@ -14,10 +14,12 @@
 
 #include "NE10.h"
 #include "directformconvolver.h"
+#include "distortioneffect.h"
 #include "fftconvolver.h"
 #include "filesink.h"
 #include "filesource.h"
 #include "filtereffect.h"
+#include "luaeffect.h"
 #include "sampledata.h"
 
 float timeDirectForm(const unsigned int impulseSize, const unsigned int blockSize, const unsigned int numBlocks)
@@ -160,7 +162,7 @@ int main(int argc, char *argv[])
     std::vector<float> impulseSamples = impulse.getSamples()[0];
 
     FileSource input("input.wav");
-    auto filter = std::make_shared<FilterEffect>(impulseSamples);
+    auto filter = std::make_shared<LuaEffect>("examples/distortion.lua");
     auto output = std::make_shared<FileSink>("output.wav");
     input.connect(filter, 0);
     filter->connect(output, 0);
@@ -175,7 +177,7 @@ int main(int argc, char *argv[])
         stop = !input.generate_next();
         auto end = std::chrono::high_resolution_clock::now();
 
-        std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "\n";
+        //std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "\n";
 
         //auto sleepDuration = blockDuration - (end - begin);
         //std::this_thread::sleep_for(sleepDuration);
