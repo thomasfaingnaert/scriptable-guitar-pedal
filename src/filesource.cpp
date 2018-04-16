@@ -13,7 +13,7 @@ bool FileSource::generate_next()
     if (currentSample == samples.end())
         return false;
 
-    if (std::distance(currentSample, samples.end()) >= BLOCK_SIZE)
+    if (std::distance(currentSample, samples.end()) >= static_cast<std::vector<float>::iterator::difference_type>(BLOCK_SIZE))
     {
         auto block = std::make_shared<std::vector<float>>(currentSample, currentSample + BLOCK_SIZE);
         generate(block);

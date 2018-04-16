@@ -14,6 +14,7 @@
 #include "civetweb.h"
 #include "delayeffect.h"
 #include "distortioneffect.h"
+#include "document.h"
 #include "filesink.h"
 #include "filesource.h"
 #include "sampledata.h"
@@ -48,6 +49,7 @@ WebServer::WebServer(unsigned int port)
     mg_set_request_handler(context, "/dist/submit$", handle_dist_submit, this);
     mg_set_request_handler(context, "/delay/submit$", handle_delay_submit, this);
     mg_set_request_handler(context, "/tremolo/submit$", handle_tremolo_submit, this);
+    mg_set_request_handler(context, "/chain/submit$", handle_chain_submit, this);
 }
 
 WebServer::~WebServer()
@@ -191,13 +193,13 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
 
     mg_send_file(connection, outputPath.c_str());
 
-    return 200;
 #endif
+    return 200;
 }
 
 int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
 {
-    mg_form_data_handler fdh = {0};
+    mg_form_data_handler fdh = {};
 
     struct vars_t
     {
@@ -222,7 +224,7 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
             // file, so save as tmp file
             //std::string tempPath = std::tmpnam(nullptr);
             std::string tempPath = value;
-            snprintf(path, pathlen, tempPath.c_str());
+            snprintf(path, pathlen, "%s", tempPath.c_str());
 
             // store path
             if (std::string(key) == "input")
@@ -317,7 +319,7 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
 
 int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
 {
-    mg_form_data_handler fdh = {0};
+    mg_form_data_handler fdh = {};
 
     struct vars_t
     {
@@ -338,7 +340,7 @@ int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
             // file, so save as tmp file
             //std::string tempPath = std::tmpnam(nullptr);
             std::string tempPath = filename;
-            snprintf(path, pathlen, tempPath.c_str());
+            snprintf(path, pathlen, "%s", tempPath.c_str());
 
             // store path
             if (std::string(key) == "input")
@@ -431,7 +433,7 @@ int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
 
 int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
 {
-    mg_form_data_handler fdh = {0};
+    mg_form_data_handler fdh = {};
 
     struct vars_t
     {
@@ -451,7 +453,7 @@ int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
             // file, so save as tmp file
             //std::string tempPath = std::tmpnam(nullptr);
             std::string tempPath = filename;
-            snprintf(path, pathlen, tempPath.c_str());
+            snprintf(path, pathlen, "%s", tempPath.c_str());
 
             // store path
             if (std::string(key) == "input")
@@ -507,6 +509,189 @@ int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
     // Connect source, effect and sink
     src.connect(tremolo, 0);
     tremolo->connect(sink, 0);
+
+    while (src.generate_next());
+
+    sink->write();
+
+    mg_send_file(connection, outputFileName.c_str());
+
+    return 200;
+}
+
+int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
+{
+    mg_form_data_handler fdh = {0};
+
+    struct vars_t
+    {
+        std::string inputPath;
+        const char *jsonString;
+    } vars;
+
+    fdh.user_data = &vars;
+
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
+    {
+        vars_t *vars = static_cast<vars_t *>(user_data);
+        // check if field is a file
+        if (filename && *filename)
+        {
+            // file, so save as tmp file
+            //std::string tempPath = std::tmpnam(nullptr);
+            std::string tempPath = filename;
+            snprintf(path, pathlen, tempPath.c_str());
+
+            // store path
+            if (std::string(key) == "input")
+            {
+                vars->inputPath = tempPath;
+            }
+            return MG_FORM_FIELD_STORAGE_STORE;
+        }
+        return MG_FORM_FIELD_STORAGE_GET;
+    };
+
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
+    {
+        return 0;
+    };
+
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
+    {
+        std::string name = std::string(key);
+        vars_t *vars = static_cast<vars_t *>(user_data);
+
+        std::string res = std::string(value);
+
+        res = res.substr(0, res.find('\r'));
+
+        if (name == "effect-info")
+        {
+            vars->jsonString = res.c_str();
+        }
+
+        return MG_FORM_FIELD_STORAGE_GET;
+    };
+
+    if (mg_handle_form_request(connection, &fdh) <= 0)
+    {
+        throw std::runtime_error("Error handling form request.");
+    }
+
+    // Parse
+    rapidjson::Document chain;
+    chain.Parse(vars.jsonString); // Contains array of JSON objects
+
+    std::vector < std::shared_ptr < Processor < float, float >> > effects;
+
+    // Iterate through array
+    for (auto &obj : chain.GetArray())
+    {
+        std::string effect(obj["effect"].GetString());
+        if (effect == "distortion")
+        {
+            std::string type = "symmetric";
+            if (obj.HasMember("type"))
+            {
+                type = std::string(obj["type"].GetString());
+            }
+
+            float gain1 = stof(std::string(obj["gain1"].GetString()));
+            float gain2 = (type == "asymmetric") ? stof(std::string(obj["gain2"].GetString())) : gain1;
+            float mix1 = stof(std::string(obj["mix1"].GetString()));
+            float mix2 = (type == "asymmetric") ? stof(std::string(obj["mix2"].GetString())) : mix1;
+            float threshold = stof(std::string(obj["threshold"].GetString()));
+
+            // Make effect and add to vector
+            auto dist = std::make_shared<DistortionEffect>(gain1, gain2, mix1, mix2, threshold);
+            effects.push_back(dist);
+        }
+        else if (effect == "delay")
+        {
+            std::string type = "fir";
+            if (obj.HasMember("type"))
+            {
+                std::string tmp(obj["type"].GetString());
+                type = tmp;
+            }
+            float delayTime = stof(std::string(obj["delay"].GetString()));
+            float decayCoeff = stof(std::string(obj["decay"].GetString()));
+
+            // Process vars
+            float mainCoeff = 1.0;
+            std::vector<unsigned int> delays;
+            std::vector<float> coeffs;
+            float decay = 1 - decayCoeff;
+
+            unsigned int delaySamples = (unsigned int) (delayTime * 44100 / Source<float>::BLOCK_SIZE);
+
+            if (type == "fir")
+            {
+                delays = {delaySamples};
+                coeffs = {decay};
+            }
+            else // iir
+            {
+                int i = 1;
+                while (decay >= 0.05)
+                {
+                    delays.push_back(delaySamples * i++);
+                    coeffs.push_back(decay);
+                    decay *= decay;
+                }
+            }
+
+            // Create effect and add to vector
+            auto delay = std::make_shared<DelayEffect>(mainCoeff, delays, coeffs);
+            effects.push_back(delay);
+        }
+        else if (effect == "tremolo")
+        {
+            float depth = stof(std::string(obj["depth"].GetString()));
+            float rate = stof(std::string(obj["rate"].GetString()));
+
+            unsigned int period = (unsigned int) ((1 / rate) * 44100);
+
+            // Create effect and add to vector
+            auto tremolo = std::make_shared<TremoloEffect>(depth, period);
+            effects.push_back(tremolo);
+        }
+        else if (effect == "convolution")
+        {
+            std::cout << "Later alligator" << std::endl;
+        }
+    }
+
+    std::string outputFileName = "output.wav";
+    // Make file source
+    FileSource src(vars.inputPath);
+
+    // Make file sink
+    auto sink = std::make_shared<FileSink>(outputFileName);
+
+    if (effects.empty())
+    {
+        src.connect(sink, 0);
+    }
+    else
+    {
+        std::shared_ptr <Processor<float, float>> lastEffect;
+        for (auto it = effects.begin(); it != effects.end(); ++it)
+        {
+            if (it == effects.begin())
+            {
+                lastEffect = *it;
+                src.connect(lastEffect, 0);
+            }
+            else
+            {
+                lastEffect->connect(*it, 0);
+                lastEffect = *it;
+            }
+        }
+        lastEffect->connect(sink, 0);
+    }
 
     while (src.generate_next());
 
