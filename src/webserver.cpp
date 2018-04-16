@@ -222,7 +222,7 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
             // file, so save as tmp file
             //std::string tempPath = std::tmpnam(nullptr);
             std::string tempPath = value;
-            snprintf(path, pathlen, tempPath.c_str());
+            snprintf(path, pathlen, "%s", tempPath.c_str());
 
             // store path
             if (std::string(key) == "input")
@@ -338,7 +338,7 @@ int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
             // file, so save as tmp file
             //std::string tempPath = std::tmpnam(nullptr);
             std::string tempPath = filename;
-            snprintf(path, pathlen, tempPath.c_str());
+            snprintf(path, pathlen, "%s", tempPath.c_str());
 
             // store path
             if (std::string(key) == "input")
@@ -451,7 +451,7 @@ int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
             // file, so save as tmp file
             //std::string tempPath = std::tmpnam(nullptr);
             std::string tempPath = filename;
-            snprintf(path, pathlen, tempPath.c_str());
+            snprintf(path, pathlen, "%s", tempPath.c_str());
 
             // store path
             if (std::string(key) == "input")
