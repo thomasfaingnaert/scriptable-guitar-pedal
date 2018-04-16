@@ -191,13 +191,13 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
 
     mg_send_file(connection, outputPath.c_str());
 
-    return 200;
 #endif
+    return 200;
 }
 
 int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
 {
-    mg_form_data_handler fdh = {0};
+    mg_form_data_handler fdh = {};
 
     struct vars_t
     {
@@ -317,7 +317,7 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
 
 int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
 {
-    mg_form_data_handler fdh = {0};
+    mg_form_data_handler fdh = {};
 
     struct vars_t
     {
@@ -431,7 +431,7 @@ int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
 
 int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
 {
-    mg_form_data_handler fdh = {0};
+    mg_form_data_handler fdh = {};
 
     struct vars_t
     {
