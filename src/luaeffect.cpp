@@ -39,7 +39,7 @@ std::shared_ptr<std::vector<float>> LuaEffect::process(const std::vector<std::sh
     lua_createtable(state, data[0]->size(), 0);
 
     // Add all samples to table; remember Lua indices start at 1!
-    for (int i = 1; i <= data[0]->size(); ++i)
+    for (unsigned int i = 1; i <= data[0]->size(); ++i)
     {
         // Push key
         lua_pushinteger(state, i);
@@ -58,7 +58,7 @@ std::shared_ptr<std::vector<float>> LuaEffect::process(const std::vector<std::sh
     auto result = std::make_shared<std::vector<float>>(data[0]->size());
 
     // Get the return value from calling 'process' and convert to std::vector
-    for (int i = 1; i <= BLOCK_SIZE; ++i)
+    for (unsigned int i = 1; i <= BLOCK_SIZE; ++i)
     {
         // Push the desired index
         lua_pushinteger(state, i);
