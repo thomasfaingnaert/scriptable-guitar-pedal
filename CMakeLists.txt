@@ -6,7 +6,6 @@ find_package(Ne10 REQUIRED)
 find_package(CivetWeb REQUIRED)
 find_package(LibSndFile REQUIRED)
 find_package(LibI2C REQUIRED)
-<<<<<<< HEAD
 find_package(Lua REQUIRED)
 find_package(TinyALSA REQUIRED)
 find_package(RapidJson REQUIRED)
