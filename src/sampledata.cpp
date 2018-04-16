@@ -89,7 +89,7 @@ void SampleData::save(const std::string& filename) const
         f /= max;
 
     // open file for writing
-    SndfileHandle file(filename, SFM_WRITE, SF_FORMAT_WAV | SF_FORMAT_PCM_24, numChannels, sampleRate);
+    SndfileHandle file(filename, SFM_WRITE, SF_FORMAT_WAV | SF_FORMAT_PCM_16, numChannels, sampleRate);
     // write all samples
     file.write(samples.data(), samples.size());
 }
