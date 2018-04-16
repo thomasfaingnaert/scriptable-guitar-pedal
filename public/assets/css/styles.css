@@ -1,0 +1,34 @@
+
+#jsplumb-container {
+    border: 1px solid #2D2D2D;
+    margin: 30px auto 30px auto;
+    padding: 30px;
+    min-height: 300px;
+    position: relative;
+}
+
+.jsplumb-box {
+    border: 1px solid mediumblue;
+    padding: 20px;
+    text-align: center;
+    position: absolute; /* Position needs to be absolute for element to be draggable */
+    margin: 20px;
+    min-height: 50px;
+    float: left;
+}
+
+#inputbox {
+    position: absolute;
+    top: 30%;
+    left: 2%;
+}
+
+#outputbox {
+    position: absolute;
+    top: 30%;
+    right: 2%;
+}
+
+#footer {
+    min-height: 100px;
+}

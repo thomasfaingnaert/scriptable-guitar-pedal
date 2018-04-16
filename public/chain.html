@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+        <title>Chaining effects</title>
+
+        <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css" href="assets/css/styles.css"/>
+        <script src="assets/js/jquery-3.3.1.min.js"></script>
+        <script src="assets/js/popper.min.js"></script>
+        <script src="assets/js/bootstrap.min.js"></script>
+        <script src="assets/js/jsplumb.min.js"></script>
+
+        <script src="assets/js/add-effect.js"></script>
+        <script src="assets/js/change-effect.js"></script>
+        <script src="assets/js/send-effect.js"></script>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <a class="navbar-brand" href="/index.html">Scriptable Guitar Effects</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item"><a class="nav-link" href="/index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/conv.html">Convolution Effect</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/dist.html">Distortion Effect</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/delay.html">Delay Effect</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/tremolo.html">Tremolo Effect</a>
+                    <li class="nav-item active"><a class="nav-link" href="">Combining Effects</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/exit">Exit</a></li>
+                </ul>
+            </div>
+        </nav>
+        <div class="container">
+            <h1>Effecten combineren</h1>
+            <p>Op deze pagina kan je verschillende effecten achter elkaar 'chainen'.
+                Let op. Je kan maximaal 5 effecten tegelijk gebruiken.</p>
+        </div>
+        <div class="container">
+            <h3>Voeg een effect toe</h3>
+            <p>Vul hier in welk effect je wil en hoe je de parameters wil instellen</p>
+            <form onsubmit="addEffect(); return false;" id="addEffectForm">
+                <div class="form-group">
+                    <label for="effect-select">Effect:</label>
+                    <select class="form-control" name="effect" id="effect-select">
+                        <option value="distortion">Distortion</option>
+                        <option value="delay">Delay</option>
+                        <option value="tremolo">Tremolo</option>
+                        <option value="conv">Convolution</option>
+                    </select>
+                </div>
+                <div id="parameter-form"></div>
+                <button type="submit" class="btn btn-light">Add effect</button>
+            </form>
+        </div>
+        <div class="container" id="jsplumb-container">
+            <div class="jsplumb-box" id="inputbox"><p>Input</p></div>
+            <div class="jsplumb-box" id="outputbox"><p>Output</p></div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <form action="/chain/submit" onsubmit="return sendEffect()" method="post" id="chain-form" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="input">Input File:</label>
+                            <input type="file" name="input" id="input"/>
+                        </div>
+                        <input type="hidden" name="effect-info" id="effect-info" value=""/>
+                        <button type="submit" class="btn btn-light">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid" id="footer"></div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="changeEffectModal" tabindex="-1" role="dialog"
+             aria-labelledby="changeEffectModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="effectModalLabel">Modal title</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="effectModalBody">
+                        ...
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

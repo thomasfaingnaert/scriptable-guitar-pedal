@@ -2,27 +2,34 @@
 <html>
     <head>
         <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
         <title>Scriptable Guitar Pedal</title>
 
-        <link rel="stylesheet" type="text/css" href="assets/styles.css"/>
+        <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css"/>
+        <script src="assets/js/bootstrap.min.js"></script>
+        <script src="assets/js/jquery-3.3.1.min.js"></script>
+        <script src="assets/js/popper.min.js"></script>
     </head>
     <body>
-        <header>
-            <nav>
-                <div id="menu">
-                    <ul>
-                        <li><a href="">Home</a></li>
-                        <li><a href="/conv.html">Convolution Effect</a></li>
-                        <li><a href="/dist.html">Distortion Effect</a></li>
-                        <li><a href="/delay.html">Delay Effect</a></li>
-                        <li><a href="/tremolo.html">Tremolo Effect</a></li>
-                        <li><a href="/exit">Exit</a></li>
-                    </ul>
-                </div>
-            </nav>
-        </header>
-        <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <a class="navbar-brand" href="">Scriptable Guitar Effects</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item active"><a class="nav-link" href="">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/conv.html">Convolution Effect</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/dist.html">Distortion Effect</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/delay.html">Delay Effect</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/tremolo.html">Tremolo Effect</a>
+                    <li class="nav-item"><a class="nav-link" href="/chain.html">Combining Effects</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/exit">Exit</a></li>
+                </ul>
+            </div>
+        </nav>
+        <div class="container-fluid">
             <h1>Scriptable Guitar Effect</h1>
             <p>Welkom bij de Web interface van het scriptable effectpedaal.</p>
         </div>
