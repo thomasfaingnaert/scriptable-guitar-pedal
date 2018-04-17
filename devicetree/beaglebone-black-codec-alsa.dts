@@ -124,10 +124,10 @@
 
             /*
                 FIFO levels.
-                Documentation: /sound/soc/davinci/davinci-mcasp.c
+                Documentation: https://www.kernel.org/doc/Documentation/sound/soc/davinci/davinci-mcasp.c
             */
-            tx-num-evt = <1>;
-            rx-num-evt = <1>;
+            tx-num-evt = <32>;
+            rx-num-evt = <32>;
 
             #sound-dai-cells = <0>;
         };
