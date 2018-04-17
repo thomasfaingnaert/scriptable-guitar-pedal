@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width"/>
-        <title>Convolution Effect</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+        <title>Uploading Lua Scripts</title>
 
         <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css"/>
         <script src="assets/js/bootstrap.min.js"></script>
@@ -20,30 +20,38 @@
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item"><a class="nav-link" href="/index.html">Home</a></li>
-                    <li class="nav-item active"><a class="nav-link" href="">Reverb</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/conv.html">Reverb</a></li>
                     <li class="nav-item"><a class="nav-link" href="/dist.html">Distortion</a></li>
                     <li class="nav-item"><a class="nav-link" href="/delay.html">Delay</a></li>
                     <li class="nav-item"><a class="nav-link" href="/tremolo.html">Tremolo</a>
                     <li class="nav-item"><a class="nav-link" href="/chain.html">Combining Effects</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/lua.html">Lua Scripts</a></li>
+                    <li class="nav-item active"><a class="nav-link" href="">Lua Scripts</a></li>
                     <li class="nav-item"><a class="nav-link" href="/exit">Exit</a></li>
                 </ul>
             </div>
         </nav>
         <div class="container">
-            <h1>Convolution</h1>
-            <form action="/conv/submit" method="post" accept-charset="utf-8" enctype="multipart/form-data">
-                <p>
-                    Input:<br/>
-                    <input type="file" name="input"/>
-                </p>
-                <p>
-                    Impulse Response:<br/>
-                    <input type="file" name="impulse-response"/>
-                </p>
-                <p>
-                    <input type="submit" value="Process"/>
-                </p>
+            <h1>Lua scripts</h1>
+            <p>
+                Use the following form to upload a Lua script.
+                The script will then be run and produce the desired effect.
+            </p>
+            <p>
+                <strong>Warning:</strong> Your script should follow certain conventions.
+                There should be a function called <code>process(input)</code> which should take the input and process
+                it.
+                It is expected to return the result.
+            </p>
+            <form action="/lua/submit" method="post" accept-charset="utf-8" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="inputfile">Input:</label>
+                    <input type="file" class="form-control-file" name="inputfile" id="inputfile"/>
+                </div>
+                <div class="form-group">
+                    <label for="scriptfile">Lua script:</label>
+                    <input type="file" class="form-control-file" name="scriptfile" id="scriptfile"/>
+                </div>
+                <button type="submit" class="btn btn-light">Process</button>
             </form>
         </div>
     </body>

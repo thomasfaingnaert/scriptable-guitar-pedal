@@ -17,6 +17,7 @@
 #include "document.h"
 #include "filesink.h"
 #include "filesource.h"
+#include "luaeffect.h"
 #include "sampledata.h"
 #include "source.h"
 #include "tremoloeffect.h"
@@ -50,6 +51,7 @@ WebServer::WebServer(unsigned int port)
     mg_set_request_handler(context, "/delay/submit$", handle_delay_submit, this);
     mg_set_request_handler(context, "/tremolo/submit$", handle_tremolo_submit, this);
     mg_set_request_handler(context, "/chain/submit$", handle_chain_submit, this);
+    mg_set_request_handler(context, "/lua/submit$", handle_lua_submit, this);
 }
 
 WebServer::~WebServer()
@@ -66,9 +68,9 @@ void WebServer::render(mg_connection *connection, const std::string &data, const
 {
     mg_printf(connection,
               "HTTP/1.1 200 OK\r\n"
-                      "Content-Length: %u\r\n"
-                      "Content-Type: %s\r\n"
-                      "Connection: close\r\n\r\n",
+              "Content-Length: %u\r\n"
+              "Content-Type: %s\r\n"
+              "Connection: close\r\n\r\n",
               data.length(), contentType.c_str());
     mg_write(connection, data.c_str(), data.length());
 }
@@ -215,8 +217,7 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
     fdh.user_data = &vars;
 
     // If a field is found, it is checked if it is a file. If it is, it's processed here, else it's processed in field_get.
-    fdh.field_found = [](const char *key, const char *value, char *path, size_t pathlen, void *user_data) -> int
-    {
+    fdh.field_found = [](const char *key, const char *value, char *path, size_t pathlen, void *user_data) -> int {
         vars_t *vars = static_cast<vars_t *>(user_data);
         // check if field is a file
         if (value && *value)
@@ -236,14 +237,12 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
         return MG_FORM_FIELD_STORAGE_GET;
     };
 
-    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
-    {
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int {
         return 0;
     };
 
     // If a field is not a file, it's processed here.
-    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
-    {
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int {
         std::string name = std::string(key);
         vars_t *vars = static_cast<vars_t *>(user_data);
 
@@ -331,8 +330,7 @@ int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
 
     fdh.user_data = &vars;
 
-    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
-    {
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int {
         vars_t *vars = static_cast<vars_t *>(user_data);
         // check if field is a file
         if (filename && *filename)
@@ -352,13 +350,11 @@ int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
         return MG_FORM_FIELD_STORAGE_GET;
     };
 
-    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
-    {
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int {
         return 0;
     };
 
-    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
-    {
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int {
         std::string name = std::string(key);
         vars_t *vars = static_cast<vars_t *>(user_data);
 
@@ -444,8 +440,7 @@ int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
 
     fdh.user_data = &vars;
 
-    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
-    {
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int {
         vars_t *vars = static_cast<vars_t *>(user_data);
         // check if field is a file
         if (filename && *filename)
@@ -465,13 +460,11 @@ int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
         return MG_FORM_FIELD_STORAGE_GET;
     };
 
-    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
-    {
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int {
         return 0;
     };
 
-    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
-    {
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int {
         std::string name = std::string(key);
         vars_t *vars = static_cast<vars_t *>(user_data);
 
@@ -531,8 +524,7 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
 
     fdh.user_data = &vars;
 
-    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
-    {
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int {
         vars_t *vars = static_cast<vars_t *>(user_data);
         // check if field is a file
         if (filename && *filename)
@@ -552,13 +544,11 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
         return MG_FORM_FIELD_STORAGE_GET;
     };
 
-    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
-    {
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int {
         return 0;
     };
 
-    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
-    {
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int {
         std::string name = std::string(key);
         vars_t *vars = static_cast<vars_t *>(user_data);
 
@@ -659,6 +649,7 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
         }
         else if (effect == "convolution")
         {
+            // TODO
             std::cout << "Later alligator" << std::endl;
         }
     }
@@ -692,6 +683,75 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
         }
         lastEffect->connect(sink, 0);
     }
+
+    while (src.generate_next());
+
+    sink->write();
+
+    mg_send_file(connection, outputFileName.c_str());
+
+    return 200;
+}
+
+int WebServer::handle_lua_submit(mg_connection *connection, void *user_data)
+{
+    mg_form_data_handler fdh = {};
+
+    struct vars_t
+    {
+        std::string inputPath;
+        std::string scriptPath;
+    } vars;
+
+    fdh.user_data = &vars;
+
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int {
+        vars_t *vars = static_cast<vars_t *>(user_data);
+        // check if field is a file
+        if (filename && *filename)
+        {
+            // file, so save as tmp file
+            //std::string tempPath = std::tmpnam(nullptr);
+            std::string tempPath = filename;
+            snprintf(path, pathlen, "%s", tempPath.c_str());
+
+            // store path
+            if (std::string(key) == "inputfile")
+            {
+                vars->inputPath = tempPath;
+            }
+            else if (std::string(key) == "scriptfile")
+            {
+                vars->scriptPath = tempPath;
+            }
+            return MG_FORM_FIELD_STORAGE_STORE;
+        }
+        // Not a file
+        return MG_FORM_FIELD_STORAGE_GET;
+    };
+
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int {
+        return 0;
+    };
+
+    if (mg_handle_form_request(connection, &fdh) <= 0)
+    {
+        throw std::runtime_error("Error handling form request.");
+    }
+
+    std::string outputFileName = "output.wav";
+    // Make FileSource
+    FileSource src(vars.inputPath);
+
+    // Make LuaEffect
+    auto script = std::make_shared<LuaEffect>(vars.scriptPath);
+
+    // Make FileSink
+    auto sink = std::make_shared<FileSink>(outputFileName);
+
+    // Connect
+    src.connect(script, 0);
+    script->connect(sink, 0);
 
     while (src.generate_next());
 
