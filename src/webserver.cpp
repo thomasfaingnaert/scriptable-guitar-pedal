@@ -295,11 +295,11 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
 
     const std::string outputFileName = "output.wav";
 
-    // Make source, effect and sink and connec them together to process the output.
+    // Make source, effect and sink and connect them together to process the output.
     FileSource src(vars.inputPath);
 
     auto dist = std::make_shared<DistortionEffect>(vars.gain, vars.gain2, vars.mix, vars.mix2, vars.threshold);
-    auto sink = std::make_shared<FileSink>(outputFileName);
+    auto sink = std::make_shared<FileSink>(outputFileName, 44100);
 
     src.connect(dist, 0);
     dist->connect(sink, 0);
@@ -411,7 +411,7 @@ int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
     std::string outputFileName = "output.wav";
 
     auto delay = std::make_shared<DelayEffect>(mainCoeff, delays, coeffs);
-    auto sink = std::make_shared<FileSink>(outputFileName);
+    auto sink = std::make_shared<FileSink>(outputFileName, 44100);
 
     // connect
     src.connect(delay, 0);
@@ -497,7 +497,7 @@ int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
 
     // Make Effect and sink as shared_ptr
     auto tremolo = std::make_shared<TremoloEffect>(vars.depth, period);
-    auto sink = std::make_shared<FileSink>(outputFileName);
+    auto sink = std::make_shared<FileSink>(outputFileName, 44100);
 
     // Connect source, effect and sink
     src.connect(tremolo, 0);
@@ -659,7 +659,7 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
     FileSource src(vars.inputPath);
 
     // Make file sink
-    auto sink = std::make_shared<FileSink>(outputFileName);
+    auto sink = std::make_shared<FileSink>(outputFileName, 44100);
 
     if (effects.empty())
     {
@@ -747,7 +747,7 @@ int WebServer::handle_lua_submit(mg_connection *connection, void *user_data)
     auto script = std::make_shared<LuaEffect>(vars.scriptPath);
 
     // Make FileSink
-    auto sink = std::make_shared<FileSink>(outputFileName);
+    auto sink = std::make_shared<FileSink>(outputFileName, 44100);
 
     // Connect
     src.connect(script, 0);
@@ -758,6 +758,8 @@ int WebServer::handle_lua_submit(mg_connection *connection, void *user_data)
     sink->write();
 
     mg_send_file(connection, outputFileName.c_str());
+
+
 
     return 200;
 }

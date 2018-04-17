@@ -8,12 +8,13 @@
 class FileSink : public Sink<float>
 {
     public:
-        FileSink(const std::string& filename) : filename(filename) { }
+        FileSink(const std::string& filename, unsigned int samplerate) : filename(filename), samplerate(samplerate) { }
         virtual void push(const std::shared_ptr<std::vector<float>>& t, unsigned int channel);
         void write();
 
     private:
         std::string filename;
+        unsigned int samplerate;
         std::vector<float> samples;
 };
 
