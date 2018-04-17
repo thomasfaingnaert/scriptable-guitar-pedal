@@ -12,6 +12,6 @@ void FileSink::push(const std::shared_ptr<std::vector<float>>& t, unsigned int c
 
 void FileSink::write()
 {
-    SampleData data({ samples }, 44100);
+    SampleData data({ samples }, 48000);
     data.save(filename);
 }
