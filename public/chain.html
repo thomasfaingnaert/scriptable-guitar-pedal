@@ -38,12 +38,14 @@
         </nav>
         <div class="container">
             <h1>Effecten combineren</h1>
-            <p>Op deze pagina kan je verschillende effecten achter elkaar 'chainen'.
-                Let op. Je kan maximaal 5 effecten tegelijk gebruiken.</p>
+            <p>
+                On this page, you can 'chain' different effects after one another.
+                Warning: You can only use 5 effects at a time.
+            </p>
         </div>
         <div class="container">
-            <h3>Voeg een effect toe</h3>
-            <p>Vul hier in welk effect je wil en hoe je de parameters wil instellen</p>
+            <h3>Add an effect</h3>
+            <p>Please fill in the effect you want and set the parameters as needed.</p>
             <form onsubmit="addEffect(); return false;" id="addEffectForm">
                 <div class="form-group">
                     <label for="effect-select">Effect:</label>
@@ -65,7 +67,8 @@
         <div class="container">
             <div class="row">
                 <div class="col-12">
-                    <form action="/chain/submit" onsubmit="return sendEffect()" method="post" id="chain-form" enctype="multipart/form-data">
+                    <form action="/chain/submit" onsubmit="return sendEffect()" method="post" id="chain-form"
+                          enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="input">Input File:</label>
                             <input type="file" name="input" id="input"/>
