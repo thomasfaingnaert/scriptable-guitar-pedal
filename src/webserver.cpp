@@ -299,7 +299,7 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
     FileSource src(vars.inputPath);
 
     auto dist = std::make_shared<DistortionEffect>(vars.gain, vars.gain2, vars.mix, vars.mix2, vars.threshold);
-    auto sink = std::make_shared<FileSink>(outputFileName, 44100);
+    auto sink = std::make_shared<FileSink>(outputFileName, src.getSampleRate());
 
     src.connect(dist, 0);
     dist->connect(sink, 0);
@@ -388,7 +388,10 @@ int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
     std::vector<float> coeffs;
     float decay = 1 - vars.decay;
 
-    unsigned int delaySamples = (unsigned int) (vars.delayTime * 44100 / Source<float>::BLOCK_SIZE);
+    // Make FileSource
+    FileSource src(vars.inputPath);
+
+    unsigned int delaySamples = (unsigned int) (vars.delayTime * src.getSampleRate() / Source<float>::BLOCK_SIZE);
 
     if (vars.type == "fir")
     {
@@ -406,12 +409,10 @@ int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
         }
     }
 
-    // Make FileSource
-    FileSource src(vars.inputPath);
     std::string outputFileName = "output.wav";
 
     auto delay = std::make_shared<DelayEffect>(mainCoeff, delays, coeffs);
-    auto sink = std::make_shared<FileSink>(outputFileName, 44100);
+    auto sink = std::make_shared<FileSink>(outputFileName, src.getSampleRate());
 
     // connect
     src.connect(delay, 0);
@@ -488,16 +489,17 @@ int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
         throw std::runtime_error("Error handling form request.");
     }
 
-    // Process vars from form
-    unsigned int period = (unsigned int) ((1 / vars.rate) * 44100);
-
     // Make FileSource
     FileSource src(vars.inputPath);
+
+    // Process vars from form
+    unsigned int period = (unsigned int) ((1 / vars.rate) * src.getSampleRate());
+
     std::string outputFileName = "output.wav";
 
     // Make Effect and sink as shared_ptr
     auto tremolo = std::make_shared<TremoloEffect>(vars.depth, period);
-    auto sink = std::make_shared<FileSink>(outputFileName, 44100);
+    auto sink = std::make_shared<FileSink>(outputFileName, src.getSampleRate());
 
     // Connect source, effect and sink
     src.connect(tremolo, 0);
@@ -575,6 +577,9 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
 
     std::vector < std::shared_ptr < Processor < float, float >> > effects;
 
+    // Make file source
+    FileSource src(vars.inputPath);
+
     // Iterate through array
     for (auto &obj : chain.GetArray())
     {
@@ -614,7 +619,7 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
             std::vector<float> coeffs;
             float decay = 1 - decayCoeff;
 
-            unsigned int delaySamples = (unsigned int) (delayTime * 44100 / Source<float>::BLOCK_SIZE);
+            unsigned int delaySamples = (unsigned int) (delayTime * src.getSampleRate() / Source<float>::BLOCK_SIZE);
 
             if (type == "fir")
             {
@@ -641,7 +646,7 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
             float depth = stof(std::string(obj["depth"].GetString()));
             float rate = stof(std::string(obj["rate"].GetString()));
 
-            unsigned int period = (unsigned int) ((1 / rate) * 44100);
+            unsigned int period = (unsigned int) ((1 / rate) * src.getSampleRate());
 
             // Create effect and add to vector
             auto tremolo = std::make_shared<TremoloEffect>(depth, period);
@@ -655,11 +660,9 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
     }
 
     std::string outputFileName = "output.wav";
-    // Make file source
-    FileSource src(vars.inputPath);
 
     // Make file sink
-    auto sink = std::make_shared<FileSink>(outputFileName, 44100);
+    auto sink = std::make_shared<FileSink>(outputFileName, src.getSampleRate());
 
     if (effects.empty())
     {
@@ -747,7 +750,7 @@ int WebServer::handle_lua_submit(mg_connection *connection, void *user_data)
     auto script = std::make_shared<LuaEffect>(vars.scriptPath);
 
     // Make FileSink
-    auto sink = std::make_shared<FileSink>(outputFileName, 44100);
+    auto sink = std::make_shared<FileSink>(outputFileName, src.getSampleRate());
 
     // Connect
     src.connect(script, 0);

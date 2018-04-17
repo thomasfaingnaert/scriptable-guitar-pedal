@@ -6,6 +6,7 @@ FileSource::FileSource(const std::string& filename)
     SampleData data(filename);
     samples = data.getSamples()[0];
     currentSample = samples.begin();
+    sampleRate = data.getSampleRate();
 }
 
 bool FileSource::generate_next()
