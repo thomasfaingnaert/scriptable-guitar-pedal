@@ -17,6 +17,7 @@
 #include "document.h"
 #include "filesink.h"
 #include "filesource.h"
+#include "filtereffect.h"
 #include "luaeffect.h"
 #include "sampledata.h"
 #include "source.h"
@@ -95,7 +96,7 @@ int WebServer::handle_exit(mg_connection *connection, void *user_data)
 
 int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
 {
-#if 0
+#if 1
     mg_form_data_handler fdh = {0};
 
     // used to save paths
@@ -107,8 +108,7 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
 
     fdh.user_data = &paths;
 
-    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
-    {
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int {
         // check if field is a file
         if (filename && *filename)
         {
@@ -135,8 +135,7 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
         return MG_FORM_FIELD_STORAGE_GET;
     };
 
-    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
-    {
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int {
         return 0;
     };
 
@@ -153,45 +152,18 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
 
     std::vector <Sample> outputSamples;
 
-    FilterEffect fe;
-    fe.setImpulseResponse(filterSamples);
+    FileSource src(paths.inputPath);
 
-    const auto start = std::chrono::high_resolution_clock::now();
+    std::string outputPath = "output.wav";
+    auto fe = std::make_shared<FilterEffect>(filterSamples);
+    auto sink = std::make_shared<FileSink>(outputPath, 44100);
 
-    unsigned int pos = 0;
+    src.connect(fe, 0);
+    fe->connect(sink, 0);
 
-    while (pos + fe.getBlockSize() < inputSamples.size())
-    {
-        std::vector <Sample> block(inputSamples.begin() + pos, inputSamples.begin() + pos + fe.getBlockSize());
-        fe.addInputBlock(block);
-        std::vector <Sample> output = fe.getOutputBlock();
-        outputSamples.insert(outputSamples.end(), output.begin(), output.end());
-        pos += fe.getBlockSize();
-    }
+    while (src.generate_next());
 
-    Sample max = outputSamples[0];
-    for (Sample sample : outputSamples)
-    {
-        max = std::max(std::abs(sample), max);
-    }
-
-    for (Sample &sample : outputSamples)
-    {
-        sample /= max;
-    }
-
-    const auto end = std::chrono::high_resolution_clock::now();
-
-    std::cout << "processing took " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()
-              << " ns (" <<
-              std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms)." << std::endl;
-
-
-    SampleData out({outputSamples}, input.getSampleRate());
-    //std::string outputPath = std::tmpnam(nullptr);
-    std::string outputPath = "output";
-    outputPath += ".wav";
-    out.save(outputPath);
+    sink->write();
 
     mg_send_file(connection, outputPath.c_str());
 
@@ -761,7 +733,6 @@ int WebServer::handle_lua_submit(mg_connection *connection, void *user_data)
     sink->write();
 
     mg_send_file(connection, outputFileName.c_str());
-
 
 
     return 200;
