@@ -1,15 +1,17 @@
-#include <string>
-
-#include "sink.h"
-
 #ifndef FILESINK_H_6ZZMAMTF
 #define FILESINK_H_6ZZMAMTF
+
+#include <array>
+#include <string>
+
+#include "constants.h"
+#include "sink.h"
 
 class FileSink : public Sink<float>
 {
     public:
-        FileSink(const std::string& filename, unsigned int samplerate) : filename(filename), samplerate(samplerate) { }
-        virtual void push(const std::shared_ptr<std::vector<float>>& t, unsigned int channel);
+        FileSink(const std::string& filename, unsigned int samplerate);
+        virtual void push(const std::array<float, Constants::BLOCK_SIZE>& data);
         void write();
 
     private:

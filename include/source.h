@@ -9,6 +9,9 @@
 #include "sink.h"
 
 template<typename T>
+class Sink;
+
+template<typename T>
 class Source
 {
     public:

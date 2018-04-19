@@ -11,7 +11,7 @@ find_package(TinyALSA REQUIRED)
 find_package(RapidJson REQUIRED)
 
 add_compile_options(-Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Wno-unused-parameter)
-add_executable(scriptable-guitar-pedal src/main.cpp src/sampledata.cpp src/dspmath.cpp src/i2cdevice.cpp src/codec.cpp src/i2sdevice.cpp src/directformconvolver.cpp src/fftconvolver.cpp src/sinesource.cpp)
+add_executable(scriptable-guitar-pedal src/main.cpp src/sampledata.cpp src/dspmath.cpp src/i2cdevice.cpp src/codec.cpp src/i2sdevice.cpp src/directformconvolver.cpp src/fftconvolver.cpp src/sinesource.cpp src/filesink.cpp)
 target_link_libraries(scriptable-guitar-pedal ${NE10_LIBRARIES} ${CIVETWEB_LIBRARIES} ${LIBSNDFILE_LIBRARIES} ${LIBI2C_LIBRARIES} ${LUA_LIBRARIES} ${TINYALSA_LIBRARIES})
 include_directories("${CMAKE_SOURCE_DIR}/include" ${NE10_INCLUDE_DIRS} ${CIVETWEB_INCLUDE_DIRS} ${LIBSNDFILE_INCLUDE_DIRS} ${LIBI2C_INCLUDE_DIRS} ${LUA_INCLUDE_DIRS} ${TINYALSA_INCLUDE_DIRS} ${RAPIDJSON_INCLUDE_DIRS})
 target_compile_features(scriptable-guitar-pedal PRIVATE cxx_constexpr)

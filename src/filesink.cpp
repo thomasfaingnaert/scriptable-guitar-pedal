@@ -1,13 +1,17 @@
 #include <stdexcept>
 
+#include "constants.h"
 #include "filesink.h"
 #include "sampledata.h"
 
-void FileSink::push(const std::shared_ptr<std::vector<float>>& t, unsigned int channel)
+FileSink::FileSink(const std::string& filename, unsigned int samplerate)
+    : filename(filename), samplerate(samplerate)
 {
-    if (channel != 0)
-        throw std::invalid_argument("Channel of FileSink must be zero");
-    samples.insert(samples.end(), t->begin(), t->end());
+}
+
+void FileSink::push(const std::array<float, Constants::BLOCK_SIZE>& data)
+{
+    samples.insert(samples.end(), data.begin(), data.end());
 }
 
 void FileSink::write()
