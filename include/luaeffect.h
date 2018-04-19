@@ -3,15 +3,16 @@
 
 #include <string>
 
+#include "source.h"
+#include "sink.h"
 #include "lua.hpp"
-#include "processor.h"
 
-class LuaEffect : public Processor<float, float>
+class LuaEffect : public Source<float>, public Sink<float>
 {
     public:
         LuaEffect(const std::string& filename);
         ~LuaEffect();
-        virtual std::shared_ptr<std::vector<float>> process(const std::vector<std::shared_ptr<std::vector<float>>> &data);
+        virtual void push(const std::array<float, Constants::BLOCK_SIZE>& data);
 
     private:
         lua_State *state;
