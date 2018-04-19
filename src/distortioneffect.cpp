@@ -15,15 +15,14 @@ DistortionEffect::DistortionEffect(float positiveSteepness, float negativeSteepn
 }
 
 DistortionEffect::DistortionEffect(float positiveSteepness, float negativeSteepness, float positiveMix, float negativeMix, float noiseTreshold)
-    : Processor(1), positiveSteepness(positiveSteepness), negativeSteepness(negativeSteepness), positiveMix(positiveMix), negativeMix(negativeMix), noiseTreshold(noiseTreshold)
+    : positiveSteepness(positiveSteepness), negativeSteepness(negativeSteepness), positiveMix(positiveMix), negativeMix(negativeMix), noiseTreshold(noiseTreshold)
 {
 }
 
-std::shared_ptr<std::vector<float>> DistortionEffect::process(const std::vector<std::shared_ptr<std::vector<float>>>& data)
+void DistortionEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
 {
-    auto result = std::make_shared<std::vector<float>>(BLOCK_SIZE);
-
-    std::transform(data[0]->begin(), data[0]->end(), result->begin(), [this] (float x)
+    std::array<float, Constants::BLOCK_SIZE> result;
+    std::transform(data.begin(), data.end(), result.begin(), [this] (float x) -> float
             {
                 if (x < -noiseTreshold)
                     return positiveMix * 2.0f / static_cast<float>(M_PI) * std::atan(positiveSteepness * x) + (1 - positiveMix) * x;
@@ -32,7 +31,7 @@ std::shared_ptr<std::vector<float>> DistortionEffect::process(const std::vector<
                 else
                     return x;
             });
-    return result;
+    generate(result);
 }
 
 void DistortionEffect::setPositiveGain(float positiveSteepness)
