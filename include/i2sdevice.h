@@ -1,9 +1,0 @@
-#ifndef SCRIPTABLE_GUITAR_PEDAL_I2SDEVICE_H
-#define SCRIPTABLE_GUITAR_PEDAL_I2SDEVICE_H
-
-class i2sdevice
-{
-
-};
-
-#endif
