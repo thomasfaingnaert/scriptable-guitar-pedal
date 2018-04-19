@@ -1,11 +1,13 @@
 #include <algorithm>
 #include <cmath>
 
+#include "constants.h"
 #include "NE10.h"
+
 #include "tremoloeffect.h"
 
 TremoloEffect::TremoloEffect(float depth, unsigned int period)
-    : Processor(1), depth(depth), period(period), coeffs(BLOCK_SIZE + period - 1), currentSample(0)
+    : depth(depth), period(period), coeffs(Constants::BLOCK_SIZE + period - 1), currentSample(0)
 {
     // pre calculate coeffs
     unsigned int phase = 0;
@@ -17,11 +19,11 @@ TremoloEffect::TremoloEffect(float depth, unsigned int period)
             });
 }
 
-std::shared_ptr<std::vector<float>> TremoloEffect::process(const std::vector<std::shared_ptr<std::vector<float>>>& data)
+void TremoloEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
 {
-    auto result = std::make_shared<std::vector<float>>(BLOCK_SIZE);
-    ne10_mul_float(result->data(), const_cast<float*>(data[0]->data()), const_cast<float*>(coeffs.data() + currentSample), BLOCK_SIZE);
-    currentSample = (currentSample + BLOCK_SIZE) % period;
-    return result;
+    std::array<float, Constants::BLOCK_SIZE> result;
+    ne10_mul_float(result.data(), const_cast<float*>(data.data()), coeffs.data() + currentSample, Constants::BLOCK_SIZE);
+    currentSample = (currentSample + Constants::BLOCK_SIZE) % period;
+    generate(result);
 }
 

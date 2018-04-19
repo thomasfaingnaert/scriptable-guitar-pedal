@@ -1,16 +1,14 @@
-#include <memory>
-#include <vector>
-
-#include "processor.h"
-
 #ifndef TREMOLOEFFECT_H_2DI4OLXP
 #define TREMOLOEFFECT_H_2DI4OLXP
 
-class TremoloEffect : public Processor<float, float>
+#include "sink.h"
+#include "source.h"
+
+class TremoloEffect : public Source<float>, public Sink<float>
 {
     public:
         TremoloEffect(float depth, unsigned int period);
-        virtual std::shared_ptr<std::vector<float>> process(const std::vector<std::shared_ptr<std::vector<float>>>& data);
+        virtual void push(const std::array<float, Constants::BLOCK_SIZE>& data);
 
     private:
         float depth;
