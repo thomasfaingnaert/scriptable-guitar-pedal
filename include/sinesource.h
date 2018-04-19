@@ -1,7 +1,10 @@
-#include "source.h"
+#ifndef SINESOURCE_H_VSRHKGEL
+#define SINESOURCE_H_VSRHKGEL
 
-#ifndef SINESOURCE_H_1Z38J52N
-#define SINESOURCE_H_1Z38J52N
+#include <array>
+#include <vector>
+
+#include "source.h"
 
 class SineSource : public Source<float>
 {
@@ -16,4 +19,4 @@ class SineSource : public Source<float>
         unsigned int currentSample;
 };
 
-#endif /* end of include guard: SINESOURCE_H_1Z38J52N */
+#endif /* end of include guard: SINESOURCE_H_VSRHKGEL */

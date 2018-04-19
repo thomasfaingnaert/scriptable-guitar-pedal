@@ -2,10 +2,11 @@
 #include <cmath>
 #include <iterator>
 
+#include "constants.h"
 #include "sinesource.h"
 
 SineSource::SineSource(float amplitude, unsigned int period)
-    : amplitude(amplitude), period(period), samples(BLOCK_SIZE + period - 1), currentSample(0)
+    : amplitude(amplitude), period(period), samples(Constants::BLOCK_SIZE + period - 1), currentSample(0)
 {
     // pre calculate sine
     unsigned int phase = 0;
@@ -19,7 +20,9 @@ SineSource::SineSource(float amplitude, unsigned int period)
 
 void SineSource::generate_next()
 {
-    auto block = std::make_shared<std::vector<float>>(samples.begin() + currentSample, samples.begin() + currentSample + BLOCK_SIZE);
-    currentSample = (currentSample + BLOCK_SIZE) % period;
+    std::array<float, Constants::BLOCK_SIZE> block;
+    std::copy_n(samples.begin() + currentSample, Constants::BLOCK_SIZE, block.begin());
+    currentSample = (currentSample + Constants::BLOCK_SIZE) % period;
     generate(block);
 }
+

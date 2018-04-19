@@ -1,22 +1,23 @@
 #ifndef SOURCE_H_TFQHODIC
 #define SOURCE_H_TFQHODIC
 
+#include <array>
 #include <memory>
 #include <vector>
 
-template<typename T>
-class Sink;
+#include "constants.h"
+#include "sink.h"
 
 template<typename T>
 class Source
 {
     public:
-        void connect(const std::shared_ptr<Sink>& sink)
+        void connect(const std::shared_ptr<Sink<T>>& sink)
         {
             connectedSinks.push_back(sink);
         }
 
-        void generate(const std::vector<T>& data)
+        void generate(const std::array<T, Constants::BLOCK_SIZE>& data)
         {
             for (const std::shared_ptr<Sink<T>>& sink : connectedSinks)
             {
