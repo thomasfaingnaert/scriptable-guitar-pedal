@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "filesource.h"
 #include "sampledata.h"
 
@@ -14,17 +16,18 @@ bool FileSource::generate_next()
     if (currentSample == samples.end())
         return false;
 
-    if (std::distance(currentSample, samples.end()) >= static_cast<std::vector<float>::iterator::difference_type>(BLOCK_SIZE))
+    if (std::distance(currentSample, samples.end()) >= static_cast<std::vector<float>::iterator::difference_type>(Constants::BLOCK_SIZE))
     {
-        auto block = std::make_shared<std::vector<float>>(currentSample, currentSample + BLOCK_SIZE);
+        std::array<float, Constants::BLOCK_SIZE> block;
+        std::copy_n(currentSample, Constants::BLOCK_SIZE, block.begin());
         generate(block);
-        currentSample += BLOCK_SIZE;
+        currentSample += Constants::BLOCK_SIZE;
         return true;
     }
     else
     {
-        auto block = std::make_shared<std::vector<float>>(currentSample, samples.end());
-        block->resize(BLOCK_SIZE);
+        std::array<float, Constants::BLOCK_SIZE> block;
+        std::copy(currentSample, samples.end(), block.begin());
         generate(block);
         currentSample = samples.end();
         return false;

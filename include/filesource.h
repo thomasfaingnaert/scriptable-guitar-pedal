@@ -1,5 +1,7 @@
 #include <string>
 
+#include <vector>
+
 #include "source.h"
 
 class FileSource : public Source<float>
