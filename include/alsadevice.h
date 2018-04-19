@@ -21,7 +21,7 @@ public:
 
     virtual ~AlsaDevice();
 
-    virtual void push(const std::shared_ptr<std::vector<float>>& t, unsigned int channel);
+    virtual void push(const std::array<float, Constants::BLOCK_SIZE>& data);
 
     void generate_next();
 private:
