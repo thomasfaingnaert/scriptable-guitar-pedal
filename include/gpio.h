@@ -1,9 +1,0 @@
-#ifndef SCRIPTABLE_GUITAR_PEDAL_GPIO_H
-#define SCRIPTABLE_GUITAR_PEDAL_GPIO_H
-
-class GPIO
-{
-
-};
-
-#endif
