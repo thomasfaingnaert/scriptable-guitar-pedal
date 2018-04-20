@@ -1,8 +1,10 @@
+#include <algorithm>
+
 #include "NE10.h"
 #include "filtereffect.h"
 
 FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
-    : Processor(1), numBlocksReceived(0)
+    : numBlocksReceived(0)
 {
     // TODO: Fix MiniConvolver not being copyable! (#3)
     convolvers.reserve(20);
@@ -10,9 +12,9 @@ FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
     // Split the impulse response in blocks
     auto it = impulseResponse.begin();
     bool isEvenBlock = true;
-    unsigned int blockSize = BLOCK_SIZE;
-    unsigned int delay = BLOCK_SIZE;
-    unsigned int largestBlockSize = BLOCK_SIZE;
+    unsigned int blockSize = Constants::BLOCK_SIZE;
+    unsigned int delay = Constants::BLOCK_SIZE;
+    unsigned int largestBlockSize = Constants::BLOCK_SIZE;
 
     while (it != impulseResponse.end())
     {
@@ -45,35 +47,37 @@ FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
     inputBuffer.resize(largestBlockSize);
 }
 
-std::shared_ptr<std::vector<float>> FilterEffect::process(const std::vector<std::shared_ptr<std::vector<float>>> &data)
+void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
 {
     // New block received
     ++numBlocksReceived;
 
     // Remove first block and add new block to buffer
-    inputBuffer.erase(inputBuffer.begin(), inputBuffer.begin() + BLOCK_SIZE);
-    inputBuffer.insert(inputBuffer.end(), data[0]->begin(), data[0]->end());
+    inputBuffer.erase(inputBuffer.begin(), inputBuffer.begin() + Constants::BLOCK_SIZE);
+    inputBuffer.insert(inputBuffer.end(), data.begin(), data.end());
 
     // Calculate output
-    std::vector<float> output(BLOCK_SIZE);
+    std::vector<float> output(Constants::BLOCK_SIZE);
 
     for (MiniConvolver& conv : convolvers)
     {
         std::vector<float> result = conv.getNextBlock();
-        ne10_add_float(output.data(), output.data(), result.data(), BLOCK_SIZE);
+        ne10_add_float(output.data(), output.data(), result.data(), Constants::BLOCK_SIZE);
     }
 
     // Check all convolvers to see if they should recalculate samples
     for (MiniConvolver& conv : convolvers)
     {
         // Check if this convolver has enough samples
-        if ((numBlocksReceived * BLOCK_SIZE) % conv.getBlockSize() == 0)
+        if ((numBlocksReceived * Constants::BLOCK_SIZE) % conv.getBlockSize() == 0)
         {
             conv.calculate(std::vector<float>(inputBuffer.end() - conv.getBlockSize(), inputBuffer.end()));
         }
     }
 
-    return std::make_shared<std::vector<float>>(output);
+    std::array<float, Constants::BLOCK_SIZE> outputArray;
+    std::copy_n(output.begin(), Constants::BLOCK_SIZE, outputArray.begin());
+    generate(outputArray);
 }
 
 FilterEffect::MiniConvolver::MiniConvolver(const std::vector<float>& impulseResponse, unsigned int delay, bool inBackground)
@@ -109,8 +113,8 @@ std::vector<float> FilterEffect::MiniConvolver::getNextBlock()
 {
     if (!inBackground)
     {
-        std::vector<float> block(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
-        outputBuffer.erase(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
+        std::vector<float> block(outputBuffer.begin(), outputBuffer.begin() + Constants::BLOCK_SIZE);
+        outputBuffer.erase(outputBuffer.begin(), outputBuffer.begin() + Constants::BLOCK_SIZE);
         return block;
     }
     else
@@ -119,8 +123,8 @@ std::vector<float> FilterEffect::MiniConvolver::getNextBlock()
         std::unique_lock<std::mutex> lock(*mutex);
         cond_var->wait(lock, [this]{ return !outputBuffer.empty(); });
 
-        std::vector<float> block(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
-        outputBuffer.erase(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE);
+        std::vector<float> block(outputBuffer.begin(), outputBuffer.begin() + Constants::BLOCK_SIZE);
+        outputBuffer.erase(outputBuffer.begin(), outputBuffer.begin() + Constants::BLOCK_SIZE);
         return block;
     }
 }

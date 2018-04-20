@@ -9,13 +9,14 @@
 #include <vector>
 
 #include "fftconvolver.h"
-#include "processor.h"
+#include "source.h"
+#include "sink.h"
 
-class FilterEffect : public Processor<float, float>
+class FilterEffect : public Source<float>, public Sink<float>
 {
     public:
         FilterEffect(const std::vector<float>& impulseResponse);
-        virtual std::shared_ptr<std::vector<float>> process(const std::vector<std::shared_ptr<std::vector<float>>> &data);
+        virtual void push(const std::array<float, Constants::BLOCK_SIZE>& data);
 
     private:
         class MiniConvolver // convolver for only part of impulse response
