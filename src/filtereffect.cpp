@@ -57,7 +57,7 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
     inputBuffer.insert(inputBuffer.end(), data.begin(), data.end());
 
     // Calculate output
-    std::vector<float> output(Constants::BLOCK_SIZE);
+    std::array<float, Constants::BLOCK_SIZE> output = {};
 
     for (MiniConvolver& conv : convolvers)
     {
@@ -75,9 +75,7 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
         }
     }
 
-    std::array<float, Constants::BLOCK_SIZE> outputArray;
-    std::copy_n(output.begin(), Constants::BLOCK_SIZE, outputArray.begin());
-    generate(outputArray);
+    generate(output);
 }
 
 FilterEffect::MiniConvolver::MiniConvolver(const std::vector<float>& impulseResponse, unsigned int delay, bool inBackground)
