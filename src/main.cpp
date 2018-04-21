@@ -1,34 +1,42 @@
 #include <cstdlib>
+#include <prussdrv.h>
+#include <pruss_intc_mapping.h>
 #include <iostream>
-
-#include "sampledata.h"
-#include "NE10.h"
-#include "filesource.h"
-#include "filesink.h"
-#include "filtereffect.h"
 
 int main(int argc, char *argv[])
 {
-    // NE10 Initialisation
-    if (ne10_init() != NE10_OK)
+    if (argc != 2)
     {
-        std::cerr << "Could not initialise Ne10." << std::endl;
+        std::cout << "Usage: " << argv[0] << " filename.bin" << std::endl;
+        return EXIT_SUCCESS;
+    }
+
+    prussdrv_init();
+
+    if (prussdrv_open(PRU_EVTOUT_0) == -1)
+    {
+        std::cerr << "prussdrv_open() failed" << std::endl;
         return EXIT_FAILURE;
     }
 
-    SampleData impulse("impulse.wav");
-    auto impulseSamples = impulse.getSamples()[0];
+    tpruss_intc_initdata pruss_intc_initdata = PRUSS_INTC_INITDATA;
 
-    auto source = std::make_shared<FileSource>("input.wav");
-    auto effect = std::make_shared<FilterEffect>(impulseSamples);
-    auto sink = std::make_shared<FileSink>("output.wav", source->getSampleRate());
+    prussdrv_pruintc_init(&pruss_intc_initdata);
 
-    source->connect(effect);
-    effect->connect(sink);
+    std::cout << "Running program and waiting for termination..." << std::endl;
 
-    while (source->generate_next()) ;
+    if (prussdrv_exec_program(PRU0, argv[1]) < 0)
+    {
+        std::cerr << "Error loading " << argv[1] << std::endl;
+        return EXIT_FAILURE;
+    }
 
-    sink->write();
+    prussdrv_pru_wait_event(PRU_EVTOUT_0);
+
+    std::cout << "Done" << std::endl;
+
+    prussdrv_pru_disable(PRU0);
+    prussdrv_exit();
 
     return EXIT_SUCCESS;
 }
