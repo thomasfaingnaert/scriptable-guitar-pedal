@@ -1,44 +1,44 @@
 #include <algorithm>
 #include <iostream>
+#include <iterator>
 
 #include "NE10.h"
 #include "delayeffect.h"
 
 DelayEffect::DelayEffect(float mainCoeff, const std::vector<unsigned int>& delays, const std::vector<float>& coeffs)
-    : Processor(1), mainCoeff(mainCoeff), delays(delays), coeffs(coeffs)
+    : mainCoeff(mainCoeff), delays(delays), coeffs(coeffs), inputBuffer(0, 0)
 {
     if (delays.size() != coeffs.size())
         throw std::invalid_argument("Delays and Coeffs should have the same size");
 
-    const unsigned int max_delay = *std::max_element(delays.cbegin(), delays.cend());
-    auto zero = std::make_shared<std::vector<float>>(BLOCK_SIZE);
-    buffer = std::deque<std::shared_ptr<std::vector<float>>>(max_delay, zero);
+    unsigned int maxDelay;
+    if (!delays.empty())
+        maxDelay = *std::max_element(delays.cbegin(), delays.cend());
+    else
+        maxDelay = 0;
+
+    // Create buffer with enough capacity to remember one block, plus the correct amount of samples for the longest delay line
+    inputBuffer = BlockBuffer<float>(1 + std::ceil(static_cast<float>(maxDelay) / Constants::BLOCK_SIZE), Constants::BLOCK_SIZE);
 }
 
-std::shared_ptr<std::vector<float>> DelayEffect::process(const std::vector<std::shared_ptr<std::vector<float>>>& data)
+void DelayEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
 {
-    auto result = std::make_shared<std::vector<float>>(BLOCK_SIZE);
+    // Add block to input buffer
+    inputBuffer.push_back(data.begin(), data.end());
 
-    // zero delay line
-    ne10_mulc_float(result->data(), data[0]->data(), mainCoeff, BLOCK_SIZE);
+    // Reserve space for result
+    std::array<float, Constants::BLOCK_SIZE> result;
 
-    // temporary buffer
-    std::vector<float> tmp(BLOCK_SIZE);
+    // Zero delay line
+    ne10_mulc_float(result.data(), const_cast<float*>(data.data()), mainCoeff, Constants::BLOCK_SIZE);
 
-    // add every delay line
-    for (unsigned int line = 0; line < delays.size(); ++line)
+    // Other delay lines
+    for (std::size_t i = 0; i < delays.size(); ++i)
     {
-        const unsigned int delay = delays[line];
-        const float coeff = coeffs[line];
-
-        ne10_mulc_float(tmp.data(), buffer[delay - 1]->data(), coeff, BLOCK_SIZE);
-        ne10_add_float(result->data(), result->data(), tmp.data(), BLOCK_SIZE);
+        float* source = inputBuffer.end() - (Constants::BLOCK_SIZE + delays[i]);
+        ne10_mlac_float(result.data(), result.data(), source, coeffs[i], Constants::BLOCK_SIZE);
     }
 
-    // add new block and remove old one
-    buffer.push_front(data[0]);
-    buffer.pop_back();
-
-    return result;
+    generate(result);
 }
 

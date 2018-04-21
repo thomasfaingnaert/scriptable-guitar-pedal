@@ -1,24 +1,26 @@
+#ifndef DELAYEFFECT_H_Q0QOLA9M
+#define DELAYEFFECT_H_Q0QOLA9M
+
 #include <deque>
 #include <memory>
 #include <stdexcept>
 #include <vector>
 
-#include "processor.h"
+#include "blockbuffer.h"
+#include "source.h"
+#include "sink.h"
 
-#ifndef DELAYEFFECT_H_Q0QOLA9M
-#define DELAYEFFECT_H_Q0QOLA9M
-
-class DelayEffect : public Processor<float, float>
+class DelayEffect : public Source<float>, public Sink<float>
 {
     public:
         DelayEffect(float mainCoeff, const std::vector<unsigned int>& delays, const std::vector<float>& coeffs);
-        virtual std::shared_ptr<std::vector<float>> process(const std::vector<std::shared_ptr<std::vector<float>>>& data);
+        virtual void push(const std::array<float, Constants::BLOCK_SIZE>& data);
 
     private:
         float mainCoeff;
-        std::vector<unsigned int> delays; // in blocks!
+        std::vector<unsigned int> delays;
         std::vector<float> coeffs;
-        std::deque<std::shared_ptr<std::vector<float>>> buffer;
+	BlockBuffer<float> inputBuffer;
 };
 
 #endif /* end of include guard: DELAYEFFECT_H_Q0QOLA9M */
