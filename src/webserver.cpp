@@ -29,13 +29,13 @@ WebServer::WebServer(unsigned int port)
     // create options array
     std::string portStr = std::to_string(port);
     const char *options[] =
-            {
-                    "listening_ports",
-                    portStr.c_str(),
-                    "document_root",
-                    "public/",
-                    0
-            };
+    {
+        "listening_ports",
+        portStr.c_str(),
+        "document_root",
+        "public/",
+        0
+    };
 
     // start server
     context = mg_start(nullptr, nullptr, options);
@@ -68,11 +68,11 @@ bool WebServer::isRunning() const
 void WebServer::render(mg_connection *connection, const std::string &data, const std::string &contentType)
 {
     mg_printf(connection,
-              "HTTP/1.1 200 OK\r\n"
-              "Content-Length: %u\r\n"
-              "Content-Type: %s\r\n"
-              "Connection: close\r\n\r\n",
-              data.length(), contentType.c_str());
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: %u\r\n"
+            "Content-Type: %s\r\n"
+            "Connection: close\r\n\r\n",
+            data.length(), contentType.c_str());
     mg_write(connection, data.c_str(), data.length());
 }
 
@@ -96,7 +96,7 @@ int WebServer::handle_exit(mg_connection *connection, void *user_data)
 
 int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
 {
-#if 1
+#if 0
     mg_form_data_handler fdh = {0};
 
     // used to save paths
@@ -194,15 +194,12 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
         // check if field is a file
         if (value && *value)
         {
-            // file, so save as tmp file
-            //std::string tempPath = std::tmpnam(nullptr);
-            std::string tempPath = value;
-            snprintf(path, pathlen, "%s", tempPath.c_str());
+            snprintf(path, pathlen, "%s", value);
 
             // store path
             if (std::string(key) == "input")
             {
-                vars->inputPath = tempPath;
+                vars->inputPath = value;
             }
             return MG_FORM_FIELD_STORAGE_STORE;
         }
@@ -273,8 +270,8 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
     auto dist = std::make_shared<DistortionEffect>(vars.gain, vars.gain2, vars.mix, vars.mix2, vars.threshold);
     auto sink = std::make_shared<FileSink>(outputFileName, src.getSampleRate());
 
-    src.connect(dist, 0);
-    dist->connect(sink, 0);
+    src.connect(dist);
+    dist->connect(sink);
 
     // process output
     while (src.generate_next());
@@ -307,15 +304,12 @@ int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
         // check if field is a file
         if (filename && *filename)
         {
-            // file, so save as tmp file
-            //std::string tempPath = std::tmpnam(nullptr);
-            std::string tempPath = filename;
-            snprintf(path, pathlen, "%s", tempPath.c_str());
+            snprintf(path, pathlen, "%s", filename);
 
             // store path
             if (std::string(key) == "input")
             {
-                vars->inputPath = tempPath;
+                vars->inputPath = filename;
             }
             return MG_FORM_FIELD_STORAGE_STORE;
         }
@@ -363,7 +357,7 @@ int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
     // Make FileSource
     FileSource src(vars.inputPath);
 
-    unsigned int delaySamples = (unsigned int) (vars.delayTime * src.getSampleRate() / Source<float>::BLOCK_SIZE);
+    unsigned int delaySamples = (unsigned int) (vars.delayTime * src.getSampleRate());
 
     if (vars.type == "fir")
     {
@@ -387,8 +381,8 @@ int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
     auto sink = std::make_shared<FileSink>(outputFileName, src.getSampleRate());
 
     // connect
-    src.connect(delay, 0);
-    delay->connect(sink, 0);
+    src.connect(delay);
+    delay->connect(sink);
 
     while (src.generate_next());
 
@@ -418,15 +412,12 @@ int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
         // check if field is a file
         if (filename && *filename)
         {
-            // file, so save as tmp file
-            //std::string tempPath = std::tmpnam(nullptr);
-            std::string tempPath = filename;
-            snprintf(path, pathlen, "%s", tempPath.c_str());
+            snprintf(path, pathlen, "%s", filename);
 
             // store path
             if (std::string(key) == "input")
             {
-                vars->inputPath = tempPath;
+                vars->inputPath = filename;
             }
             return MG_FORM_FIELD_STORAGE_STORE;
         }
@@ -465,7 +456,7 @@ int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
     FileSource src(vars.inputPath);
 
     // Process vars from form
-    unsigned int period = (unsigned int) ((1 / vars.rate) * src.getSampleRate());
+    unsigned int period = (unsigned int) (src.getSampleRate() / vars.rate);
 
     std::string outputFileName = "output.wav";
 
@@ -474,8 +465,8 @@ int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
     auto sink = std::make_shared<FileSink>(outputFileName, src.getSampleRate());
 
     // Connect source, effect and sink
-    src.connect(tremolo, 0);
-    tremolo->connect(sink, 0);
+    src.connect(tremolo);
+    tremolo->connect(sink);
 
     while (src.generate_next());
 
@@ -488,7 +479,7 @@ int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
 
 int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
 {
-    mg_form_data_handler fdh = {0};
+    mg_form_data_handler fdh = {};
 
     struct vars_t
     {
@@ -503,15 +494,12 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
         // check if field is a file
         if (filename && *filename)
         {
-            // file, so save as tmp file
-            //std::string tempPath = std::tmpnam(nullptr);
-            std::string tempPath = filename;
-            snprintf(path, pathlen, tempPath.c_str());
+            snprintf(path, pathlen, filename);
 
             // store path
             if (std::string(key) == "input")
             {
-                vars->inputPath = tempPath;
+                vars->inputPath = filename;
             }
             return MG_FORM_FIELD_STORAGE_STORE;
         }
@@ -547,7 +535,8 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
     rapidjson::Document chain;
     chain.Parse(vars.jsonString); // Contains array of JSON objects
 
-    std::vector < std::shared_ptr < Processor < float, float >> > effects;
+    std::vector<std::shared_ptr<Sink<float>>> sinks;
+    std::vector<std::shared_ptr<Source<float>>> sources;
 
     // Make file source
     FileSource src(vars.inputPath);
@@ -572,7 +561,8 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
 
             // Make effect and add to vector
             auto dist = std::make_shared<DistortionEffect>(gain1, gain2, mix1, mix2, threshold);
-            effects.push_back(dist);
+            sinks.push_back(dist);
+            sources.push_back(dist);
         }
         else if (effect == "delay")
         {
@@ -591,7 +581,7 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
             std::vector<float> coeffs;
             float decay = 1 - decayCoeff;
 
-            unsigned int delaySamples = (unsigned int) (delayTime * src.getSampleRate() / Source<float>::BLOCK_SIZE);
+            unsigned int delaySamples = (unsigned int) (delayTime * src.getSampleRate());
 
             if (type == "fir")
             {
@@ -611,7 +601,8 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
 
             // Create effect and add to vector
             auto delay = std::make_shared<DelayEffect>(mainCoeff, delays, coeffs);
-            effects.push_back(delay);
+            sources.push_back(delay);
+            sinks.push_back(delay);
         }
         else if (effect == "tremolo")
         {
@@ -622,7 +613,8 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
 
             // Create effect and add to vector
             auto tremolo = std::make_shared<TremoloEffect>(depth, period);
-            effects.push_back(tremolo);
+            sources.push_back(tremolo);
+            sinks.push_back(tremolo);
         }
         else if (effect == "convolution")
         {
@@ -636,27 +628,20 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
     // Make file sink
     auto sink = std::make_shared<FileSink>(outputFileName, src.getSampleRate());
 
-    if (effects.empty())
+    if (sources.empty())
     {
-        src.connect(sink, 0);
+        src.connect(sink);
     }
     else
     {
-        std::shared_ptr <Processor<float, float>> lastEffect;
-        for (auto it = effects.begin(); it != effects.end(); ++it)
+        src.connect(sinks[0]);
+
+        for (std::size_t i = 0; i < sources.size() - 1; ++i)
         {
-            if (it == effects.begin())
-            {
-                lastEffect = *it;
-                src.connect(lastEffect, 0);
-            }
-            else
-            {
-                lastEffect->connect(*it, 0);
-                lastEffect = *it;
-            }
+            sources[i]->connect(sinks[i+1]);
         }
-        lastEffect->connect(sink, 0);
+
+        sources[sources.size() - 1]->connect(sink);
     }
 
     while (src.generate_next());
@@ -685,19 +670,16 @@ int WebServer::handle_lua_submit(mg_connection *connection, void *user_data)
         // check if field is a file
         if (filename && *filename)
         {
-            // file, so save as tmp file
-            //std::string tempPath = std::tmpnam(nullptr);
-            std::string tempPath = filename;
-            snprintf(path, pathlen, "%s", tempPath.c_str());
+            snprintf(path, pathlen, "%s", filename);
 
             // store path
             if (std::string(key) == "inputfile")
             {
-                vars->inputPath = tempPath;
+                vars->inputPath = filename;
             }
             else if (std::string(key) == "scriptfile")
             {
-                vars->scriptPath = tempPath;
+                vars->scriptPath = filename;
             }
             return MG_FORM_FIELD_STORAGE_STORE;
         }
@@ -725,15 +707,14 @@ int WebServer::handle_lua_submit(mg_connection *connection, void *user_data)
     auto sink = std::make_shared<FileSink>(outputFileName, src.getSampleRate());
 
     // Connect
-    src.connect(script, 0);
-    script->connect(sink, 0);
+    src.connect(script);
+    script->connect(sink);
 
     while (src.generate_next());
 
     sink->write();
 
     mg_send_file(connection, outputFileName.c_str());
-
 
     return 200;
 }
