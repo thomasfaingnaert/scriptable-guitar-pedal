@@ -494,7 +494,7 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
         // check if field is a file
         if (filename && *filename)
         {
-            snprintf(path, pathlen, filename);
+            snprintf(path, pathlen, "%s", filename);
 
             // store path
             if (std::string(key) == "input")
