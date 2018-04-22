@@ -12,11 +12,10 @@ function changeEffect(box) {
 
     $('#effectModalLabel').html(effect.charAt(0).toUpperCase() + effect.slice(1).toLowerCase());
 
-    var form = '<form onsubmit="changeJSON($(\'#effectID\').val()); return false;" id="changeEffectForm">' +
+    var form = '<form onsubmit="changeJSON($(\'#effectID\').val()); $(\'#changeEffectModal\').modal(\'toggle\'); return false;" id="changeEffectForm">' +
         '    <input type="hidden" name= "effect" id="effect" value="' + effect + '"/>' +
         '    ' + displayForm(effect) +
         '    <input type="hidden" id="effectID" value="' + id + '"/>' + // No name so it doesn't get parsed
-        '   <button type="submit" class="btn btn-light">Save changes</button>' +
         '</form>';
 
     $('#effectModalBody').html(form);
