@@ -6,6 +6,9 @@
 #include "filesource.h"
 #include "filesink.h"
 #include "filtereffect.h"
+#include "webserver.h"
+
+#define WEBSERVER_RUN
 
 int main(int argc, char *argv[])
 {
@@ -16,6 +19,13 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+#ifdef WEBSERVER_RUN
+    WebServer webServer(8888);
+
+    while (webServer.isRunning());
+#endif
+
+#if 0
     SampleData impulse("impulse.wav");
     auto impulseSamples = impulse.getSamples()[0];
 
@@ -29,6 +39,7 @@ int main(int argc, char *argv[])
     while (source->generate_next()) ;
 
     sink->write();
+#endif
 
     return EXIT_SUCCESS;
 }

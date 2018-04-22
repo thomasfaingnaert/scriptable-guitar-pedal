@@ -484,7 +484,7 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
     struct vars_t
     {
         std::string inputPath;
-        const char *jsonString;
+        std::string jsonString;
     } vars;
 
     fdh.user_data = &vars;
@@ -512,6 +512,7 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
 
     fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int {
         std::string name = std::string(key);
+        std::cout << name << std::endl;
         vars_t *vars = static_cast<vars_t *>(user_data);
 
         std::string res = std::string(value);
@@ -520,7 +521,7 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
 
         if (name == "effect-info")
         {
-            vars->jsonString = res.c_str();
+            vars->jsonString = res;
         }
 
         return MG_FORM_FIELD_STORAGE_GET;
@@ -533,7 +534,7 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
 
     // Parse
     rapidjson::Document chain;
-    chain.Parse(vars.jsonString); // Contains array of JSON objects
+    chain.Parse(vars.jsonString.c_str()); // Contains array of JSON objects
 
     std::vector<std::shared_ptr<Sink<float>>> sinks;
     std::vector<std::shared_ptr<Source<float>>> sources;
