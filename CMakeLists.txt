@@ -12,7 +12,7 @@ find_package(RapidJson REQUIRED)
 find_package(PrussDrv REQUIRED)
 
 add_compile_options(-Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Wno-unused-parameter)
-add_executable(scriptable-guitar-pedal src/alsadevice.cpp src/codec.cpp src/delayeffect.cpp src/directformconvolver.cpp src/distortioneffect.cpp src/dspmath.cpp src/fftconvolver.cpp src/filesink.cpp src/filesource.cpp src/filtereffect.cpp src/i2cdevice.cpp src/luaeffect.cpp src/main.cpp src/sampledata.cpp src/sinesource.cpp src/tremoloeffect.cpp src/webserver.cpp)
+add_executable(scriptable-guitar-pedal src/alsadevice.cpp src/codec.cpp src/delayeffect.cpp src/directformconvolver.cpp src/distortioneffect.cpp src/dspmath.cpp src/fftconvolver.cpp src/filesink.cpp src/filesource.cpp src/filtereffect.cpp src/i2cdevice.cpp src/luaeffect.cpp src/main.cpp src/sampledata.cpp src/sinesource.cpp src/tremoloeffect.cpp src/webserver.cpp src/pru.cpp)
 target_link_libraries(scriptable-guitar-pedal ${NE10_LIBRARIES} ${CIVETWEB_LIBRARIES} ${LIBSNDFILE_LIBRARIES} ${LIBI2C_LIBRARIES} ${LUA_LIBRARIES} ${TINYALSA_LIBRARIES} ${PRUSSDRV_LIBRARIES})
 include_directories("${CMAKE_SOURCE_DIR}/include" ${NE10_INCLUDE_DIRS} ${CIVETWEB_INCLUDE_DIRS} ${LIBSNDFILE_INCLUDE_DIRS} ${LIBI2C_INCLUDE_DIRS} ${LUA_INCLUDE_DIRS} ${TINYALSA_INCLUDE_DIRS} ${RAPIDJSON_INCLUDE_DIRS} ${PRUSSDRV_INCLUDE_DIRS})
 target_compile_features(scriptable-guitar-pedal PRIVATE cxx_constexpr)
