@@ -92,19 +92,18 @@ chmod +x ./internet.sh
 sudo ./internet.sh
 ```
 
-2. To use the UIO PRUSS drivers, we need the 4.9.x-bone kernel instead of the 4.9.x-ti-ry kernel, since the latter is remoteproc only.
-You can upgrade the kernel using:
+2. Apply the Xenomai patches to the kernel using:
 ```bash
 cd /opt/scripts/tools/
 git pull
-sudo ./update_kernel.sh --bone-kernel --lts-4_9
+sudo ./update_kernel.sh --ti-xenomai-kernel --lts-4_9
 sudo reboot
 ```
 Finally, you can check if you are running the right kernel using:
 ```bash
 uname -a
 ```
-This should output something similar to `Linux beaglebone 4.9.93-bone10 #1 Mon Apr 9 18:35:44 UTC 2018 armv7l GNU/Linux`.
+This should output something similar to `Linux beaglebone 4.9.88-ti-xenomai-r107 #1 SMP PREEMPT Sat Mar 24 09:29:27 UTC 2018 armv7l GNU/Linux`.
 
 3. Next, we need to enable the device overlay for UIO.
 Open the file `/boot/uEnv.txt` and uncomment the following line:
@@ -119,14 +118,20 @@ lsmod | grep uio
 ls /dev/uio*
 ```
 
-5. If you want to assemble PRU Assembly files on your PC, you should install the PRU assembler from https://github.com/beagleboard/am335x_pru_package.
+5. Update all packages:
+```bash
+sudo apt update
+sudo apt upgrade
+```
+
+6. If you want to assemble PRU Assembly files on your PC, you should install the PRU assembler from https://github.com/beagleboard/am335x_pru_package.
 Otherwise, you could copy the `*.p` files to the BBB using SCP and assemble them there.
 To assemble a file `test.p`, you can use:
 ```bash
 pasm -b test.p
 ```
 
-6. Run the PRU loader to execute the PRU code:
+7. Run the PRU loader to execute the PRU code:
 ```bash
 ./scriptable-guitar-pedal test.bin
 ```
