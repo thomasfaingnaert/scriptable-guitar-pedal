@@ -36,19 +36,17 @@ void I2CDevice::writeRegister(uint8_t registerAddress, uint8_t value) const
 {
     uint8_t sendBuffer[] = {registerAddress, value};
 
-    i2c_msg messages[] = {
-            {
-                    .addr = deviceAddress,
-                    .flags = 0,
-                    .len = 2,
-                    .buf = sendBuffer
-            }
-    };
+    i2c_msg messages[1];
 
-    i2c_rdwr_ioctl_data data = {
-            .msgs = messages,
-            .nmsgs = 1
-    };
+    messages[0].addr = deviceAddress;
+    messages[0].flags = 0;
+    messages[0].len = 2;
+    messages[0].buf = sendBuffer;
+
+    i2c_rdwr_ioctl_data data = {};
+
+    data.msgs = messages;
+    data.nmsgs = 1;
 
     if (ioctl(file, I2C_RDWR, &data) < 0)
     {
@@ -61,26 +59,22 @@ uint8_t I2CDevice::readRegister(uint8_t registerAddress) const
     uint8_t sendBuffer[] = {registerAddress};
     uint8_t receiveBuffer[] = {0};
 
-    i2c_msg messages[] = {
-            {
-                    .addr = deviceAddress,
-                    .flags = 0,
-                    .len = 1,
-                    .buf = sendBuffer
+    i2c_msg messages[2];
 
-            },
-            {
-                    .addr = deviceAddress,
-                    .flags = I2C_M_RD,
-                    .len = 1,
-                    .buf = receiveBuffer
-            }
-    };
+    messages[0].addr = deviceAddress;
+    messages[0].flags = 0;
+    messages[0].len = 1;
+    messages[0].buf = sendBuffer;
 
-    i2c_rdwr_ioctl_data data = {
-            .msgs = messages,
-            .nmsgs = 2
-    };
+    messages[1].addr = deviceAddress;
+    messages[1].flags = I2C_M_RD;
+    messages[1].len = 1;
+    messages[1].buf = receiveBuffer;
+
+    i2c_rdwr_ioctl_data data = {};
+
+    data.msgs = messages;
+    data.nmsgs = 2;
 
     if (ioctl(file, I2C_RDWR, &data) < 0)
     {
