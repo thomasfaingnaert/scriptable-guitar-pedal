@@ -6,27 +6,12 @@
 #include <pthread.h>
 #include <thread>
 #include <chrono>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
-void *pruevtout0_thread(void *arg)
-{
-    static auto start = std::chrono::high_resolution_clock::now();
-
-    sched_param params;
-    params.sched_priority = 99;
-    if (pthread_setschedparam(pthread_self(), SCHED_RR, &params))
-    {
-        std::cerr << "Failed to set priority for thread: " << std::strerror(errno) << "\n";
-    }
-
-    while (1)
-    {
-        prussdrv_pru_wait_event(PRU_EVTOUT_0);
-        auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "took " << std::chrono::duration_cast<std::chrono::microseconds>(end-start).count() << " us\n";
-        start = end;
-        prussdrv_pru_clear_event(PRU_EVTOUT_0, PRU0_ARM_INTERRUPT);
-    }
-}
+#define PRU_ADDR 0x4a300000
+#define SHAREDRAM_OFFSET 0x10000
 
 int main(int argc, char *argv[])
 {
@@ -35,6 +20,11 @@ int main(int argc, char *argv[])
         std::cout << "Usage: " << argv[0] << " filename.bin" << std::endl;
         return EXIT_SUCCESS;
     }
+
+    int fd = open("/dev/mem", O_RDWR | O_SYNC);
+    ulong* sharedmem = (ulong*) mmap(0, 0x10000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, PRU_ADDR + SHAREDRAM_OFFSET);
+    // Initialise ACK to 0
+    sharedmem[0] = 0;
 
     prussdrv_init();
 
@@ -48,13 +38,6 @@ int main(int argc, char *argv[])
 
     prussdrv_pruintc_init(&pruss_intc_initdata);
 
-    pthread_t irq_thread;
-    if (pthread_create(&irq_thread, nullptr, pruevtout0_thread, nullptr))
-    {
-        std::cerr << "Error creating IRQ thread" << std::endl;
-        return EXIT_FAILURE;
-    }
-
     std::cout << "Running program and waiting for termination..." << std::endl;
 
     if (prussdrv_exec_program(PRU0, argv[1]) < 0)
@@ -63,11 +46,27 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    prussdrv_pru_wait_event(PRU_EVTOUT_0);
+    while (true)
+    {
+        // First read input
+        int input;
+        std::cout << "enter number: ";
+        std::cin >> input;
 
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+        // sharedmem[0] = ready? and sharedmem[1] = data
+        sharedmem[1] = input;
+        sharedmem[0] = 1;
+
+        std::cout << "Waiting for the PRU to write response..." << std::endl;
+
+        // wait for interrupt
+        prussdrv_pru_wait_event(PRU_EVTOUT_0);
+        prussdrv_pru_clear_event(PRU_EVTOUT_0, PRU0_ARM_INTERRUPT);
+
+        std::cout << "PRU gave result: " << sharedmem[1] << std::endl;
+    }
+
     std::cout << "Done" << std::endl;
-
     prussdrv_pru_disable(PRU0);
     prussdrv_exit();
 
