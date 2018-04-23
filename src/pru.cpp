@@ -52,7 +52,7 @@ void PRU::executeProgram(const std::string& filename) const
 
 void PRU::waitForInterrupt() const
 {
-#if 0
+#if 1
     // Wait for PRU event out
     prussdrv_pru_wait_event(PRU_EVTOUT_0);
 
@@ -60,7 +60,7 @@ void PRU::waitForInterrupt() const
     prussdrv_pru_clear_event(PRU_EVTOUT_0, PRU0_ARM_INTERRUPT);
 #endif
 
-#if 1
+#if 0
     // Read from RTDM driver to wait for interrupt
     int val;
     read(rtdm_file_descriptor, &val, sizeof(val));

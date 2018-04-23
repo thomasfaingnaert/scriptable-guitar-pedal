@@ -17,26 +17,21 @@ int main(int argc, char *argv[])
     param.sched_priority = 99;
     pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
 
-    sleep(30);
-
     PRU pru;
     ulong* sharedMemory = pru.setupSharedMemory();
 
-    sharedMemory[0] = 1;
+    sharedMemory[0] = 0;
     pru.executeProgram(argv[1]);
 
-    // Set memory to 0
-    sharedMemory[0] = 0;
-
-    auto start = std::chrono::high_resolution_clock::now();
-
-    // Wait for interrupt
-    pru.waitForInterrupt();
-    auto end = std::chrono::high_resolution_clock::now();
-    int val = sharedMemory[0];
-
-    std::cout << "Counter is at: " << val << std::endl;
-    std::cout << "Took " << std::chrono::duration_cast<std::chrono::microseconds>(end-start).count() << " us\n";
+    while (1)
+    {
+        // Set memory to 1
+        sharedMemory[0] = 1;
+        auto start = std::chrono::high_resolution_clock::now();
+        pru.waitForInterrupt();
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << "Took " << std::chrono::duration_cast<std::chrono::microseconds>(end-start).count() << " us\n";
+    }
 
     return EXIT_SUCCESS;
 }
