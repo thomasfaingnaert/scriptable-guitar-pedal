@@ -52,9 +52,19 @@ void PRU::executeProgram(const std::string& filename) const
 
 void PRU::waitForInterrupt() const
 {
+#if 0
+    // Wait for PRU event out
+    prussdrv_pru_wait_event(PRU_EVTOUT_0);
+
+    // Clear the system event
+    prussdrv_pru_clear_event(PRU_EVTOUT_0, PRU0_ARM_INTERRUPT);
+#endif
+
+#if 1
     // Read from RTDM driver to wait for interrupt
     int val;
     read(rtdm_file_descriptor, &val, sizeof(val));
+#endif
 }
 
 ulong* PRU::setupSharedMemory() const

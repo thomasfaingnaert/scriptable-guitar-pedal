@@ -1,4 +1,6 @@
 #include <iostream>
+#include <pthread.h>
+#include <chrono>
 
 #include "pru.h"
 
@@ -10,29 +12,28 @@ int main(int argc, char *argv[])
         return EXIT_SUCCESS;
     }
 
+    sched_param param;
+    param.sched_priority = 99;
+    pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
+
     PRU pru;
     ulong* sharedMemory = pru.setupSharedMemory();
 
+    sharedMemory[0] = 1;
     pru.executeProgram(argv[1]);
 
-    while (true)
-    {
-        // First read input
-        int input;
-        std::cout << "enter number: ";
-        std::cin >> input;
+    // Set memory to 0
+    sharedMemory[0] = 0;
 
-        // sharedMemory[0] = ready? and sharedMemory[1] = data
-        sharedMemory[1] = input;
-        sharedMemory[0] = 1;
+    auto start = std::chrono::high_resolution_clock::now();
 
-        std::cout << "Waiting for the PRU to write response..." << std::endl;
+    // Wait for interrupt
+    pru.waitForInterrupt();
+    auto end = std::chrono::high_resolution_clock::now();
+    int val = sharedMemory[0];
 
-        // wait for interrupt
-        pru.waitForInterrupt();
-
-        std::cout << "PRU gave result: " << sharedMemory[1] << std::endl;
-    }
+    std::cout << "Counter is at: " << val << std::endl;
+    std::cout << "Took " << std::chrono::duration_cast<std::chrono::microseconds>(end-start).count() << " us\n";
 
     return EXIT_SUCCESS;
 }
