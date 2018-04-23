@@ -1,5 +1,5 @@
-#ifndef PRU_CPP_KPJ9JOMT
-#define PRU_CPP_KPJ9JOMT
+#ifndef PRU_H_E1NOUCLR
+#define PRU_H_E1NOUCLR
 
 #include <string>
 
@@ -16,6 +16,9 @@ class PRU
         static constexpr unsigned int PRU_ADDRESS = 0x4A300000;
         static constexpr unsigned int SHARED_MEMORY_OFFSET = 0x10000;
         static constexpr unsigned int SHARED_MEMORY_SIZE = 0x10000;
+
+        const std::string RTDM_DRIVER = "/dev/rtdm/rtdm_pruss_irq_0";
+        int rtdm_file_descriptor;
 };
 
-#endif /* end of include guard: PRU_CPP_KPJ9JOMT */
+#endif /* end of include guard: PRU_H_E1NOUCLR */

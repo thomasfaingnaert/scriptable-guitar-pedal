@@ -1,3 +1,4 @@
+#include <cstring>
 #include <fcntl.h>
 #include <pruss_intc_mapping.h>
 #include <prussdrv.h>
@@ -21,12 +22,23 @@ PRU::PRU()
     // Initialise and enable the PRU Interrupt Controller (PIC)
     tpruss_intc_initdata pruss_intc_initdata = PRUSS_INTC_INITDATA;
     prussdrv_pruintc_init(&pruss_intc_initdata);
+
+    // Open the RTDM Driver
+    rtdm_file_descriptor = open(RTDM_DRIVER.c_str(), O_RDWR);
+    if (rtdm_file_descriptor < 0)
+    {
+        std::string errorMsg = "Failed to open RTDM Driver: " + std::to_string(errno) + " " + std::string(std::strerror(errno)) + "\nDid you sudo modprobe rtdm_pruss_irq?";
+        throw std::runtime_error(errorMsg);
+    }
 }
 
 PRU::~PRU()
 {
     prussdrv_pru_disable(PRU0);
     prussdrv_exit();
+
+    // Close RTDM Driver
+    close(rtdm_file_descriptor);
 }
 
 void PRU::executeProgram(const std::string& filename) const
@@ -40,11 +52,9 @@ void PRU::executeProgram(const std::string& filename) const
 
 void PRU::waitForInterrupt() const
 {
-    // Wait for PRU event out
-    prussdrv_pru_wait_event(PRU_EVTOUT_0);
-
-    // Clear the system event
-    prussdrv_pru_clear_event(PRU_EVTOUT_0, PRU0_ARM_INTERRUPT);
+    // Read from RTDM driver to wait for interrupt
+    int val;
+    read(rtdm_file_descriptor, &val, sizeof(val));
 }
 
 ulong* PRU::setupSharedMemory() const
