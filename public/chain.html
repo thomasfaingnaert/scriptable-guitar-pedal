@@ -67,7 +67,8 @@
         <div class="container">
             <div class="row">
                 <div class="col-12">
-                    <form action="/chain/submit" onsubmit="return sendEffect()" method="post" id="chain-form"
+                    <h3>Execute chain on file</h3>
+                    <form action="/chain/submit" onsubmit="return sendEffect('effect-info')" method="post" id="chain-form"
                           enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="input">Input File:</label>
@@ -75,6 +76,16 @@
                         </div>
                         <input type="hidden" name="effect-info" id="effect-info" value=""/>
                         <button type="submit" class="btn btn-light">Submit</button>
+                    </form>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <h3>Save this chain</h3>
+                    <form action="/chain/save" onsubmit="return sendEffect('save-effect-info')" method="post" id="save-chain-form"
+                          enctype="multipart/form-data">
+                        <input type="hidden" name="save-effect-info" id="save-effect-info" value=""/>
+                        <button type="submit" class="btn btn-light">Save effect</button>
                     </form>
                 </div>
             </div>

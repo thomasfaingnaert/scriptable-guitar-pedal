@@ -1,8 +1,11 @@
 /**
  * This function will take the effects from the jsplumb container, check if they are well connected,
  * and then send a JSON string to the server for it to be processed over there
+ *
+ * @param id The id of the field in which to inject the info
+ * @returns {boolean}
  */
-function sendEffect() {
+function sendEffect(id) {
     var sources = [];
     var targets = [];
 
@@ -17,7 +20,7 @@ function sendEffect() {
         var jsonString = makeJSON(sources); // sources always contains 'inputbox' at this point
 
         // Set value for hidden fields
-        $('#effect-info').val(jsonString);
+        $('#' + id).val(jsonString);
 
         return true;
     } else {
@@ -32,6 +35,7 @@ function sendEffect() {
  * sources should at least contain 'inputbox'
  * targets should at least contain 'outputbox'
  * other boxes should be in both
+ *
  * @param sources list containing all sources
  * @param targets list containing all targets
  */
