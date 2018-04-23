@@ -1,6 +1,7 @@
 #include <iostream>
 #include <pthread.h>
 #include <chrono>
+#include <unistd.h>
 
 #include "pru.h"
 
@@ -15,6 +16,8 @@ int main(int argc, char *argv[])
     sched_param param;
     param.sched_priority = 99;
     pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
+
+    sleep(30);
 
     PRU pru;
     ulong* sharedMemory = pru.setupSharedMemory();

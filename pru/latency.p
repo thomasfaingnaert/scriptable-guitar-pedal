@@ -2,7 +2,8 @@
 .entrypoint start
 
 #define CONST_PRUCFG C4
-#define PRU0_ARM_INTERRUPT 19
+#define PRUSS_PRU_ARM_INTERRUPT 35
+#define RTDM_PRU_ARM_INTERRUPT 36
 
 start:
     /* Enable the Open Core Protocol master port, which is used to interconnect all peripherals on the SoC */
@@ -18,7 +19,7 @@ wait_for_data:
     qbne    wait_for_data, r4, 0
 
     /* Send interrupt */
-    mov r31.b0, PRU0_ARM_INTERRUPT+16
+    mov r31.b0, RTDM_PRU_ARM_INTERRUPT
 
     /* Keep adding one */
 add_loop:
