@@ -22,10 +22,20 @@ std::vector<Complex> multiplyComplex(const std::vector<Complex>& x, const std::v
 {
     std::vector<Complex> result(x.size());
 
-    for (unsigned int i = 0; i < x.size(); ++i)
+    for (unsigned int i = 0; i < x.size() / 4; i += 4)
     {
-        result[i].r = x[i].r * y[i].r - x[i].i * y[i].i;
-        result[i].i = x[i].r * y[i].i + x[i].i * y[i].r;
+        // Manual 4x loop unrolling to hint g++ to use NEON SIMD instructions
+        result[i + 0].r = x[i + 0].r * y[i + 0].r - x[i + 0].i * y[i + 0].i;
+        result[i + 0].i = x[i + 0].r * y[i + 0].i + x[i + 0].i * y[i + 0].r;
+
+        result[i + 1].r = x[i + 1].r * y[i + 1].r - x[i + 1].i * y[i + 1].i;
+        result[i + 1].i = x[i + 1].r * y[i + 1].i + x[i + 1].i * y[i + 1].r;
+
+        result[i + 2].r = x[i + 2].r * y[i + 2].r - x[i + 2].i * y[i + 2].i;
+        result[i + 2].i = x[i + 2].r * y[i + 2].i + x[i + 2].i * y[i + 2].r;
+
+        result[i + 3].r = x[i + 3].r * y[i + 3].r - x[i + 3].i * y[i + 3].i;
+        result[i + 3].i = x[i + 3].r * y[i + 3].i + x[i + 3].i * y[i + 3].r;
     }
 
     return result;
