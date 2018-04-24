@@ -14,8 +14,11 @@ function sendEffect(id) {
         targets.push(conn.targetId);
     });
 
+    if (checkConnections(sources, targets)) {
+        if (id === 'effect-info' && $('#input').get() === '') {
+            return false;
+        }
 
-    if (checkConnections(sources, targets) || $('#input').val() === "") {
         sources.splice(sources.indexOf('inputbox'), 1);
         var jsonString = makeJSON(sources); // sources always contains 'inputbox' at this point
 
@@ -24,7 +27,11 @@ function sendEffect(id) {
 
         return true;
     } else {
-        alert("Please make sure your effects are chained correctly and you have selected a file!");
+        if (id === 'effect-info') {
+            alert("Please make sure your effects are chained correctly and you have selected a file!");
+        } else if (id === 'save-effect-info') {
+            alert("Please make sure your effects are chained correctly.");
+        }
         return false;
     }
 
@@ -61,7 +68,6 @@ function checkConnections(sources, targets) {
  * @param effects is an array of ID's
  */
 function makeJSON(effects) {
-    console.log(effects);
     var jsonArray = [];
     effects.forEach(function (id) {
         var effectParams = $('#' + id).attr('data-effect');

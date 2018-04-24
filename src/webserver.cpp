@@ -21,6 +21,7 @@
 #include "filesource.h"
 #include "filtereffect.h"
 #include "luaeffect.h"
+#include "prettywriter.h"
 #include "sampledata.h"
 #include "source.h"
 #include "tremoloeffect.h"
@@ -31,13 +32,13 @@ WebServer::WebServer(unsigned int port)
     // create options array
     std::string portStr = std::to_string(port);
     const char *options[] =
-            {
-                    "listening_ports",
-                    portStr.c_str(),
-                    "document_root",
-                    "public/",
-                    0
-            };
+        {
+            "listening_ports",
+            portStr.c_str(),
+            "document_root",
+            "public/",
+            0
+        };
 
     // start server
     context = mg_start(nullptr, nullptr, options);
@@ -535,7 +536,6 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
     fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
     {
         std::string name = std::string(key);
-        std::cout << name << std::endl;
         vars_t *vars = static_cast<vars_t *>(user_data);
 
         std::string res = std::string(value);
@@ -775,8 +775,6 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
 
         res = res.substr(0, res.find('\r'));
 
-        std::cout << res << std::endl;
-
         if (name == "save-effect-info")
         {
             vars->jsonString = res;
@@ -793,16 +791,48 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
     // Parse
     rapidjson::Document chain;
 
-    std::cout << vars.jsonString << std::endl;
-
     chain.Parse(vars.jsonString.c_str()); // Contains array of JSON objects
 
-    // Append to file
-    std::ofstream chainFile("chains.json", std::ios::app);
+    // open file
+    std::ifstream chainReadFile("chains.json");
 
-    chainFile << vars.jsonString << std::endl;
+    std::string fileContent = "";
+    if (chainReadFile)
+    {
+        std::stringstream buf;
+        buf << chainReadFile.rdbuf();
+        fileContent = buf.str();
+        chainReadFile.close();
+    }
 
-    chainFile.close();
+    std::cout << fileContent << std::endl;
+
+    rapidjson::Document presets;
+    if (fileContent == "") {
+        presets.Parse("[]");
+    }
+    else
+    {
+        presets.Parse(fileContent.c_str());
+    }
+
+    // Paste new value into document
+    rapidjson::Document::AllocatorType& allocator = presets.GetAllocator();
+    presets.PushBack(chain, allocator);
+
+    // Write result to file
+    std::ofstream chainWriteFile("chains.json");
+
+    if (chainWriteFile)
+    {
+        rapidjson::StringBuffer sb;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
+        presets.Accept(writer);
+
+        chainWriteFile << sb.GetString() << std::endl;
+
+        chainWriteFile.close();
+    }
 
     render_redirect(connection, "/chain.html");
 

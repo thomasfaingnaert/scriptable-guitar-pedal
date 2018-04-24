@@ -22,7 +22,11 @@ int main(int argc, char *argv[])
 #ifdef WEBSERVER_RUN
     WebServer webServer(8888);
 
+    std::cout << "Webserver running" << std::endl;
+
     while (webServer.isRunning());
+
+    std::cout << "Shutting down server..." << std::endl;
 #endif
 
 #if 0
