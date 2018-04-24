@@ -23,6 +23,7 @@ wait_for_data:
     sbbo    r4, r3, 0, 4
 
     /* Send interrupt */
+    mov r31.b0, RTDM_PRU_ARM_INTERRUPT
     mov r31.b0, PRUSS_PRU_ARM_INTERRUPT
 
     jmp loop_begin

@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <chrono>
 #include <unistd.h>
+#include <cobalt/stdio.h>
 
 #include "pru.h"
 
@@ -23,15 +24,20 @@ int main(int argc, char *argv[])
     sharedMemory[0] = 0;
     pru.executeProgram(argv[1]);
 
-    while (1)
+    //rt_printf("Started");
+
+    auto begin = std::chrono::high_resolution_clock::now();
+    for (unsigned int i = 0; i < 1000000; ++i)
     {
         // Set memory to 1
         sharedMemory[0] = 1;
-        auto start = std::chrono::high_resolution_clock::now();
         pru.waitForInterrupt();
-        auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "Took " << std::chrono::duration_cast<std::chrono::microseconds>(end-start).count() << " us\n";
     }
+    auto end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Took in total " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << " us\n";
+
+    //rt_printf("Finished");
 
     return EXIT_SUCCESS;
 }
