@@ -32,3 +32,7 @@
 #footer {
     min-height: 100px;
 }
+
+.hide {
+    visibility: hidden;
+}

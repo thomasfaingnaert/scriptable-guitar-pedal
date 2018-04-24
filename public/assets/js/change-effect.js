@@ -20,6 +20,7 @@ function changeEffect(box) {
         '</form>';
 
     $('#modalBody').html(form);
+    $('#save-change-button').show();
 
     // Set the parameter value to the previous one
     $.each(parameterData, function (name, value) {

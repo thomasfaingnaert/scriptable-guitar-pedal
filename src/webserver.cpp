@@ -57,6 +57,7 @@ WebServer::WebServer(unsigned int port)
     mg_set_request_handler(context, "/chain/submit$", handle_chain_submit, this);
     mg_set_request_handler(context, "/lua/submit$", handle_lua_submit, this);
     mg_set_request_handler(context, "/chain/save$", handle_chain_save, this);
+    mg_set_request_handler(context, "/chain/load$", handle_chain_load, this);
 }
 
 WebServer::~WebServer()
@@ -88,6 +89,11 @@ void WebServer::render_text(mg_connection *connection, const std::string &text)
 void WebServer::render_html(mg_connection *connection, const std::string &html)
 {
     render(connection, html, "text/html");
+}
+
+void WebServer::render_json(mg_connection *connection, const std::string &json)
+{
+    render(connection, json, "application/json");
 }
 
 void WebServer::render_redirect(mg_connection *connection, const std::string &url)
@@ -751,6 +757,7 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
 
     struct vars_t
     {
+        std::string chainName;
         std::string jsonString;
     } vars;
 
@@ -775,7 +782,11 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
 
         res = res.substr(0, res.find('\r'));
 
-        if (name == "save-effect-info")
+        if (name == "chain-name")
+        {
+            vars->chainName = res;
+        }
+        else if (name == "save-effect-info")
         {
             vars->jsonString = res;
         }
@@ -791,7 +802,9 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
     // Parse
     rapidjson::Document chain;
 
-    chain.Parse(vars.jsonString.c_str()); // Contains array of JSON objects
+    std::string jsonObj = "{\"name\":\"" + vars.chainName + "\", \"value\":" + vars.jsonString + "}";
+
+    chain.Parse(jsonObj.c_str()); // Contains array of JSON objects
 
     // open file
     std::ifstream chainReadFile("chains.json");
@@ -804,8 +817,6 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
         fileContent = buf.str();
         chainReadFile.close();
     }
-
-    std::cout << fileContent << std::endl;
 
     rapidjson::Document presets;
     if (fileContent == "") {
@@ -835,6 +846,22 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
     }
 
     render_redirect(connection, "/chain.html");
+
+    return 200;
+}
+
+int WebServer::handle_chain_load(mg_connection *connection, void *user_data)
+{
+    // Read contents from file
+    std::ifstream chainFile("chains.json");
+    std::stringstream buf;
+
+    buf << chainFile.rdbuf();
+
+    std::cout << buf.str() << std::endl;
+    std::cout << buf.str().length() << std::endl;
+
+    render_json(connection, (buf.str().length() == 0 ? "[]" : buf.str()));
 
     return 200;
 }

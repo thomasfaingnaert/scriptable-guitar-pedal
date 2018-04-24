@@ -15,6 +15,7 @@
         <script src="assets/js/add-effect.js"></script>
         <script src="assets/js/change-effect.js"></script>
         <script src="assets/js/send-effect.js"></script>
+        <script src="assets/js/load-chain.js"></script>
     </head>
     <body>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -84,6 +85,10 @@
                     <h3>Save this chain</h3>
                     <form action="/chain/save" onsubmit="return sendEffect('save-effect-info')" method="post" id="save-chain-form"
                           enctype="multipart/form-data">
+                        <div class="form-group">
+                            <labe for="chain-name">Name:</labe>
+                            <input type="text" name="chain-name" id="chain-name"/>
+                        </div>
                         <input type="hidden" name="save-effect-info" id="save-effect-info" value=""/>
                         <button type="submit" class="btn btn-light">Save chain</button>
                     </form>
@@ -112,7 +117,7 @@
                         ...
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-light" form="changeEffectForm">Save Changes</button>
+                        <button type="submit" class="btn btn-light" form="changeEffectForm" id="save-change-button">Save Changes</button>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     </div>
                 </div>
