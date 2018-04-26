@@ -815,7 +815,6 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
         std::stringstream buf;
         buf << chainReadFile.rdbuf();
         fileContent = buf.str();
-        chainReadFile.close();
     }
 
     rapidjson::Document presets;
@@ -840,9 +839,7 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
         rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
         presets.Accept(writer);
 
-        chainWriteFile << sb.GetString() << std::endl;
-
-        chainWriteFile.close();
+        chainWriteFile << sb.GetString() << "\n";
     }
 
     render_redirect(connection, "/chain.html");
@@ -857,9 +854,6 @@ int WebServer::handle_chain_load(mg_connection *connection, void *user_data)
     std::stringstream buf;
 
     buf << chainFile.rdbuf();
-
-    std::cout << buf.str() << std::endl;
-    std::cout << buf.str().length() << std::endl;
 
     render_json(connection, (buf.str().length() == 0 ? "[]" : buf.str()));
 
