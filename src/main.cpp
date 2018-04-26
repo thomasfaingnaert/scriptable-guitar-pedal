@@ -6,9 +6,6 @@
 #include "filesource.h"
 #include "filesink.h"
 #include "filtereffect.h"
-#include "webserver.h"
-
-#define WEBSERVER_RUN
 
 int main(int argc, char *argv[])
 {
@@ -19,17 +16,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-#ifdef WEBSERVER_RUN
-    WebServer webServer(8888);
-
-    std::cout << "Webserver running" << std::endl;
-
-    while (webServer.isRunning());
-
-    std::cout << "Shutting down server..." << std::endl;
-#endif
-
-#if 0
     SampleData impulse("impulse.wav");
     auto impulseSamples = impulse.getSamples()[0];
 
@@ -40,10 +26,13 @@ int main(int argc, char *argv[])
     source->connect(effect);
     effect->connect(sink);
 
+    auto begin = std::chrono::high_resolution_clock::now();
     while (source->generate_next()) ;
+    auto end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "took " << std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << " ms\n";
 
     sink->write();
-#endif
 
     return EXIT_SUCCESS;
 }

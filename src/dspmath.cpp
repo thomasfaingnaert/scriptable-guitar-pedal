@@ -1,4 +1,5 @@
 #include "dspmath.h"
+#include "arm_neon_complex.h"
 
 std::vector<Complex> fft(std::vector<float> x, const unsigned int n, ne10_fft_r2c_cfg_float32_t cfg)
 {
@@ -20,14 +21,9 @@ std::vector<float> ifft(std::vector<Complex> x, const unsigned int n, ne10_fft_r
 
 std::vector<Complex> multiplyComplex(const std::vector<Complex>& x, const std::vector<Complex>& y)
 {
+    // TODO: Make this work with sizes which are not a multiple of 8
     std::vector<Complex> result(x.size());
-
-    for (unsigned int i = 0; i < x.size(); ++i)
-    {
-        result[i].r = x[i].r * y[i].r - x[i].i * y[i].i;
-        result[i].i = x[i].r * y[i].i + x[i].i * y[i].r;
-    }
-
+    arm_neon_complex_multiply((float*)result.data(), (float*)x.data(), (float*)y.data(), x.size() - 1);
     return result;
 }
 
