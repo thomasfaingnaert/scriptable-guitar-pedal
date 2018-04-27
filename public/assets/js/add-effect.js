@@ -14,6 +14,8 @@ $(document).ready(function () {
         form = displayForm(effect);
         $('#parameter-form').html(form);
     });
+
+    jsPlumb.setContainer($('#jsplumb-container'));
 });
 
 /**
@@ -107,12 +109,11 @@ function displayForm(effect) {
     return form;
 }
 
-var numElements = 0;
-
 /**
  * This function will add an effect box to the jsplumb container when the button is clicked
  */
 function addEffect() {
+    numElements = $('#jsplumb-container > .jsplumb-box').length - 2;
     if (numElements < 5) {
         var effect = $('#effect-select').find('option:selected').val().toString().toLowerCase();
 
@@ -130,13 +131,11 @@ function addEffect() {
         $('#jsplumb-container').append(box);
 
         $('#box-' + numElements).css({
-            'left': (1 + (numElements % 3)) * 150 + 'px',
-            'top': (numElements <= 2 ? 0 : 1) * 100 + 'px'
+            'left': (1 + numElements) * 15 + '%',
+            'top': '30%'
         });
 
         addEndPoints($('#box-' + numElements));
-
-        numElements++;
     } else {
         alert('Je kan maximaal 5 effecten tegelijk gebruiken!');
     }
@@ -171,10 +170,10 @@ function addEndPoints(box) {
     };
 
     if (id !== 'inputbox') {
-        jsPlumb.addEndpoint(id, {anchor: 'Left'}, common);
+        jsPlumb.addEndpoint(id, {anchors: ['Left']}, common);
     }
     if (id !== 'outputbox') {
-        jsPlumb.addEndpoint(id, {anchor: 'Right'}, common);
+        jsPlumb.addEndpoint(id, {anchors: ['Right']}, common);
     }
     if (id !== 'inputbox' && id !== 'outputbox') {
         jsPlumb.draggable(id, {containment: true});
