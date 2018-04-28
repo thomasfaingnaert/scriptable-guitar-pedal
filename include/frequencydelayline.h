@@ -60,7 +60,7 @@ class FrequencyDelayLine
                 // TODO: Fix complex multiply not working if size % 8 != 0
                 static_assert((COMPLEX_SIZE - 1) % 8 == 0, "Complex MAC does not work if (COMPLEX_SIZE - 1) % 8 != 0");
                 arm_neon_complex_multiply_accumulate((float*) outputFourier.data(), (float*) outputFourier.data(), (float*) frequencyResponses[i].data(), (float*) inputFreqIterator, COMPLEX_SIZE - 1);
-                inputFreqIterator += COMPLEX_SIZE;
+                inputFreqIterator += 2 * COMPLEX_SIZE;
             }
 
             // Inverse transform to get output

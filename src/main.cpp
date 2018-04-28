@@ -16,9 +16,9 @@ int main(int argc, char *argv[])
     static constexpr unsigned int BLOCK_SIZE = 16;
 
 
-    std::array<float, BLOCK_SIZE+1> impulse1{1};
+    std::array<float, BLOCK_SIZE+1> impulse1{0,1};
     std::array<float, BLOCK_SIZE+1> impulse2{};
-    FrequencyDelayLine<BLOCK_SIZE> fdl({impulse1});
+    FrequencyDelayLine<BLOCK_SIZE> fdl({impulse1,impulse2});
 
     std::array<float, BLOCK_SIZE> input{1,2,3,4};
     auto res = fdl.process(input);
