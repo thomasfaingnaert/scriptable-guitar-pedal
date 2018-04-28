@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <iostream>
 #include <iterator>
+#include <iomanip>
 
 #include "frequencydelayline.h"
 
@@ -23,6 +24,7 @@ int main(int argc, char *argv[])
     std::array<float, BLOCK_SIZE> input{1,2,3,4};
     auto res = fdl.process(input);
 
+    std::cout << std::setprecision(3);
     std::copy(res.begin(), res.end(), std::ostream_iterator<float>(std::cout, " "));
     std::cout << "\n";
 
