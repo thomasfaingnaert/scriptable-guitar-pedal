@@ -58,8 +58,8 @@ class FrequencyDelayLine
             {
                 // Calculate output for this convolver
                 // TODO: Fix complex multiply not working if size % 8 != 0
-                static_assert((COMPLEX_SIZE - 1) % 8 == 0, "Complex MAC does not work if (COMPLEX_SIZE - 1) % 8 != 0");
-                arm_neon_complex_multiply_accumulate((float*) outputFourier.data(), (float*) outputFourier.data(), (float*) frequencyResponses[i].data(), (float*) inputFreqIterator, COMPLEX_SIZE - 1);
+                static_assert(COMPLEX_SIZE % 8 == 0, "Complex MAC does not work if COMPLEX_SIZE is not divisible by 8");
+                arm_neon_complex_multiply_accumulate((float*) outputFourier.data(), (float*) outputFourier.data(), (float*) frequencyResponses[i].data(), (float*) inputFreqIterator, COMPLEX_SIZE);
                 inputFreqIterator += 2 * COMPLEX_SIZE;
             }
 
@@ -77,7 +77,7 @@ class FrequencyDelayLine
 
         constexpr static unsigned int PERIOD = 2*N;
         constexpr static unsigned int OVERLAP = N;
-        constexpr static unsigned int COMPLEX_SIZE = PERIOD / 2 + 1;
+        constexpr static unsigned int COMPLEX_SIZE = PERIOD / 2 + 8;
 
         BlockBuffer<float> inputBuffer;
         BlockBuffer<Complex> frequencyBuffer;
