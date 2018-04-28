@@ -24,7 +24,11 @@ int main(int argc, char *argv[])
     sharedMemory[0] = 0;
     pru.executeProgram(argv[1]);
 
-    //rt_printf("Started");
+    auto begin = std::chrono::high_resolution_clock::now();
+    while (source->generate_next()) ;
+    auto end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "took " << std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << " ms\n";
 
     auto begin = std::chrono::high_resolution_clock::now();
     for (unsigned int i = 0; i < 1000000; ++i)

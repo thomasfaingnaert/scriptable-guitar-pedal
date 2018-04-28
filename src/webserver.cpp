@@ -5,8 +5,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <ios>
 #include <iostream>
 #include <memory>
+#include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -19,6 +21,7 @@
 #include "filesource.h"
 #include "filtereffect.h"
 #include "luaeffect.h"
+#include "prettywriter.h"
 #include "sampledata.h"
 #include "source.h"
 #include "tremoloeffect.h"
@@ -29,13 +32,13 @@ WebServer::WebServer(unsigned int port)
     // create options array
     std::string portStr = std::to_string(port);
     const char *options[] =
-    {
-        "listening_ports",
-        portStr.c_str(),
-        "document_root",
-        "public/",
-        0
-    };
+        {
+            "listening_ports",
+            portStr.c_str(),
+            "document_root",
+            "public/",
+            0
+        };
 
     // start server
     context = mg_start(nullptr, nullptr, options);
@@ -53,6 +56,8 @@ WebServer::WebServer(unsigned int port)
     mg_set_request_handler(context, "/tremolo/submit$", handle_tremolo_submit, this);
     mg_set_request_handler(context, "/chain/submit$", handle_chain_submit, this);
     mg_set_request_handler(context, "/lua/submit$", handle_lua_submit, this);
+    mg_set_request_handler(context, "/chain/save$", handle_chain_save, this);
+    mg_set_request_handler(context, "/chain/load$", handle_chain_load, this);
 }
 
 WebServer::~WebServer()
@@ -68,11 +73,11 @@ bool WebServer::isRunning() const
 void WebServer::render(mg_connection *connection, const std::string &data, const std::string &contentType)
 {
     mg_printf(connection,
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Length: %u\r\n"
-            "Content-Type: %s\r\n"
-            "Connection: close\r\n\r\n",
-            data.length(), contentType.c_str());
+              "HTTP/1.1 200 OK\r\n"
+              "Content-Length: %u\r\n"
+              "Content-Type: %s\r\n"
+              "Connection: close\r\n\r\n",
+              data.length(), contentType.c_str());
     mg_write(connection, data.c_str(), data.length());
 }
 
@@ -84,6 +89,19 @@ void WebServer::render_text(mg_connection *connection, const std::string &text)
 void WebServer::render_html(mg_connection *connection, const std::string &html)
 {
     render(connection, html, "text/html");
+}
+
+void WebServer::render_json(mg_connection *connection, const std::string &json)
+{
+    render(connection, json, "application/json");
+}
+
+void WebServer::render_redirect(mg_connection *connection, const std::string &url)
+{
+    mg_printf(connection,
+              "HTTP/1.1 301 Moved Permanently\r\n"
+              "Location: %s\r\n\r\n",
+              url.c_str());
 }
 
 int WebServer::handle_exit(mg_connection *connection, void *user_data)
@@ -189,7 +207,8 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
     fdh.user_data = &vars;
 
     // If a field is found, it is checked if it is a file. If it is, it's processed here, else it's processed in field_get.
-    fdh.field_found = [](const char *key, const char *value, char *path, size_t pathlen, void *user_data) -> int {
+    fdh.field_found = [](const char *key, const char *value, char *path, size_t pathlen, void *user_data) -> int
+    {
         vars_t *vars = static_cast<vars_t *>(user_data);
         // check if field is a file
         if (value && *value)
@@ -206,12 +225,14 @@ int WebServer::handle_dist_submit(mg_connection *connection, void *user_data)
         return MG_FORM_FIELD_STORAGE_GET;
     };
 
-    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int {
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
+    {
         return 0;
     };
 
     // If a field is not a file, it's processed here.
-    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int {
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
+    {
         std::string name = std::string(key);
         vars_t *vars = static_cast<vars_t *>(user_data);
 
@@ -299,7 +320,8 @@ int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
 
     fdh.user_data = &vars;
 
-    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int {
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
+    {
         vars_t *vars = static_cast<vars_t *>(user_data);
         // check if field is a file
         if (filename && *filename)
@@ -316,11 +338,13 @@ int WebServer::handle_delay_submit(mg_connection *connection, void *user_data)
         return MG_FORM_FIELD_STORAGE_GET;
     };
 
-    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int {
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
+    {
         return 0;
     };
 
-    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int {
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
+    {
         std::string name = std::string(key);
         vars_t *vars = static_cast<vars_t *>(user_data);
 
@@ -407,7 +431,8 @@ int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
 
     fdh.user_data = &vars;
 
-    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int {
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
+    {
         vars_t *vars = static_cast<vars_t *>(user_data);
         // check if field is a file
         if (filename && *filename)
@@ -424,11 +449,13 @@ int WebServer::handle_tremolo_submit(mg_connection *connection, void *user_data)
         return MG_FORM_FIELD_STORAGE_GET;
     };
 
-    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int {
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
+    {
         return 0;
     };
 
-    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int {
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
+    {
         std::string name = std::string(key);
         vars_t *vars = static_cast<vars_t *>(user_data);
 
@@ -484,12 +511,13 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
     struct vars_t
     {
         std::string inputPath;
-        const char *jsonString;
+        std::string jsonString;
     } vars;
 
     fdh.user_data = &vars;
 
-    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int {
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
+    {
         vars_t *vars = static_cast<vars_t *>(user_data);
         // check if field is a file
         if (filename && *filename)
@@ -506,11 +534,13 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
         return MG_FORM_FIELD_STORAGE_GET;
     };
 
-    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int {
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
+    {
         return 0;
     };
 
-    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int {
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
+    {
         std::string name = std::string(key);
         vars_t *vars = static_cast<vars_t *>(user_data);
 
@@ -520,7 +550,7 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
 
         if (name == "effect-info")
         {
-            vars->jsonString = res.c_str();
+            vars->jsonString = res;
         }
 
         return MG_FORM_FIELD_STORAGE_GET;
@@ -533,10 +563,10 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
 
     // Parse
     rapidjson::Document chain;
-    chain.Parse(vars.jsonString); // Contains array of JSON objects
+    chain.Parse(vars.jsonString.c_str()); // Contains array of JSON objects
 
-    std::vector<std::shared_ptr<Sink<float>>> sinks;
-    std::vector<std::shared_ptr<Source<float>>> sources;
+    std::vector < std::shared_ptr < Sink < float >> > sinks;
+    std::vector < std::shared_ptr < Source < float >> > sources;
 
     // Make file source
     FileSource src(vars.inputPath);
@@ -638,7 +668,7 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
 
         for (std::size_t i = 0; i < sources.size() - 1; ++i)
         {
-            sources[i]->connect(sinks[i+1]);
+            sources[i]->connect(sinks[i + 1]);
         }
 
         sources[sources.size() - 1]->connect(sink);
@@ -665,7 +695,8 @@ int WebServer::handle_lua_submit(mg_connection *connection, void *user_data)
 
     fdh.user_data = &vars;
 
-    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int {
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
+    {
         vars_t *vars = static_cast<vars_t *>(user_data);
         // check if field is a file
         if (filename && *filename)
@@ -687,7 +718,8 @@ int WebServer::handle_lua_submit(mg_connection *connection, void *user_data)
         return MG_FORM_FIELD_STORAGE_GET;
     };
 
-    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int {
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
+    {
         return 0;
     };
 
@@ -715,6 +747,115 @@ int WebServer::handle_lua_submit(mg_connection *connection, void *user_data)
     sink->write();
 
     mg_send_file(connection, outputFileName.c_str());
+
+    return 200;
+}
+
+int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
+{
+    mg_form_data_handler fdh = {};
+
+    struct vars_t
+    {
+        std::string chainName;
+        std::string jsonString;
+    } vars;
+
+    fdh.user_data = &vars;
+
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
+    {
+        return MG_FORM_FIELD_STORAGE_GET;
+    };
+
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
+    {
+        return 0;
+    };
+
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
+    {
+        std::string name = std::string(key);
+        vars_t *vars = static_cast<vars_t *>(user_data);
+
+        std::string res = std::string(value);
+
+        res = res.substr(0, res.find('\r'));
+
+        if (name == "chain-name")
+        {
+            vars->chainName = res;
+        }
+        else if (name == "save-effect-info")
+        {
+            vars->jsonString = res;
+        }
+
+        return MG_FORM_FIELD_STORAGE_GET;
+    };
+
+    if (mg_handle_form_request(connection, &fdh) <= 0)
+    {
+        throw std::runtime_error("Error handling form request.");
+    }
+
+    // Parse
+    rapidjson::Document chain;
+
+    std::string jsonObj = "{\"name\":\"" + vars.chainName + "\", \"value\":" + vars.jsonString + "}";
+
+    chain.Parse(jsonObj.c_str()); // Contains array of JSON objects
+
+    // open file
+    std::ifstream chainReadFile("chains.json");
+
+    std::string fileContent = "";
+    if (chainReadFile)
+    {
+        std::stringstream buf;
+        buf << chainReadFile.rdbuf();
+        fileContent = buf.str();
+    }
+
+    rapidjson::Document presets;
+    if (fileContent == "") {
+        presets.Parse("[]");
+    }
+    else
+    {
+        presets.Parse(fileContent.c_str());
+    }
+
+    // Paste new value into document
+    rapidjson::Document::AllocatorType& allocator = presets.GetAllocator();
+    presets.PushBack(chain, allocator);
+
+    // Write result to file
+    std::ofstream chainWriteFile("chains.json");
+
+    if (chainWriteFile)
+    {
+        rapidjson::StringBuffer sb;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
+        presets.Accept(writer);
+
+        chainWriteFile << sb.GetString() << "\n";
+    }
+
+    render_redirect(connection, "/chain.html");
+
+    return 200;
+}
+
+int WebServer::handle_chain_load(mg_connection *connection, void *user_data)
+{
+    // Read contents from file
+    std::ifstream chainFile("chains.json");
+    std::stringstream buf;
+
+    buf << chainFile.rdbuf();
+
+    render_json(connection, (buf.str().length() == 0 ? "[]" : buf.str()));
 
     return 200;
 }

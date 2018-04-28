@@ -1,8 +1,11 @@
 /**
  * This function will take the effects from the jsplumb container, check if they are well connected,
  * and then send a JSON string to the server for it to be processed over there
+ *
+ * @param id The id of the field in which to inject the info
+ * @returns {boolean}
  */
-function sendEffect() {
+function sendEffect(id) {
     var sources = [];
     var targets = [];
 
@@ -11,17 +14,24 @@ function sendEffect() {
         targets.push(conn.targetId);
     });
 
+    if (checkConnections(sources, targets)) {
+        if (id === 'effect-info' && $('#input').get() === '') {
+            return false;
+        }
 
-    if (checkConnections(sources, targets) || $('#input').val() === "") {
         sources.splice(sources.indexOf('inputbox'), 1);
         var jsonString = makeJSON(sources); // sources always contains 'inputbox' at this point
 
         // Set value for hidden fields
-        $('#effect-info').val(jsonString);
+        $('#' + id).val(jsonString);
 
         return true;
     } else {
-        alert("Please make sure your effects are chained correctly and you have selected a file!");
+        if (id === 'effect-info') {
+            alert("Please make sure your effects are chained correctly and you have selected a file!");
+        } else if (id === 'save-effect-info') {
+            alert("Please make sure your effects are chained correctly.");
+        }
         return false;
     }
 
@@ -32,6 +42,7 @@ function sendEffect() {
  * sources should at least contain 'inputbox'
  * targets should at least contain 'outputbox'
  * other boxes should be in both
+ *
  * @param sources list containing all sources
  * @param targets list containing all targets
  */
@@ -57,7 +68,6 @@ function checkConnections(sources, targets) {
  * @param effects is an array of ID's
  */
 function makeJSON(effects) {
-    console.log(effects);
     var jsonArray = [];
     effects.forEach(function (id) {
         var effectParams = $('#' + id).attr('data-effect');
