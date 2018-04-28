@@ -1,47 +1,30 @@
+#include <algorithm>
 #include <iostream>
-#include <pthread.h>
-#include <chrono>
-#include <unistd.h>
-#include <cobalt/stdio.h>
+#include <iterator>
 
-#include "pru.h"
+#include "frequencydelayline.h"
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2)
+    // NE10 Initialisation
+    if (ne10_init() != NE10_OK)
     {
-        std::cout << "Usage: " << argv[0] << " filename.bin" << std::endl;
-        return EXIT_SUCCESS;
+        std::cerr << "Could not initialise Ne10." << std::endl;
+        return EXIT_FAILURE;
     }
 
-    sched_param param;
-    param.sched_priority = 99;
-    pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
+    static constexpr unsigned int BLOCK_SIZE = 16;
 
-    PRU pru;
-    ulong* sharedMemory = pru.setupSharedMemory();
 
-    sharedMemory[0] = 0;
-    pru.executeProgram(argv[1]);
+    std::array<float, BLOCK_SIZE+1> impulse1{1};
+    std::array<float, BLOCK_SIZE+1> impulse2{};
+    FrequencyDelayLine<BLOCK_SIZE> fdl({impulse1});
 
-    auto begin = std::chrono::high_resolution_clock::now();
-    while (source->generate_next()) ;
-    auto end = std::chrono::high_resolution_clock::now();
+    std::array<float, BLOCK_SIZE> input{1,2,3,4};
+    auto res = fdl.process(input);
 
-    std::cout << "took " << std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << " ms\n";
-
-    auto begin = std::chrono::high_resolution_clock::now();
-    for (unsigned int i = 0; i < 1000000; ++i)
-    {
-        // Set memory to 1
-        sharedMemory[0] = 1;
-        pru.waitForInterrupt();
-    }
-    auto end = std::chrono::high_resolution_clock::now();
-
-    std::cout << "Took in total " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << " us\n";
-
-    //rt_printf("Finished");
+    std::copy(res.begin(), res.end(), std::ostream_iterator<float>(std::cout, " "));
+    std::cout << "\n";
 
     return EXIT_SUCCESS;
 }
