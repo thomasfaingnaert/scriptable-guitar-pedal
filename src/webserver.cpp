@@ -19,7 +19,6 @@
 #include "document.h"
 #include "filesink.h"
 #include "filesource.h"
-#include "filtereffect.h"
 #include "luaeffect.h"
 #include "prettywriter.h"
 #include "sampledata.h"
