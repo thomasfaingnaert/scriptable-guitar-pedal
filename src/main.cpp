@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    constexpr unsigned int BLOCK_SIZE = 16384;
+    constexpr unsigned int BLOCK_SIZE = 1024 * 128;
 
     std::cout << "Block size: " << BLOCK_SIZE << std::endl;
 
@@ -48,6 +48,8 @@ int main(int argc, char *argv[])
             it += BLOCK_SIZE + 1;
         }
     }
+
+    std::cout << impulseResponses.size() << " partitions" << std::endl;
 
     std::cout << "Creating fdl..." << std::endl;
     FrequencyDelayLine<BLOCK_SIZE> fdl(impulseResponses);
