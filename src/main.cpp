@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <iostream>
 #include <iterator>
+#include <pthread.h>
 #include <thread>
 #include <vector>
 
@@ -19,6 +20,10 @@ int main(int argc, char *argv[])
         std::cerr << "Could not initialise Ne10." << std::endl;
         return EXIT_FAILURE;
     }
+
+    sched_param param;
+    param.sched_priority = 99;
+    pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
 
     auto src = std::make_shared<FileSource>("input.wav");
     auto eff = std::make_shared<FilterEffect>();
