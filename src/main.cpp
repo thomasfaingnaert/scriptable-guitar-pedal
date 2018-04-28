@@ -6,6 +6,7 @@
 #include "filesource.h"
 #include "filesink.h"
 #include "filtereffect.h"
+#include "webserver.h"
 
 int main(int argc, char *argv[])
 {
@@ -16,23 +17,15 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    SampleData impulse("impulse.wav");
-    auto impulseSamples = impulse.getSamples()[0];
+    // Webserver
+    WebServer server(8888);
 
-    auto source = std::make_shared<FileSource>("input.wav");
-    auto effect = std::make_shared<FilterEffect>(impulseSamples);
-    auto sink = std::make_shared<FileSink>("output.wav", source->getSampleRate());
+    std::cout << "Webserver is running" << std::endl;
 
-    source->connect(effect);
-    effect->connect(sink);
+    while(server.isRunning());
 
-    auto begin = std::chrono::high_resolution_clock::now();
-    while (source->generate_next()) ;
-    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Webserver shutdown" << std::endl;
 
-    std::cout << "took " << std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << " ms\n";
-
-    sink->write();
 
     return EXIT_SUCCESS;
 }

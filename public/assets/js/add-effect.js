@@ -16,6 +16,13 @@ $(document).ready(function () {
     });
 
     jsPlumb.setContainer($('#jsplumb-container'));
+
+    $(window).resize(function () {
+        jsPlumb.repaintEverything();
+    });
+
+    // Check if there's a chain already and if so, load it
+    //loadActiveChain();
 });
 
 /**
@@ -166,11 +173,12 @@ function addEndPoints(box) {
     var common = {
         isSource: true,
         isTarget: true,
-        connector: ["Straight"]
+        connector: ["Straight"],
+        endpoint: ["Dot", {radius:5}],
     };
 
     if (id !== 'inputbox') {
-        jsPlumb.addEndpoint(id, {anchors: ['Left']}, common);
+        jsPlumb.addEndpoint(id, { anchors: ['Left']}, common);
     }
     if (id !== 'outputbox') {
         jsPlumb.addEndpoint(id, {anchors: ['Right']}, common);
