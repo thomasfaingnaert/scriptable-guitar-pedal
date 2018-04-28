@@ -60,7 +60,7 @@ function drawChain(valueId) {
     chain.forEach(function (effect, i) {
         var box = '<div class="jsplumb-box" id="box-' + i + '" ' +
             'data-effect=\'' + JSON.stringify(effect) + '\' ' +
-            'onclick="$(\'#modal\').modal(\'show\'); changeEffect(this);">\n' +
+            'ondblclick="$(\'#modal\').modal(\'show\'); changeEffect(this);">\n' +
             effect.effect.charAt(0).toUpperCase() + effect.effect.substring(1).toLowerCase() + '\n' +
             '</div>';
 

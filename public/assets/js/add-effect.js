@@ -134,7 +134,7 @@ function addEffect() {
 
         var box = '<div class="jsplumb-box" id="box-' + numElements + '" ' +
             'data-effect=\'' + formData + '\' ' +
-            'onclick="$(\'#modal\').modal(\'show\'); changeEffect(this);">\n' +
+            'ondblclick="$(\'#modal\').modal(\'show\'); changeEffect(this);">\n' +
             '               <p>' + effect + '</p>\n' +
             '            </div>';
 
