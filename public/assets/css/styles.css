@@ -22,13 +22,13 @@ svg circle {
 
 #inputbox {
     position: absolute;
-    top: 30%;
+    top: 35%;
     left: 1%;
 }
 
 #outputbox {
     position: absolute;
-    top: 30%;
+    top: 35%;
     right: 1%;
 }
 

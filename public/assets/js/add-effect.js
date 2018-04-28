@@ -1,7 +1,8 @@
 /**
- * This function makes sure the right form-fields are displayed based on the selection list.
+ * This function takes care of all needed initialisation code.
  */
 $(document).ready(function () {
+    // Make sure right form is displayed
     var effect = '';
     var selection = $('#effect-select');
 
@@ -15,8 +16,10 @@ $(document).ready(function () {
         $('#parameter-form').html(form);
     });
 
+    // JsPlumb initialisation
     jsPlumb.setContainer($('#jsplumb-container'));
 
+    // Make sure everything is repainted when window is resized
     $(window).resize(function () {
         jsPlumb.repaintEverything();
     });
@@ -138,8 +141,8 @@ function addEffect() {
         $('#jsplumb-container').append(box);
 
         $('#box-' + numElements).css({
-            'left': (1 + numElements) * 15 + '%',
-            'top': '30%'
+            'left': (1 + (numElements % 3)) * 20 + '%',
+            'top': (20 * (1 + 3 * Math.floor(numElements / 3))) + '%'
         });
 
         addEndPoints($('#box-' + numElements));

@@ -69,8 +69,8 @@ function drawChain(valueId) {
         var boxId = '#box-' + i + '';
 
         $(boxId).css({
-            'left': (1 + i) * 15 + '%',
-            'top': '30%'
+            'left': (1 + (i % 3)) * 20 + '%',
+            'top': (20 * (1 + 3 * Math.floor(i / 3))) + '%'
         });
 
         addEndPoints($(boxId));
