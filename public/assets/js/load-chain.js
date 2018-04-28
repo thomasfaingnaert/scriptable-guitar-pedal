@@ -117,16 +117,17 @@ function drawConnections() {
 /**
  * This function will send a request to the server for the active chain and if there is one, draw it.
  */
-/*
+
 function loadActiveChain() {
-    $.get('chain/load/active', function(data) {
-        if (!data.empty()) {
-            // Paste in hidden div
-            $('#current-chain').html(JSON.stringify(data));
+    $.get('/chain/load/active', function (data) {
+        console.log(data);
+        console.log(data.length);
+
+        if (data.length > 0) {
+            $('#current-chain').attr('data-chain', JSON.stringify(data));
 
             // Draw chain
             drawChain('#current-chain');
         }
-    })
+    });
 }
-*/

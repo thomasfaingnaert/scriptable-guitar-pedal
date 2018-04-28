@@ -25,7 +25,7 @@ $(document).ready(function () {
     });
 
     // Check if there's a chain already and if so, load it
-    // loadActiveChain();
+    loadActiveChain();
 });
 
 /**

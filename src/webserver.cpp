@@ -58,12 +58,15 @@ WebServer::WebServer(unsigned int port)
     mg_set_request_handler(context, "/lua/submit$", handle_lua_submit, this);
     mg_set_request_handler(context, "/chain/save$", handle_chain_save, this);
     mg_set_request_handler(context, "/chain/load$", handle_chain_load, this);
+    mg_set_request_handler(context, "/chain/load/active$", handle_chain_load_active, this);
 }
 
 WebServer::~WebServer()
 {
     mg_stop(context);
 }
+
+std::string WebServer::jsonChain;
 
 bool WebServer::isRunning() const
 {
@@ -565,6 +568,8 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
     rapidjson::Document chain;
     chain.Parse(vars.jsonString.c_str()); // Contains array of JSON objects
 
+    jsonChain = vars.jsonString;
+
     std::vector < std::shared_ptr < Sink < float >> > sinks;
     std::vector < std::shared_ptr < Source < float >> > sources;
 
@@ -802,6 +807,8 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
     // Parse
     rapidjson::Document chain;
 
+    jsonChain = vars.jsonString;
+
     std::string jsonObj = "{\"name\":\"" + vars.chainName + "\", \"value\":" + vars.jsonString + "}";
 
     chain.Parse(jsonObj.c_str()); // Contains array of JSON objects
@@ -857,5 +864,17 @@ int WebServer::handle_chain_load(mg_connection *connection, void *user_data)
 
     render_json(connection, (buf.str().length() == 0 ? "[]" : buf.str()));
 
+    return 200;
+}
+
+int WebServer::handle_chain_load_active(mg_connection *connection, void *user_data)
+{
+    // Check if chain empty
+    if (jsonChain != "")
+    {
+        render_json(connection, jsonChain.c_str());
+    } else {
+        render_json(connection, "[]");
+    }
     return 200;
 }
