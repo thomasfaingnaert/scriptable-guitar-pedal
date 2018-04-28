@@ -25,7 +25,7 @@ $(document).ready(function () {
     });
 
     // Check if there's a chain already and if so, load it
-    //loadActiveChain();
+    // loadActiveChain();
 });
 
 /**
@@ -172,19 +172,21 @@ function parseFormData(form) {
  * @param box the box for which we want to add the endpoints
  */
 function addEndPoints(box) {
+    var numElements = $('#jsplumb-container .jsplumb-box').length - 2;
+
     var id = box.attr('id');
     var common = {
         isSource: true,
         isTarget: true,
         connector: ["Straight"],
-        endpoint: ["Dot", {radius:5}],
+        endpoint: ["Dot", {radius:6}]
     };
 
     if (id !== 'inputbox') {
-        jsPlumb.addEndpoint(id, { anchors: ['Left']}, common);
+        jsPlumb.addEndpoint(id, { anchors: ['Left'], uuid: 'ep-left-' + numElements }, common);
     }
     if (id !== 'outputbox') {
-        jsPlumb.addEndpoint(id, {anchors: ['Right']}, common);
+        jsPlumb.addEndpoint(id, {anchors: ['Right'], uuid: 'ep-right-' + numElements}, common);
     }
     if (id !== 'inputbox' && id !== 'outputbox') {
         jsPlumb.draggable(id, {containment: true});
