@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
         min = duration < min ? duration : min;
         max = duration > max ? duration : max;
         ++count;
-        std::this_thread::sleep_until(begin + std::chrono::microseconds(5333));
+        //std::this_thread::sleep_until(begin + std::chrono::microseconds(5333));
     }
 
     snk->write();
