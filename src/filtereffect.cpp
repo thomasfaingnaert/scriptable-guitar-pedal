@@ -20,7 +20,8 @@ FilterEffect::FilterEffect()
         workers_to_main_conds.push_back(PTHREAD_COND_INITIALIZER);
 
         // Initialise counter to zero
-        counters.emplace_back(0);
+        unsigned int initialCounters[] = { 0, 1, 1, 2 };
+        counters.emplace_back(initialCounters[i]);
     }
 
     // TODO: Set priorities for each thread
@@ -59,7 +60,7 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
         pthread_cond_wait(&workers_to_main_conds[numBlocksArrived], &workers_to_main_mutexes[numBlocksArrived]);
     pthread_mutex_unlock(&workers_to_main_mutexes[numBlocksArrived]);
 
-    std::cout << "[main] got result for t->m " << numBlocksArrived << std::endl;
+    std::cout << "[main] got t->m " << numBlocksArrived << std::endl;
 
     // Calculate output
 
@@ -73,12 +74,13 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
         if (((numBlocksArrived + 1) % params[i].period) == 0)
         {
             params[i].inputAvailable = true;
-
-            // Update counter
-            std::cout << "[main] incremented counter " << (numBlocksArrived + params[i].period) % schedulingPeriod << " from " << counters[(numBlocksArrived + params[i].period) % schedulingPeriod] << " to " << counters[(numBlocksArrived + params[i].period) % schedulingPeriod] + 1 << std::endl;
-            ++counters[(numBlocksArrived + params[i].period) % schedulingPeriod];
         }
     }
+
+    // Set counter
+    unsigned int countVals[] = { 1, 2, 1, 3};
+    std::cout << "[main] set counter " << numBlocksArrived << " to " << countVals[numBlocksArrived] << std::endl;
+    counters[numBlocksArrived] = countVals[numBlocksArrived];
 
     std::cout << "[main] broadcasting m->t " << numBlocksArrived << std::endl;
     pthread_cond_broadcast(&main_to_workers_conds[numBlocksArrived]);
@@ -107,7 +109,7 @@ void* FilterEffect::thread_function(void* argument)
         pthread_mutex_lock(&param->filter->main_to_workers_mutexes[waitIndex]);
         while (!param->inputAvailable)
             pthread_cond_wait(&param->filter->main_to_workers_conds[waitIndex], &param->filter->main_to_workers_mutexes[waitIndex]);
-        std::cout << "[thread " << param->id << "] got " << waitIndex << std::endl;
+        std::cout << "[thread " << param->id << "] got m->t " << waitIndex << std::endl;
 
         // Reset flag
         param->inputAvailable = false;
