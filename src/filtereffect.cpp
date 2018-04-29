@@ -8,6 +8,20 @@ FilterEffect::FilterEffect()
     : numBlocksArrived(0)
 {
     constexpr unsigned int numThreads = 3;
+    schedulingPeriod = 4;
+
+    // Initialise all data
+    for (unsigned int i = 0; i < schedulingPeriod; ++i)
+    {
+        // Create cond_vars and mutexes
+        main_to_workers_mutexes.push_back(PTHREAD_MUTEX_INITIALIZER);
+        workers_to_main_mutexes.push_back(PTHREAD_MUTEX_INITIALIZER);
+        main_to_workers_conds.push_back(PTHREAD_COND_INITIALIZER);
+        workers_to_main_conds.push_back(PTHREAD_COND_INITIALIZER);
+
+        // Initialise counter to zero
+        counters.emplace_back(0);
+    }
 
     // TODO: Set priorities for each thread
     for (unsigned int i = 0; i < numThreads; ++i)
@@ -29,20 +43,6 @@ FilterEffect::FilterEffect()
             throw std::runtime_error(errorMsg);
         }
         threads.push_back(thread);
-    }
-
-    schedulingPeriod = 4;
-
-    for (unsigned int i = 0; i < schedulingPeriod; ++i)
-    {
-        // Create cond_vars and mutexes
-        main_to_workers_mutexes.push_back(PTHREAD_MUTEX_INITIALIZER);
-        workers_to_main_mutexes.push_back(PTHREAD_MUTEX_INITIALIZER);
-        main_to_workers_conds.push_back(PTHREAD_COND_INITIALIZER);
-        workers_to_main_conds.push_back(PTHREAD_COND_INITIALIZER);
-
-        // Initialise counter to zero
-        counters.emplace_back(0);
     }
 }
 
