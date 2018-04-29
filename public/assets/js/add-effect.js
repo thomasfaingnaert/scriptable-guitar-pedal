@@ -16,8 +16,9 @@ $(document).ready(function () {
         $('#parameter-form').html(form);
     });
 
+    var jsPlumbContainer = $('#jsplumb-container')
     // JsPlumb initialisation
-    jsPlumb.setContainer($('#jsplumb-container'));
+    jsPlumb.setContainer(jsPlumbContainer);
 
     // Make sure everything is repainted when window is resized
     $(window).resize(function () {

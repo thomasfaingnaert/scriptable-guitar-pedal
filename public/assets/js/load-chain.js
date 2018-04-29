@@ -22,7 +22,7 @@ function loadChains() {
                 '                    <td>' + (i + 1) + '</td>\n' +
                 '                    <td>' + element.name + '</td>\n' +
                 '                    <td class="hide" id="val-' + (i + 1) + '" data-chain=\'' + JSON.stringify(element.value) + '\'></td>\n' +
-                '                    <td><button class="btn btn-light" onclick="drawChain(\'#val-' + (i + 1) + '\'); $(\'#modal\').modal(\'toggle\');" type="button" role="button">Open</button></td>\n' +
+                '                    <td><button class="btn btn-light" onclick="drawChain(\'#val-' + (i + 1) + '\');" data-dismiss="modal" type="button" role="button">Open</button></td>\n' +
                 '                </tr>\n';
         });
 
@@ -33,6 +33,7 @@ function loadChains() {
         $('#modalLabel').html("Saved chains");
         $('#modalBody').html(table);
         $('#save-change-button').hide();
+        $('#delete-effect-button').hide();
 
         // Show modal
         $('#modal').modal('show');
@@ -48,8 +49,12 @@ function drawChain(valueId) {
     var jsonData = $(valueId).attr('data-chain');
     var chain = JSON.parse(jsonData);
 
+    var jsPlumbContainer = $('#jsplumb-container');
+
     // Clear the JsPlumbbox and fill with input and outputbox
-    $('#jsplumb-container').html(
+    jsPlumb.empty(jsPlumbContainer);
+
+    jsPlumbContainer.html(
         '<div class="jsplumb-box" id="inputbox"><p>Input</p></div>\n' +
         '<div class="jsplumb-box" id="outputbox"><p>Output</p></div>'
     );
@@ -111,7 +116,6 @@ function drawConnections() {
             }
         }
     });
-
 }
 
 /**
@@ -120,9 +124,6 @@ function drawConnections() {
 
 function loadActiveChain() {
     $.get('/chain/load/active', function (data) {
-        console.log(data);
-        console.log(data.length);
-
         if (data.length > 0) {
             $('#current-chain').attr('data-chain', JSON.stringify(data));
 
