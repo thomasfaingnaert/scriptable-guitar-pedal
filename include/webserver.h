@@ -33,6 +33,7 @@ class WebServer
         static int handle_chain_save(mg_connection *connection, void *user_data);
         static int handle_chain_load(mg_connection *connection, void *user_data);
         static int handle_chain_load_active(mg_connection *connection, void *user_data);
+        static int handle_ir_upload(mg_connection *connection, void *user_data);
 };
 
 #endif /* end of include guard: WEBSERVER_H_LMKVHNTB */

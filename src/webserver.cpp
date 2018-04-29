@@ -59,6 +59,7 @@ WebServer::WebServer(unsigned int port)
     mg_set_request_handler(context, "/chain/save$", handle_chain_save, this);
     mg_set_request_handler(context, "/chain/load$", handle_chain_load, this);
     mg_set_request_handler(context, "/chain/load/active$", handle_chain_load_active, this);
+    mg_set_request_handler(context, "/conv/upload$", handle_ir_upload, this);
 }
 
 WebServer::~WebServer()
@@ -117,7 +118,7 @@ int WebServer::handle_exit(mg_connection *connection, void *user_data)
 
 int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
 {
-#if 0
+#if 1
     mg_form_data_handler fdh = {0};
 
     // used to save paths
@@ -179,8 +180,8 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
     auto fe = std::make_shared<FilterEffect>(filterSamples);
     auto sink = std::make_shared<FileSink>(outputPath, 44100);
 
-    src.connect(fe, 0);
-    fe->connect(sink, 0);
+    src.connect(fe);
+    fe->connect(sink);
 
     while (src.generate_next());
 
@@ -876,5 +877,62 @@ int WebServer::handle_chain_load_active(mg_connection *connection, void *user_da
     } else {
         render_json(connection, "[]");
     }
+    return 200;
+}
+
+int WebServer::handle_ir_upload(mg_connection *connection, void *user_data)
+{
+    mg_form_data_handler fdh = {};
+
+    struct vars_t
+    {
+        std::vector<std::string> inputPaths;
+    } vars;
+
+    fdh.user_data = &vars;
+
+    // If a field is found, it is checked if it is a file. If it is, it's processed here, else it's processed in field_get.
+    fdh.field_found = [](const char *key, const char *value, char *path, size_t pathlen, void *user_data) -> int
+    {
+        vars_t *vars = static_cast<vars_t *>(user_data);
+        // check if field is a file
+        if (value && *value)
+        {
+            snprintf(path, pathlen, "%s", value);
+
+            // store path
+            if (std::string(key) == "ir-file")
+            {
+                vars->inputPaths.push_back(value);
+            }
+            return MG_FORM_FIELD_STORAGE_STORE;
+        }
+        return MG_FORM_FIELD_STORAGE_GET;
+    };
+
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
+    {
+        return 0;
+    };
+
+    // Process the input from the form
+    if (mg_handle_form_request(connection, &fdh) <= 0)
+    {
+        throw std::runtime_error("Error handling form request.");
+    }
+
+    // Make filesink
+    for (std::string file : vars.inputPaths)
+    {
+        std::string fileName = "impulse-responses/" + file;
+        FileSink sink(fileName, 44100);
+        sink.write();
+
+        // Delete file from ~
+        std::remove(file.c_str());
+    }
+
+    render_redirect(connection, "/conv.html");
+
     return 200;
 }
