@@ -83,7 +83,6 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
 void* FilterEffect::thread_function(void* argument)
 {
     thread_param* param = static_cast<thread_param*>(argument);
-    std::cout << "[thread " << param->id << "]: started" << std::endl;
 
     // Used to remember what condvar to wait on (main -> worker)
     unsigned int waitIndex = param->period - 1;
@@ -112,7 +111,5 @@ void* FilterEffect::thread_function(void* argument)
         waitIndex = signalIndex;
     }
 
-
-    std::cout << "[thread " << param->id << "]: stopped" << std::endl;
     return nullptr;
 }
