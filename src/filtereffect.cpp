@@ -58,9 +58,6 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
 
     // Generate output
 
-    // Reset counter
-    counters[numBlocksArrived] = 0;
-
     // Update counter
     for (unsigned int i = 0; i < params.size(); ++i)
     {
