@@ -48,11 +48,18 @@ FilterEffect::FilterEffect()
 
 void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
 {
+    std::cout << "----- BEGIN PROCESS -----" << std::endl;
+
     // Wait for workers that have deadline
+
+    std::cout << "[main] waiting for t->m " << numBlocksArrived << std::endl;
+
     pthread_mutex_lock(&workers_to_main_mutexes[numBlocksArrived]);
     while (counters[numBlocksArrived] != 0)
         pthread_cond_wait(&workers_to_main_conds[numBlocksArrived], &workers_to_main_mutexes[numBlocksArrived]);
     pthread_mutex_unlock(&workers_to_main_mutexes[numBlocksArrived]);
+
+    std::cout << "[main] got result for t->m " << numBlocksArrived << std::endl;
 
     // Calculate output
 
@@ -65,11 +72,15 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
     {
         if (((numBlocksArrived + 1) % params[i].period) == 0)
         {
-            ++counters[numBlocksArrived];
             params[i].inputAvailable = true;
+
+            // Update counter
+            std::cout << "[main] incremented counter " << (numBlocksArrived + params[i].period) % schedulingPeriod << " from " << counters[(numBlocksArrived + params[i].period) % schedulingPeriod] << " to " << counters[(numBlocksArrived + params[i].period) % schedulingPeriod] + 1 << std::endl;
+            ++counters[(numBlocksArrived + params[i].period) % schedulingPeriod];
         }
     }
 
+    std::cout << "[main] broadcasting m->t " << numBlocksArrived << std::endl;
     pthread_cond_broadcast(&main_to_workers_conds[numBlocksArrived]);
     pthread_mutex_unlock(&main_to_workers_mutexes[numBlocksArrived]);
 
@@ -78,6 +89,8 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
 
     if (numBlocksArrived == schedulingPeriod)
         numBlocksArrived = 0;
+
+    std::cout << "----- END PROCESS -----" << std::endl;
 }
 
 void* FilterEffect::thread_function(void* argument)
@@ -89,10 +102,12 @@ void* FilterEffect::thread_function(void* argument)
 
     while (true)
     {
+        std::cout << "[thread " << param->id << "] waiting for m->t " << waitIndex << std::endl;
         // Wait until main signals there is input available
         pthread_mutex_lock(&param->filter->main_to_workers_mutexes[waitIndex]);
         while (!param->inputAvailable)
             pthread_cond_wait(&param->filter->main_to_workers_conds[waitIndex], &param->filter->main_to_workers_mutexes[waitIndex]);
+        std::cout << "[thread " << param->id << "] got " << waitIndex << std::endl;
 
         // Reset flag
         param->inputAvailable = false;
@@ -100,12 +115,14 @@ void* FilterEffect::thread_function(void* argument)
         pthread_mutex_unlock(&param->filter->main_to_workers_mutexes[waitIndex]);
 
         // Calculate output
-        std::cout << "[thread " << param->id << "] processing block" << std::endl;
 
         // Decrement count
         unsigned int signalIndex = (waitIndex + param->period) % param->filter->schedulingPeriod;
+        std::cout << "[thread " << param->id << "] decremented counter " << signalIndex << " from " << param->filter->counters[signalIndex] << " to " << param->filter->counters[signalIndex] - 1 << std::endl;
         if (--param->filter->counters[signalIndex] == 0)
         {
+            std::cout << "[thread " << param->id << "] signalling t->m " << signalIndex << std::endl;
+
             // All threads with this deadline have finished: signal main
             pthread_mutex_lock(&param->filter->workers_to_main_mutexes[signalIndex]);
             pthread_cond_signal(&param->filter->workers_to_main_conds[signalIndex]);
