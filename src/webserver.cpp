@@ -133,7 +133,8 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
 
     fdh.user_data = &paths;
 
-    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int {
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
+    {
         // check if field is a file
         if (filename && *filename)
         {
@@ -148,10 +149,6 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
             {
                 paths->inputPath = tempPath;
             }
-            else if (std::string(key) == "impulse-response")
-            {
-                paths->impulsePath = tempPath;
-            }
 
             return MG_FORM_FIELD_STORAGE_STORE;
         }
@@ -160,8 +157,22 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
         return MG_FORM_FIELD_STORAGE_GET;
     };
 
-    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int {
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
+    {
         return 0;
+    };
+
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
+    {
+        std::string name(key);
+
+        paths_t *vars = static_cast<paths_t*>(user_data);
+
+        if (name == "ir-list")
+        {
+            vars->impulsePath = std::string(value);
+        }
+        return MG_FORM_FIELD_STORAGE_GET;
     };
 
     if (mg_handle_form_request(connection, &fdh) <= 0)
@@ -170,12 +181,14 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
     }
 
     SampleData input(paths.inputPath);
-    SampleData filter(paths.impulsePath);
 
-    std::vector <Sample> inputSamples = input.getSamples()[0];
-    std::vector <Sample> filterSamples = filter.getSamples()[0];
+    std::string impulseResponse = "impulse-responses/" + paths.impulsePath + ".wav";
+    SampleData filter(impulseResponse);
 
-    std::vector <Sample> outputSamples;
+    std::vector<Sample> inputSamples = input.getSamples()[0];
+    std::vector<Sample> filterSamples = filter.getSamples()[0];
+
+    std::vector<Sample> outputSamples;
 
     FileSource src(paths.inputPath);
 
@@ -829,7 +842,8 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
     }
 
     rapidjson::Document presets;
-    if (fileContent == "") {
+    if (fileContent == "")
+    {
         presets.Parse("[]");
     }
     else
@@ -838,7 +852,7 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
     }
 
     // Paste new value into document
-    rapidjson::Document::AllocatorType& allocator = presets.GetAllocator();
+    rapidjson::Document::AllocatorType &allocator = presets.GetAllocator();
     presets.PushBack(chain, allocator);
 
     // Write result to file
@@ -877,7 +891,9 @@ int WebServer::handle_chain_load_active(mg_connection *connection, void *user_da
     if (jsonChain != "")
     {
         render_json(connection, jsonChain.c_str());
-    } else {
+    }
+    else
+    {
         render_json(connection, "[]");
     }
     return 200;
@@ -947,12 +963,14 @@ int WebServer::handle_ir_list(mg_connection *connection, void *user_data)
     std::string dir = "impulse-responses";
     DIR *dp;
     struct dirent *dirp;
-    if((dp  = opendir(dir.c_str())) == NULL) {
+    if ((dp = opendir(dir.c_str())) == NULL)
+    {
         std::cout << "Error(" << errno << ") opening " << dir << std::endl;
         return errno;
     }
 
-    while ((dirp = readdir(dp)) != NULL) {
+    while ((dirp = readdir(dp)) != NULL)
+    {
         v.push_back(std::string(dirp->d_name));
     }
     closedir(dp);
@@ -961,7 +979,7 @@ int WebServer::handle_ir_list(mg_connection *connection, void *user_data)
     rapidjson::Document responses;
     responses.Parse("[]");
 
-    rapidjson::Document::AllocatorType& allocator = responses.GetAllocator();
+    rapidjson::Document::AllocatorType &allocator = responses.GetAllocator();
 
     for (std::string file : v)
     {
