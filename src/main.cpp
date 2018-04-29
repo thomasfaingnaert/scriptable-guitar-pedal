@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     bool cont = true;
     unsigned int count = 0;
     std::chrono::duration<double> total, min = std::chrono::duration<double>::max(), max = std::chrono::duration<double>::min();
-    while (cont)
+    for (int i = 0; i < 4; ++i)
     {
         auto begin = std::chrono::high_resolution_clock::now();
         cont = src->generate_next();

@@ -43,7 +43,7 @@ class FilterEffect : public Source<float>, public Sink<float>
         };
 
         // The parameters for each thread
-        std::vector<thread_param> params;
+        std::deque<thread_param> params;
 
         // Used to remember how many blocks have arrived so far
         unsigned int numBlocksArrived;

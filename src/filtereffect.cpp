@@ -100,6 +100,7 @@ void* FilterEffect::thread_function(void* argument)
         pthread_mutex_unlock(&param->filter->main_to_workers_mutexes[waitIndex]);
 
         // Calculate output
+        std::cout << "[thread " << param->id << "] processing block" << std::endl;
 
         // Decrement count
         unsigned int signalIndex = (waitIndex + param->period) % param->filter->schedulingPeriod;
