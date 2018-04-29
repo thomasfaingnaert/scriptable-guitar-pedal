@@ -17,3 +17,4 @@ target_link_libraries(scriptable-guitar-pedal ${NE10_LIBRARIES} ${CIVETWEB_LIBRA
 include_directories("${CMAKE_SOURCE_DIR}/include" ${NE10_INCLUDE_DIRS} ${CIVETWEB_INCLUDE_DIRS} ${LIBSNDFILE_INCLUDE_DIRS} ${LIBI2C_INCLUDE_DIRS} ${LUA_INCLUDE_DIRS} ${TINYALSA_INCLUDE_DIRS} ${RAPIDJSON_INCLUDE_DIRS} ${ARM_NEON_COMPLEX_INCLUDE_DIRS})
 target_compile_features(scriptable-guitar-pedal PRIVATE cxx_constexpr)
 target_compile_features(scriptable-guitar-pedal PUBLIC cxx_std_11)
+target_compile_features(scriptable-guitar-pedal PRIVATE cxx_std_17)

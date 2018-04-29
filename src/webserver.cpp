@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <sys/types.h>
+#include <dirent.h>
 #include <fstream>
 #include <ios>
 #include <iostream>
@@ -60,6 +62,7 @@ WebServer::WebServer(unsigned int port)
     mg_set_request_handler(context, "/chain/load$", handle_chain_load, this);
     mg_set_request_handler(context, "/chain/load/active$", handle_chain_load_active, this);
     mg_set_request_handler(context, "/conv/upload$", handle_ir_upload, this);
+    mg_set_request_handler(context, "/conv/list$", handle_ir_list, this);
 }
 
 WebServer::~WebServer()
@@ -933,6 +936,47 @@ int WebServer::handle_ir_upload(mg_connection *connection, void *user_data)
     }
 
     render_redirect(connection, "/conv.html");
+
+    return 200;
+}
+
+int WebServer::handle_ir_list(mg_connection *connection, void *user_data)
+{
+    std::vector<std::string> v;
+
+    std::string dir = "impulse-responses";
+    DIR *dp;
+    struct dirent *dirp;
+    if((dp  = opendir(dir.c_str())) == NULL) {
+        std::cout << "Error(" << errno << ") opening " << dir << std::endl;
+        return errno;
+    }
+
+    while ((dirp = readdir(dp)) != NULL) {
+        v.push_back(std::string(dirp->d_name));
+    }
+    closedir(dp);
+
+    // Make json document containing all filenames
+    rapidjson::Document responses;
+    responses.Parse("[]");
+
+    rapidjson::Document::AllocatorType& allocator = responses.GetAllocator();
+
+    for (std::string file : v)
+    {
+        rapidjson::Value strVal;
+        strVal.SetString(file.c_str(), file.length(), allocator);
+
+        responses.PushBack(strVal, allocator);
+    }
+
+    rapidjson::StringBuffer sb;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
+    responses.Accept(writer);
+    std::string files(sb.GetString());
+
+    render_json(connection, files);
 
     return 200;
 }
