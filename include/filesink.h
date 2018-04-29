@@ -2,6 +2,7 @@
 #define FILESINK_H_6ZZMAMTF
 
 #include <array>
+#include <deque>
 #include <string>
 
 #include "constants.h"
@@ -17,7 +18,7 @@ class FileSink : public Sink<float>
     private:
         std::string filename;
         unsigned int samplerate;
-        std::vector<float> samples;
+        std::deque<float> samples;
 };
 
 #endif /* end of include guard: FILESINK_H_6ZZMAMTF */

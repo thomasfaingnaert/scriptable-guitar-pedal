@@ -16,6 +16,7 @@ void FileSink::push(const std::array<float, Constants::BLOCK_SIZE>& data)
 
 void FileSink::write()
 {
-    SampleData data({ samples }, samplerate);
+    std::vector<float> samplesVector(samples.begin(), samples.end());
+    SampleData data({ samplesVector }, samplerate);
     data.save(filename);
 }
