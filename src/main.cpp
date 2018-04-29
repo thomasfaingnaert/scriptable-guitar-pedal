@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <chrono>
+#include <cstring>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
@@ -23,7 +24,11 @@ int main(int argc, char *argv[])
 
     sched_param param;
     param.sched_priority = 99;
-    pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
+    if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &param) != 0)
+    {
+        std::cerr << "Failed to set priority for thread: Error code " << errno << ": " << std::strerror(errno) << std::endl;
+        return EXIT_FAILURE;
+    }
 
     auto src = std::make_shared<FileSource>("input.wav");
     auto eff = std::make_shared<FilterEffect>();
