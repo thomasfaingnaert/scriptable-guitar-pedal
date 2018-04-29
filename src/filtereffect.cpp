@@ -58,17 +58,18 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
 
     // Generate output
 
-    // Update counter
+    // Signal all threads that have to be started
+    pthread_mutex_lock(&main_to_workers_mutexes[numBlocksArrived]);
+
     for (unsigned int i = 0; i < params.size(); ++i)
     {
         if (((numBlocksArrived + 1) % params[i].period) == 0)
         {
             ++counters[numBlocksArrived];
+            params[i].inputAvailable = true;
         }
     }
 
-    // Signal all threads that have to be started
-    pthread_mutex_lock(&main_to_workers_mutexes[numBlocksArrived]);
     pthread_cond_broadcast(&main_to_workers_conds[numBlocksArrived]);
     pthread_mutex_unlock(&main_to_workers_mutexes[numBlocksArrived]);
 
