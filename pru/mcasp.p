@@ -72,10 +72,10 @@
 /* Set a McASP register bit and wait for it to come up */
 .macro mcasp_register_set_bit_and_poll
 .mparam offset, bit
-	lbbo	&r28, MCASP_BASE_ADDRESS_REGISTER, offset, 4
-	set	r28, r28, bit
-	sbbo	&r28, MCASP_BASE_ADDRESS_REGISTER, offset, 4
+    lbbo	&r28, MCASP_BASE_ADDRESS_REGISTER, offset, 4
+    set	r28, r28, bit
+    sbbo	&r28, MCASP_BASE_ADDRESS_REGISTER, offset, 4
 poll:
-	lbbo	&r28, MCASP_BASE_ADDRESS_REGISTER, offset, 4
-	qbbc	poll, r28, bit
+    lbbo	&r28, MCASP_BASE_ADDRESS_REGISTER, offset, 4
+    qbbc	poll, r28, bit
 .endm
