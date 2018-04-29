@@ -79,14 +79,17 @@ void SampleData::load(const std::string& filename)
     }
 }
 
-void SampleData::save(const std::string& filename) const
+void SampleData::save(const std::string& filename, bool normalize) const
 {
     std::vector<float> samples = sampleData;
-    float max = 0.0;
-    for (float f : samples)
-        max = std::max(max, std::abs(f));
-    for (float& f : samples)
-        f /= max;
+    if (normalize)
+    {
+        float max = 0.0;
+        for (float f : samples)
+            max = std::max(max, std::abs(f));
+        for (float& f : samples)
+            f /= max;
+    }
 
     // open file for writing
     SndfileHandle file(filename, SFM_WRITE, SF_FORMAT_WAV | SF_FORMAT_PCM_16, numChannels, sampleRate);

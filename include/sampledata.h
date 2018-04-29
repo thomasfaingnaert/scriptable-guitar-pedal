@@ -18,7 +18,7 @@ class SampleData
         unsigned int getNumFrames() const;
 
         void load(const std::string& filename);
-        void save(const std::string& filename) const;
+        void save(const std::string& filename, bool normalize = false) const;
 
         Sample get(size_t channel, size_t index) const;
         void set(size_t channel, size_t index, Sample sample);
