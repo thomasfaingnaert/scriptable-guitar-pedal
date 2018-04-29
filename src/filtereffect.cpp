@@ -93,6 +93,10 @@ void* FilterEffect::thread_function(void* argument)
         pthread_mutex_lock(&param->filter->main_to_workers_mutexes[waitIndex]);
         while (!param->inputAvailable)
             pthread_cond_wait(&param->filter->main_to_workers_conds[waitIndex], &param->filter->main_to_workers_mutexes[waitIndex]);
+
+        // Reset flag
+        param->inputAvailable = false;
+
         pthread_mutex_unlock(&param->filter->main_to_workers_mutexes[waitIndex]);
 
         // Calculate output
