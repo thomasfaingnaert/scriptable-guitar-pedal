@@ -34,6 +34,9 @@ int main(int argc, char *argv[])
     auto eff = std::make_shared<FilterEffect>();
     auto snk = std::make_shared<FileSink>("output.wav", src->getSampleRate());
 
+    src->connect(eff);
+    eff->connect(snk);
+
     bool cont = true;
     unsigned int count = 0;
     std::chrono::duration<double> total, min = std::chrono::duration<double>::max(), max = std::chrono::duration<double>::min();
