@@ -38,6 +38,7 @@ FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
         param.priority = 98 - i;
         param.inputAvailable = false;
         param.filter = this;
+        param.input = std::vector<float>(Constants::BLOCK_SIZE * blockSize);
         param.outputMutex = std::make_shared<std::mutex>();
         param.outputBuffer = std::vector<float>(Constants::BLOCK_SIZE + delay);
         params.push_back(param);
@@ -146,7 +147,8 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
         {
             params[i].inputAvailable = true;
             // TODO: Optimise this
-            params[i].input = std::vector<float>(inputBuffer.end() - (Constants::BLOCK_SIZE * params[i].period), inputBuffer.end());
+            const unsigned count = Constants::BLOCK_SIZE * params[i].period;
+            std::copy_n(inputBuffer.end() - count, count, params[i].input.begin());
         }
     }
 
