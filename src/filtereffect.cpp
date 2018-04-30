@@ -15,19 +15,26 @@ FilterEffect::FilterEffect()
     std::vector<float> impulseData = impulse.getSamples()[0];
     std::cout << "samples: " << impulseData.size() << "\n";
 
+    auto it = impulseData.begin();
+
     // Create parameters for thread
     for (unsigned int i = 0; i < numThreads; ++i)
     {
+        unsigned int blockSize = std::pow(2,i);
+
         std::vector<std::vector<float>> impulseResponses;
+
         for (unsigned int j = 0; j < 500; ++j)
         {
-            impulseResponses.emplace_back(impulseData.begin() + j * Constants::BLOCK_SIZE, impulseData.begin() + (j+1) * Constants::BLOCK_SIZE);
+            impulseResponses.emplace_back(it, it + Constants::BLOCK_SIZE);
+            it += Constants::BLOCK_SIZE;
         }
+
         FrequencyDelayLine fdl(Constants::BLOCK_SIZE, impulseResponses);
 
         thread_param param(fdl);
         param.name = "FDL-" + std::to_string(i);
-        param.period = std::pow(2,i);
+        param.period = blockSize;
         param.priority = 98 - i;
         param.inputAvailable = false;
         param.filter = this;
