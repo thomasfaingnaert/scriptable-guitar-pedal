@@ -16,9 +16,6 @@ class FilterEffect : public Source<float>, public Sink<float>
         virtual void push(const std::array<float, Constants::BLOCK_SIZE>& data);
 
     private:
-        // The worker threads
-        std::vector<pthread_t> threads;
-
         // The main thread uses these to signal all worker threads when new data is available
         std::deque<pthread_mutex_t> main_to_workers_mutexes;
         std::deque<pthread_cond_t> main_to_workers_conds;
@@ -28,7 +25,10 @@ class FilterEffect : public Source<float>, public Sink<float>
         std::deque<pthread_cond_t> workers_to_main_conds;
 
         // The workers use these to know when all threads have finished
-        std::deque<std::atomic<int>> counters;
+        std::deque<std::atomic<unsigned int>> counters;
+
+        // The values to reset the counters to
+        std::deque<unsigned int> counterDefaults;
 
         // This function is executed by each thread
         static void* thread_function(void* argument);

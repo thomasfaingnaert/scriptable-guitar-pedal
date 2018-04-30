@@ -1,5 +1,6 @@
 #include "filtereffect.h"
 
+#include <algorithm>
 #include <cstring>
 #include <cmath>
 #include <iostream>
@@ -9,6 +10,17 @@ FilterEffect::FilterEffect()
 {
     constexpr unsigned int numThreads = 3;
     schedulingPeriod = 4;
+
+    // Create parameters for thread
+    for (unsigned int i = 0; i < numThreads; ++i)
+    {
+        thread_param param;
+        param.id = i;
+        param.period = std::pow(2,i);
+        param.inputAvailable = false;
+        param.filter = this;
+        params.push_back(param);
+    }
 
     // Initialise all data
     for (unsigned int i = 0; i < schedulingPeriod; ++i)
@@ -21,21 +33,17 @@ FilterEffect::FilterEffect()
 
         // Initialise counter to zero
         unsigned int initialCounters[] = { 0, 1, 1, 2 };
+        unsigned int counter = std::count_if(params.begin(), params.end(), [i](const thread_param& par) { return (i+1) % par.period == 0; });
+
         counters.emplace_back(initialCounters[i]);
+        counterDefaults.emplace_back(counter);
     }
 
+
     // TODO: Set priorities for each thread
+    // Start all threads
     for (unsigned int i = 0; i < numThreads; ++i)
     {
-        // Create parameters for thread
-        thread_param param;
-        param.id = i;
-        param.period = std::pow(2,i);
-        param.inputAvailable = false;
-        param.filter = this;
-        params.push_back(param);
-
-        // Start thread
         pthread_t thread;
         if (pthread_create(&thread, nullptr, thread_function, &params[i]) != 0)
         {
@@ -43,7 +51,6 @@ FilterEffect::FilterEffect()
             errorMsg += std::strerror(errno);
             throw std::runtime_error(errorMsg);
         }
-        threads.push_back(thread);
     }
 }
 
@@ -63,9 +70,8 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
     std::cout << "[main] got t->m " << numBlocksArrived << std::endl;
 
     // Set counter
-    unsigned int countVals[] = { 1, 2, 1, 3};
-    std::cout << "[main] set counter " << numBlocksArrived << " to " << countVals[numBlocksArrived] << std::endl;
-    counters[numBlocksArrived] = countVals[numBlocksArrived];
+    std::cout << "[main] set counter " << numBlocksArrived << " to " << counterDefaults[numBlocksArrived] << std::endl;
+    counters[numBlocksArrived] = counterDefaults[numBlocksArrived];
 
     // Calculate output
 
