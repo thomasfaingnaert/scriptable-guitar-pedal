@@ -169,6 +169,9 @@ void* FilterEffect::thread_function(void* argument)
     // Used to remember what condvar to wait on (main -> worker)
     unsigned int waitIndex = param->period - 1;
 
+    // Used as a buffer for result
+    std::vector<float> result(param->input.size());
+
     while (true)
     {
         // Wait until main signals there is input available
@@ -183,12 +186,11 @@ void* FilterEffect::thread_function(void* argument)
 
         // Calculate output
         // TODO: Optimise this
-        std::vector<float> res(param->input.size());
-        param->fdl.process(param->input.begin(), param->input.end(), res.begin());
+        param->fdl.process(param->input.begin(), param->input.end(), result.begin());
         {
             // TODO: Optimise this
             std::lock_guard<std::mutex> l(*param->outputMutex);
-            param->outputBuffer.insert(param->outputBuffer.end(), res.begin(), res.end());
+            param->outputBuffer.insert(param->outputBuffer.end(), result.begin(), result.end());
         }
 
         // Decrement count
