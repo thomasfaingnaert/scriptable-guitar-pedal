@@ -27,17 +27,18 @@ class FrequencyDelayLine
             // Add this new FFT to the buffer for frequency data
             frequencyBuffer.push_back(inputFourier.begin(), inputFourier.end());
 
-            // Iterate through all convolvers
+            // Remember position in frequencyBuffer
             float* inputFreqIterator = (float*) frequencyBuffer.data();
 
-            // Set outputFourier to zero
-            // TODO: Perhaps do the first two convolers with multiply, and the rest with MAC?
-            Complex zero;
-            zero.r = 0;
-            zero.i = 0;
-            std::fill(outputFourier.begin(), outputFourier.end(), zero);
+            // Use normal multiply for first convolver
+            if (!frequencyResponses.empty())
+            {
+                arm_neon_complex_multiply((float*) outputFourier.data(), (float*) frequencyResponses[frequencyResponses.size() - 1].data(), (float*) inputFreqIterator, COMPLEX_SIZE);
+                inputFreqIterator += 2 * COMPLEX_SIZE;
+            }
 
-            for (int i = frequencyResponses.size() - 1; i >= 0; --i)
+            // Use multiply-accumulate for rest
+            for (int i = frequencyResponses.size() - 2; i >= 0; --i)
             {
                 arm_neon_complex_multiply_accumulate((float*) outputFourier.data(), (float*) outputFourier.data(), (float*) frequencyResponses[i].data(), (float*) inputFreqIterator, COMPLEX_SIZE);
                 inputFreqIterator += 2 * COMPLEX_SIZE;
