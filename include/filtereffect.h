@@ -42,6 +42,8 @@ class FilterEffect : public Source<float>, public Sink<float>
             unsigned int priority; // The scheduling priority for this thread
             bool inputAvailable; // Flag that is used by main to tell workers if input is available
             FilterEffect* filter; // This pointer
+            std::vector<float> input; // The input
+            std::deque<float> outputBuffer; // Buffer for output
         };
 
         // The parameters for each thread
@@ -52,6 +54,9 @@ class FilterEffect : public Source<float>, public Sink<float>
 
         // The scheduling period
         unsigned int schedulingPeriod;
+
+        // Buffer for input
+        std::deque<float> inputBuffer;
 };
 
 #endif /* end of include guard: FILTEREFFECT_H_TJL7ARNQ */

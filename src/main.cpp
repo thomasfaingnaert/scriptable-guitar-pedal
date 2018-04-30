@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 
 #endif
 
-#if 1
+#if 0
     CircularBuffer<float> buf(4);
 
     for (int i = 0; i < 40; i += 4)
@@ -152,6 +152,21 @@ int main(int argc, char *argv[])
         std::cout << f[0] << "\n";
     }
 #endif
+
+#if 1
+
+    FilterEffect fe;
+
+    for (unsigned int i = 1; i <= 10; ++i)
+    {
+        std::array<float, Constants::BLOCK_SIZE> block;
+        std::fill(block.begin(), block.end(), i);
+        fe.push(block);
+    }
+
+#endif
+
+    std::this_thread::sleep_for(std::chrono::seconds(5));
 
     return EXIT_SUCCESS;
 }

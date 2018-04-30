@@ -29,6 +29,9 @@ FilterEffect::FilterEffect()
     //       Maybe change this later?
     schedulingPeriod = std::max_element(params.begin(), params.end(), [](const thread_param& par1, const thread_param& par2) { return par1.period < par2.period; })->period;
 
+    // Remember enough input blocks
+    inputBuffer = std::deque<float>(schedulingPeriod * Constants::BLOCK_SIZE);
+
     // Initialise all data
     for (unsigned int i = 0; i < schedulingPeriod; ++i)
     {
@@ -91,6 +94,10 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
 
     // Calculate output
 
+    // Remove old input and add new input block
+    inputBuffer.erase(inputBuffer.begin(), inputBuffer.begin() + Constants::BLOCK_SIZE);
+    inputBuffer.insert(inputBuffer.end(), data.begin(), data.end());
+
     // Generate output
 
     // Signal all threads that have to be started
@@ -101,6 +108,7 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
         if (((numBlocksArrived + 1) % params[i].period) == 0)
         {
             params[i].inputAvailable = true;
+            params[i].input = std::vector<float>(inputBuffer.end() - (Constants::BLOCK_SIZE * params[i].period), inputBuffer.end());
         }
     }
 
@@ -134,6 +142,10 @@ void* FilterEffect::thread_function(void* argument)
         pthread_mutex_unlock(&param->filter->main_to_workers_mutexes[waitIndex]);
 
         // Calculate output
+        std::cout << "period " << param->period << " got input:\n";
+        std::copy(param->input.begin(), param->input.end(), std::ostream_iterator<float>(std::cout, " "));
+        std::cout << "\n";
+        std::cout << std::flush;
 
         // Decrement count
         unsigned int signalIndex = (waitIndex + param->period) % param->filter->schedulingPeriod;
