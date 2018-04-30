@@ -45,13 +45,13 @@ int main(int argc, char *argv[])
     auto impulseSamples = impulse.getSamples()[0];
 
     std::cout << "Partitioning impulse..." << std::endl;
-    std::vector<std::array<float,BLOCK_SIZE+1>> impulseResponses;
+    std::vector<std::vector<float>> impulseResponses;
 
     auto it = impulseSamples.begin();
 
     while (it != impulseSamples.end())
     {
-        impulseResponses.emplace_back();
+        impulseResponses.emplace_back(BLOCK_SIZE + 1);
 
         if (std::distance(it, impulseSamples.end()) < BLOCK_SIZE+1)
         {
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     std::cout << impulseResponses.size() << " partitions" << std::endl;
 
     std::cout << "Creating fdl..." << std::endl;
-    FrequencyDelayLine<BLOCK_SIZE> fdl(impulseResponses);
+    FrequencyDelayLine fdl(BLOCK_SIZE, impulseResponses);
 
     auto inIt = inputSamples.begin();
     std::vector<float> outputSamples;
@@ -80,7 +80,8 @@ int main(int argc, char *argv[])
         std::array<float, BLOCK_SIZE> block;
         std::copy_n(inIt, BLOCK_SIZE, block.begin());
 
-        auto res = fdl.process(block);
+        std::array<float, BLOCK_SIZE> res;
+        fdl.process(block.begin(), block.end(), res.begin());
         outputSamples.insert(outputSamples.end(), res.begin(), res.end());
         inIt += BLOCK_SIZE;
     }
