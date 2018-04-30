@@ -62,6 +62,11 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
 
     std::cout << "[main] got t->m " << numBlocksArrived << std::endl;
 
+    // Set counter
+    unsigned int countVals[] = { 1, 2, 1, 3};
+    std::cout << "[main] set counter " << numBlocksArrived << " to " << countVals[numBlocksArrived] << std::endl;
+    counters[numBlocksArrived] = countVals[numBlocksArrived];
+
     // Calculate output
 
     // Generate output
@@ -76,11 +81,6 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
             params[i].inputAvailable = true;
         }
     }
-
-    // Set counter
-    unsigned int countVals[] = { 1, 2, 1, 3};
-    std::cout << "[main] set counter " << numBlocksArrived << " to " << countVals[numBlocksArrived] << std::endl;
-    counters[numBlocksArrived] = countVals[numBlocksArrived];
 
     std::cout << "[main] broadcasting m->t " << numBlocksArrived << std::endl;
     pthread_cond_broadcast(&main_to_workers_conds[numBlocksArrived]);
@@ -121,14 +121,19 @@ void* FilterEffect::thread_function(void* argument)
         // Decrement count
         unsigned int signalIndex = (waitIndex + param->period) % param->filter->schedulingPeriod;
         std::cout << "[thread " << param->id << "] decremented counter " << signalIndex << " from " << param->filter->counters[signalIndex] << " to " << param->filter->counters[signalIndex] - 1 << std::endl;
-        if (--param->filter->counters[signalIndex] == 0)
-        {
-            std::cout << "[thread " << param->id << "] signalling t->m " << signalIndex << std::endl;
 
-            // All threads with this deadline have finished: signal main
+        if (param->filter->counters[signalIndex] == 1)
+        {
+            // We are last to finish, signal main
             pthread_mutex_lock(&param->filter->workers_to_main_mutexes[signalIndex]);
+            --param->filter->counters[signalIndex];
             pthread_cond_signal(&param->filter->workers_to_main_conds[signalIndex]);
             pthread_mutex_unlock(&param->filter->workers_to_main_mutexes[signalIndex]);
+        }
+        else
+        {
+            // Just decrement
+            --param->filter->counters[signalIndex];
         }
 
         // Update waitIndex
