@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     bool cont = true;
     unsigned int count = 0;
     std::chrono::duration<double> total, min = std::chrono::duration<double>::max(), max = std::chrono::duration<double>::min();
-    for (int i = 0; i < 4; ++i)
+    while (cont)
     {
         auto begin = std::chrono::high_resolution_clock::now();
         cont = src->generate_next();
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
         min = duration < min ? duration : min;
         max = duration > max ? duration : max;
         ++count;
-        //std::this_thread::sleep_until(begin + std::chrono::microseconds(5333));
+        std::this_thread::sleep_until(begin + std::chrono::microseconds(5333));
     }
 
     snk->write();

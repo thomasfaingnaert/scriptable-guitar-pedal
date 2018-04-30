@@ -4,6 +4,7 @@
 #include <atomic>
 #include <pthread.h>
 #include <deque>
+#include <string>
 #include <vector>
 
 #include "sink.h"
@@ -36,7 +37,7 @@ class FilterEffect : public Source<float>, public Sink<float>
         // Used as a parameter for the thread function
         struct thread_param
         {
-            unsigned int id; // The ID of the thread
+            std::string name; // The name of the thread
             unsigned int period; // The scheduling period (in amount of process calls)
             unsigned int priority; // The scheduling priority for this thread
             bool inputAvailable; // Flag that is used by main to tell workers if input is available

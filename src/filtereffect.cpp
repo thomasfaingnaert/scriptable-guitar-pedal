@@ -15,7 +15,7 @@ FilterEffect::FilterEffect()
     for (unsigned int i = 0; i < numThreads; ++i)
     {
         thread_param param;
-        param.id = i;
+        param.name = "FDL-" + std::to_string(i);
         param.period = std::pow(2,i);
         param.priority = 98 - i;
         param.inputAvailable = false;
@@ -62,6 +62,14 @@ FilterEffect::FilterEffect()
         sched_param param;
         param.sched_priority = params[i].priority;
         if (pthread_setschedparam(thread, SCHED_FIFO, &param) != 0)
+        {
+            std::string errorMsg = "Could not set priority for thread in FilterEffect: ";
+            errorMsg += std::strerror(errno);
+            throw std::runtime_error(errorMsg);
+        }
+
+        // Set name of thread
+        if (pthread_setname_np(thread, params[i].name.c_str()) != 0)
         {
             std::string errorMsg = "Could not set priority for thread in FilterEffect: ";
             errorMsg += std::strerror(errno);
