@@ -9,7 +9,7 @@
 FilterEffect::FilterEffect()
     : numBlocksArrived(0)
 {
-    constexpr unsigned int numThreads = 4;
+    constexpr unsigned int numThreads = 1;
 
     // Create parameters for thread
     for (unsigned int i = 0; i < numThreads; ++i)
@@ -20,6 +20,8 @@ FilterEffect::FilterEffect()
         param.priority = 98 - i;
         param.inputAvailable = false;
         param.filter = this;
+        param.outputMutex = std::make_shared<std::mutex>();
+        param.outputBuffer = std::vector<float>((2 * param.period - 1) * Constants::BLOCK_SIZE);
         params.push_back(param);
     }
 
@@ -93,12 +95,27 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
     counters[numBlocksArrived] = counterDefaults[numBlocksArrived];
 
     // Calculate output
+    std::array<float, Constants::BLOCK_SIZE> result{};
+    for (unsigned int i = 0; i < params.size(); ++i)
+    {
+        std::unique_lock<std::mutex> l(*params[i].outputMutex);
+        if (!params[i].outputBuffer.empty())
+        {
+            ne10_add_float(result.data(), result.data(), params[i].outputBuffer.data(), Constants::BLOCK_SIZE);
+            params[i].outputBuffer.erase(params[i].outputBuffer.begin(), params[i].outputBuffer.begin() + Constants::BLOCK_SIZE);
+        }
+        else
+        {
+            std::cerr << "outputBuffer was empty!" << std::endl;
+        }
+    }
+
+    // Generate output
+    generate(result);
 
     // Remove old input and add new input block
     inputBuffer.erase(inputBuffer.begin(), inputBuffer.begin() + Constants::BLOCK_SIZE);
     inputBuffer.insert(inputBuffer.end(), data.begin(), data.end());
-
-    // Generate output
 
     // Signal all threads that have to be started
     pthread_mutex_lock(&main_to_workers_mutexes[numBlocksArrived]);
@@ -142,10 +159,10 @@ void* FilterEffect::thread_function(void* argument)
         pthread_mutex_unlock(&param->filter->main_to_workers_mutexes[waitIndex]);
 
         // Calculate output
-        std::cout << "period " << param->period << " got input:\n";
-        std::copy(param->input.begin(), param->input.end(), std::ostream_iterator<float>(std::cout, " "));
-        std::cout << "\n";
-        std::cout << std::flush;
+        {
+            std::lock_guard<std::mutex> l(*param->outputMutex);
+            param->outputBuffer.insert(param->outputBuffer.end(), param->input.begin(), param->input.end());
+        }
 
         // Decrement count
         unsigned int signalIndex = (waitIndex + param->period) % param->filter->schedulingPeriod;

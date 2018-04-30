@@ -4,9 +4,12 @@
 #include <atomic>
 #include <pthread.h>
 #include <deque>
+#include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
+#include "NE10.h"
 #include "sink.h"
 #include "source.h"
 
@@ -43,7 +46,8 @@ class FilterEffect : public Source<float>, public Sink<float>
             bool inputAvailable; // Flag that is used by main to tell workers if input is available
             FilterEffect* filter; // This pointer
             std::vector<float> input; // The input
-            std::deque<float> outputBuffer; // Buffer for output
+            std::vector<float> outputBuffer; // Buffer for output
+            std::shared_ptr<std::mutex> outputMutex; // Used to control access to outputBuffer
         };
 
         // The parameters for each thread

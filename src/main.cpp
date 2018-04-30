@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     std::cout << "Saved" << std::endl;
 #endif
 
-#if 0
+#if 1
     auto src = std::make_shared<FileSource>("input.wav");
     auto eff = std::make_shared<FilterEffect>();
     auto snk = std::make_shared<FileSink>("output.wav", src->getSampleRate());
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
     }
 #endif
 
-#if 1
+#if 0
 
     FilterEffect fe;
 
