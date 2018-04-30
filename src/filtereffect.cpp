@@ -116,6 +116,7 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
     std::array<float, Constants::BLOCK_SIZE> result{};
     for (unsigned int i = 0; i < params.size(); ++i)
     {
+        // TODO: Optimise this
         std::unique_lock<std::mutex> l(*params[i].outputMutex);
         if (!params[i].outputBuffer.empty())
         {
@@ -131,6 +132,7 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
     // Generate output
     generate(result);
 
+    // TODO: Optimise this
     // Remove old input and add new input block
     inputBuffer.erase(inputBuffer.begin(), inputBuffer.begin() + Constants::BLOCK_SIZE);
     inputBuffer.insert(inputBuffer.end(), data.begin(), data.end());
@@ -143,6 +145,7 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
         if (((numBlocksArrived + 1) % params[i].period) == 0)
         {
             params[i].inputAvailable = true;
+            // TODO: Optimise this
             params[i].input = std::vector<float>(inputBuffer.end() - (Constants::BLOCK_SIZE * params[i].period), inputBuffer.end());
         }
     }
@@ -177,9 +180,11 @@ void* FilterEffect::thread_function(void* argument)
         pthread_mutex_unlock(&param->filter->main_to_workers_mutexes[waitIndex]);
 
         // Calculate output
+        // TODO: Optimise this
         std::vector<float> res(param->input.size());
         param->fdl.process(param->input.begin(), param->input.end(), res.begin());
         {
+            // TODO: Optimise this
             std::lock_guard<std::mutex> l(*param->outputMutex);
             param->outputBuffer.insert(param->outputBuffer.end(), res.begin(), res.end());
         }
