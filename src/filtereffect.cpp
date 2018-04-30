@@ -10,7 +10,7 @@
 FilterEffect::FilterEffect()
     : numBlocksArrived(0)
 {
-    constexpr unsigned int numThreads = 1;
+    constexpr unsigned int numThreads = 3;
     SampleData impulse("impulse.wav");
     std::vector<float> impulseData = impulse.getSamples()[0];
     std::cout << "samples: " << impulseData.size() << "\n";
@@ -20,18 +20,19 @@ FilterEffect::FilterEffect()
     // Create parameters for thread
     for (unsigned int i = 0; i < numThreads; ++i)
     {
-        unsigned int blockSize = std::pow(2,i);
+        unsigned int blockSize = std::pow(4,i);
 
         std::vector<std::vector<float>> impulseResponses;
         unsigned int delay = index;
 
-        for (unsigned int j = 0; j < 500; ++j)
+        for (unsigned int j = 0; j < 16; ++j)
         {
-            impulseResponses.emplace_back(impulseData.begin() + index, impulseData.begin() + index + Constants::BLOCK_SIZE);
-            index += Constants::BLOCK_SIZE;
+            impulseResponses.emplace_back(impulseData.begin() + index, impulseData.begin() + index + Constants::BLOCK_SIZE * blockSize);
+            index += Constants::BLOCK_SIZE * blockSize;
         }
+        std::cout << "index is at: " << index << "\n";
 
-        FrequencyDelayLine fdl(Constants::BLOCK_SIZE, impulseResponses);
+        FrequencyDelayLine fdl(Constants::BLOCK_SIZE * blockSize, impulseResponses);
 
         thread_param param(fdl);
         param.name = "FDL-" + std::to_string(i);
@@ -40,7 +41,7 @@ FilterEffect::FilterEffect()
         param.inputAvailable = false;
         param.filter = this;
         param.outputMutex = std::make_shared<std::mutex>();
-        param.outputBuffer = std::vector<float>(Constants::BLOCK_SIZE * (1 + delay));
+        param.outputBuffer = std::vector<float>(Constants::BLOCK_SIZE + delay);
         params.push_back(param);
     }
 
