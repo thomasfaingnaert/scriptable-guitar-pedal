@@ -9,7 +9,7 @@
 FilterEffect::FilterEffect()
     : numBlocksArrived(0)
 {
-    constexpr unsigned int numThreads = 3;
+    constexpr unsigned int numThreads = 4;
 
     // Create parameters for thread
     for (unsigned int i = 0; i < numThreads; ++i)
@@ -45,13 +45,6 @@ FilterEffect::FilterEffect()
         counterDefaults.emplace_back(counter);
     }
 
-    std::cout << "Counters: \n";
-    std::copy(counters.begin(), counters.end(), std::ostream_iterator<unsigned int>(std::cout, " "));
-    std::cout << "\nCounterDefs:\n";
-    std::copy(counterDefaults.begin(), counterDefaults.end(), std::ostream_iterator<unsigned int>(std::cout, " "));
-    std::cout << "\n";
-
-
     // TODO: Set priorities for each thread
     // Start all threads
     for (unsigned int i = 0; i < numThreads; ++i)
@@ -68,21 +61,13 @@ FilterEffect::FilterEffect()
 
 void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
 {
-    std::cout << "----- BEGIN PROCESS -----" << std::endl;
-
     // Wait for workers that have deadline
-
-    std::cout << "[main] waiting for t->m " << numBlocksArrived << std::endl;
-
     pthread_mutex_lock(&workers_to_main_mutexes[numBlocksArrived]);
     while (counters[numBlocksArrived] != 0)
         pthread_cond_wait(&workers_to_main_conds[numBlocksArrived], &workers_to_main_mutexes[numBlocksArrived]);
     pthread_mutex_unlock(&workers_to_main_mutexes[numBlocksArrived]);
 
-    std::cout << "[main] got t->m " << numBlocksArrived << std::endl;
-
     // Set counter
-    std::cout << "[main] set counter " << numBlocksArrived << " to " << counterDefaults[numBlocksArrived] << std::endl;
     counters[numBlocksArrived] = counterDefaults[numBlocksArrived];
 
     // Calculate output
@@ -100,7 +85,6 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
         }
     }
 
-    std::cout << "[main] broadcasting m->t " << numBlocksArrived << std::endl;
     pthread_cond_broadcast(&main_to_workers_conds[numBlocksArrived]);
     pthread_mutex_unlock(&main_to_workers_mutexes[numBlocksArrived]);
 
@@ -109,8 +93,6 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
 
     if (numBlocksArrived == schedulingPeriod)
         numBlocksArrived = 0;
-
-    std::cout << "----- END PROCESS -----" << std::endl;
 }
 
 void* FilterEffect::thread_function(void* argument)
@@ -122,12 +104,10 @@ void* FilterEffect::thread_function(void* argument)
 
     while (true)
     {
-        std::cout << "[thread " << param->id << "] waiting for m->t " << waitIndex << std::endl;
         // Wait until main signals there is input available
         pthread_mutex_lock(&param->filter->main_to_workers_mutexes[waitIndex]);
         while (!param->inputAvailable)
             pthread_cond_wait(&param->filter->main_to_workers_conds[waitIndex], &param->filter->main_to_workers_mutexes[waitIndex]);
-        std::cout << "[thread " << param->id << "] got m->t " << waitIndex << std::endl;
 
         // Reset flag
         param->inputAvailable = false;
@@ -138,7 +118,6 @@ void* FilterEffect::thread_function(void* argument)
 
         // Decrement count
         unsigned int signalIndex = (waitIndex + param->period) % param->filter->schedulingPeriod;
-        std::cout << "[thread " << param->id << "] decremented counter " << signalIndex << " from " << param->filter->counters[signalIndex] << " to " << param->filter->counters[signalIndex] - 1 << std::endl;
 
         if (param->filter->counters[signalIndex] == 1)
         {
