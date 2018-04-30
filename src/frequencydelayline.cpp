@@ -34,5 +34,6 @@ FrequencyDelayLine::FrequencyDelayLine(unsigned int blockSize, const std::vector
 
 FrequencyDelayLine::~FrequencyDelayLine()
 {
-    ne10_fft_destroy_r2c_float32(config);
+    // TODO: Find a clean way to handle this
+    //ne10_fft_destroy_r2c_float32(config);
 }

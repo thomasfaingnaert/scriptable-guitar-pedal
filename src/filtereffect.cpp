@@ -1,4 +1,5 @@
 #include "filtereffect.h"
+#include "sampledata.h"
 
 #include <algorithm>
 #include <cmath>
@@ -10,11 +11,21 @@ FilterEffect::FilterEffect()
     : numBlocksArrived(0)
 {
     constexpr unsigned int numThreads = 1;
+    SampleData impulse("impulse.wav");
+    std::vector<float> impulseData = impulse.getSamples()[0];
+    std::cout << "samples: " << impulseData.size() << "\n";
 
     // Create parameters for thread
     for (unsigned int i = 0; i < numThreads; ++i)
     {
-        thread_param param;
+        std::vector<std::vector<float>> impulseResponses;
+        for (unsigned int j = 0; j < 500; ++j)
+        {
+            impulseResponses.emplace_back(impulseData.begin() + j * Constants::BLOCK_SIZE, impulseData.begin() + (j+1) * Constants::BLOCK_SIZE);
+        }
+        FrequencyDelayLine fdl(Constants::BLOCK_SIZE, impulseResponses);
+
+        thread_param param(fdl);
         param.name = "FDL-" + std::to_string(i);
         param.period = std::pow(2,i);
         param.priority = 98 - i;
@@ -161,7 +172,9 @@ void* FilterEffect::thread_function(void* argument)
         // Calculate output
         {
             std::lock_guard<std::mutex> l(*param->outputMutex);
-            param->outputBuffer.insert(param->outputBuffer.end(), param->input.begin(), param->input.end());
+            std::vector<float> res(param->input.size());
+            param->fdl.process(param->input.begin(), param->input.end(), res.begin());
+            param->outputBuffer.insert(param->outputBuffer.end(), res.begin(), res.end());
         }
 
         // Decrement count

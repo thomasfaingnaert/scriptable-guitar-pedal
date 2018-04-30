@@ -104,6 +104,9 @@ int main(int argc, char *argv[])
     src->connect(eff);
     eff->connect(snk);
 
+#if 1
+    while (src->generate_next()) ;
+#else
     bool cont = true;
     unsigned int count = 0;
     std::chrono::duration<double> total, min = std::chrono::duration<double>::max(), max = std::chrono::duration<double>::min();
@@ -120,12 +123,13 @@ int main(int argc, char *argv[])
         std::this_thread::sleep_until(begin + std::chrono::microseconds(5333));
     }
 
-    snk->write();
 
     std::cout << "min: " << std::chrono::duration_cast<std::chrono::microseconds>(min).count() << " us\n"
         "max: " << std::chrono::duration_cast<std::chrono::microseconds>(max).count() << " us\n"
         "avg: " << std::chrono::duration_cast<std::chrono::microseconds>(total/count).count() << " us\n";
+#endif
 
+    snk->write(true);
 
 #endif
 

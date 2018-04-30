@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "NE10.h"
+#include "frequencydelayline.h"
 #include "sink.h"
 #include "source.h"
 
@@ -40,6 +41,8 @@ class FilterEffect : public Source<float>, public Sink<float>
         // Used as a parameter for the thread function
         struct thread_param
         {
+            thread_param(const FrequencyDelayLine& fdl) : fdl(fdl) { }
+
             std::string name; // The name of the thread
             unsigned int period; // The scheduling period (in amount of process calls)
             unsigned int priority; // The scheduling priority for this thread
@@ -48,6 +51,7 @@ class FilterEffect : public Source<float>, public Sink<float>
             std::vector<float> input; // The input
             std::vector<float> outputBuffer; // Buffer for output
             std::shared_ptr<std::mutex> outputMutex; // Used to control access to outputBuffer
+            FrequencyDelayLine fdl; // The FDL used by this thread
         };
 
         // The parameters for each thread
