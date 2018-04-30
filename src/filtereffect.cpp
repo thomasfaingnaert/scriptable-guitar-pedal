@@ -17,6 +17,7 @@ FilterEffect::FilterEffect()
         thread_param param;
         param.id = i;
         param.period = std::pow(2,i);
+        param.priority = 98 - i;
         param.inputAvailable = false;
         param.filter = this;
         params.push_back(param);
@@ -45,14 +46,24 @@ FilterEffect::FilterEffect()
         counterDefaults.emplace_back(counter);
     }
 
-    // TODO: Set priorities for each thread
     // Start all threads
     for (unsigned int i = 0; i < numThreads; ++i)
     {
+        // Create thread
         pthread_t thread;
         if (pthread_create(&thread, nullptr, thread_function, &params[i]) != 0)
         {
             std::string errorMsg = "Could not create thread in FilterEffect: ";
+            errorMsg += std::strerror(errno);
+            throw std::runtime_error(errorMsg);
+        }
+
+        // Set priority
+        sched_param param;
+        param.sched_priority = params[i].priority;
+        if (pthread_setschedparam(thread, SCHED_FIFO, &param) != 0)
+        {
+            std::string errorMsg = "Could not set priority for thread in FilterEffect: ";
             errorMsg += std::strerror(errno);
             throw std::runtime_error(errorMsg);
         }

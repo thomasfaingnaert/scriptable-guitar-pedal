@@ -38,6 +38,7 @@ class FilterEffect : public Source<float>, public Sink<float>
         {
             unsigned int id; // The ID of the thread
             unsigned int period; // The scheduling period (in amount of process calls)
+            unsigned int priority; // The scheduling priority for this thread
             bool inputAvailable; // Flag that is used by main to tell workers if input is available
             FilterEffect* filter; // This pointer
         };
