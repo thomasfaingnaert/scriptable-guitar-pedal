@@ -9,9 +9,11 @@
 #include <vector>
 
 #include "NE10.h"
+#include "sampledata.h"
 #include "filesink.h"
 #include "filesource.h"
 #include "filtereffect.h"
+#include "frequencydelayline.h"
 
 int main(int argc, char *argv[])
 {
@@ -30,6 +32,69 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+#if 1
+    constexpr unsigned int BLOCK_SIZE = 1024 * 128;
+
+    std::cout << "Block size: " << BLOCK_SIZE << std::endl;
+
+    std::cout << "Loading wavs..." << std::endl;
+    SampleData input("input.wav");
+    SampleData impulse("impulse.wav");
+
+    auto inputSamples = input.getSamples()[0];
+    auto impulseSamples = impulse.getSamples()[0];
+
+    std::cout << "Partitioning impulse..." << std::endl;
+    std::vector<std::array<float,BLOCK_SIZE+1>> impulseResponses;
+
+    auto it = impulseSamples.begin();
+
+    while (it != impulseSamples.end())
+    {
+        impulseResponses.emplace_back();
+
+        if (std::distance(it, impulseSamples.end()) < BLOCK_SIZE+1)
+        {
+            std::copy(it, impulseSamples.end(), impulseResponses.back().begin());
+            it = impulseSamples.end();
+        }
+        else
+        {
+            std::copy_n(it, BLOCK_SIZE+1, impulseResponses.back().begin());
+            it += BLOCK_SIZE + 1;
+        }
+    }
+
+    std::cout << impulseResponses.size() << " partitions" << std::endl;
+
+    std::cout << "Creating fdl..." << std::endl;
+    FrequencyDelayLine<BLOCK_SIZE> fdl(impulseResponses);
+
+    auto inIt = inputSamples.begin();
+    std::vector<float> outputSamples;
+
+    std::cout << "Processing..." << std::endl;
+    auto begin = std::chrono::high_resolution_clock::now();
+    while (inIt + BLOCK_SIZE < inputSamples.end())
+    {
+        std::array<float, BLOCK_SIZE> block;
+        std::copy_n(inIt, BLOCK_SIZE, block.begin());
+
+        auto res = fdl.process(block);
+        outputSamples.insert(outputSamples.end(), res.begin(), res.end());
+        inIt += BLOCK_SIZE;
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Processing took " << std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << " ms" << std::endl;
+
+    std::cout << "Saving..." << std::endl;
+    SampleData out({outputSamples}, input.getSampleRate());
+    out.save("output.wav", true);
+    std::cout << "Saved" << std::endl;
+#endif
+
+#if 0
     auto src = std::make_shared<FileSource>("input.wav");
     auto eff = std::make_shared<FilterEffect>();
     auto snk = std::make_shared<FileSink>("output.wav", src->getSampleRate());
@@ -60,6 +125,7 @@ int main(int argc, char *argv[])
                  "avg: " << std::chrono::duration_cast<std::chrono::microseconds>(total/count).count() << " us\n";
 
 
+#endif
     return EXIT_SUCCESS;
 }
 
