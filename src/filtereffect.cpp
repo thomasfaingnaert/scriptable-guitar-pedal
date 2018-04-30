@@ -15,7 +15,7 @@ FilterEffect::FilterEffect()
     std::vector<float> impulseData = impulse.getSamples()[0];
     std::cout << "samples: " << impulseData.size() << "\n";
 
-    auto it = impulseData.begin();
+    unsigned int index = 0;
 
     // Create parameters for thread
     for (unsigned int i = 0; i < numThreads; ++i)
@@ -23,11 +23,12 @@ FilterEffect::FilterEffect()
         unsigned int blockSize = std::pow(2,i);
 
         std::vector<std::vector<float>> impulseResponses;
+        unsigned int delay = index;
 
         for (unsigned int j = 0; j < 500; ++j)
         {
-            impulseResponses.emplace_back(it, it + Constants::BLOCK_SIZE);
-            it += Constants::BLOCK_SIZE;
+            impulseResponses.emplace_back(impulseData.begin() + index, impulseData.begin() + index + Constants::BLOCK_SIZE);
+            index += Constants::BLOCK_SIZE;
         }
 
         FrequencyDelayLine fdl(Constants::BLOCK_SIZE, impulseResponses);
@@ -39,7 +40,7 @@ FilterEffect::FilterEffect()
         param.inputAvailable = false;
         param.filter = this;
         param.outputMutex = std::make_shared<std::mutex>();
-        param.outputBuffer = std::vector<float>((2 * param.period - 1) * Constants::BLOCK_SIZE);
+        param.outputBuffer = std::vector<float>(Constants::BLOCK_SIZE * (1 + delay));
         params.push_back(param);
     }
 
