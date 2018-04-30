@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "NE10.h"
+#include "circularbuffer.h"
 #include "sampledata.h"
 #include "filesink.h"
 #include "filesource.h"
@@ -32,7 +33,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-#if 1
+#if 0
     constexpr unsigned int BLOCK_SIZE = 1024 * 128;
 
     std::cout << "Block size: " << BLOCK_SIZE << std::endl;
@@ -122,11 +123,36 @@ int main(int argc, char *argv[])
     snk->write();
 
     std::cout << "min: " << std::chrono::duration_cast<std::chrono::microseconds>(min).count() << " us\n"
-                 "max: " << std::chrono::duration_cast<std::chrono::microseconds>(max).count() << " us\n"
-                 "avg: " << std::chrono::duration_cast<std::chrono::microseconds>(total/count).count() << " us\n";
+        "max: " << std::chrono::duration_cast<std::chrono::microseconds>(max).count() << " us\n"
+        "avg: " << std::chrono::duration_cast<std::chrono::microseconds>(total/count).count() << " us\n";
 
 
 #endif
+
+#if 1
+    CircularBuffer<float> buf(4);
+
+    for (int i = 0; i < 40; i += 4)
+    {
+        float* f;
+
+        f = buf.getNextWritePointer(4);
+        f[0] = i;
+        f[1] = i+1;
+        f[2] = i+2;
+        f[3] = i+3;
+
+        f = buf.getNextReadPointer(2);
+        std::cout << f[0] << " " << f[1] << "\n";
+
+        f = buf.getNextReadPointer(1);
+        std::cout << f[0] << "\n";
+
+        f = buf.getNextReadPointer(1);
+        std::cout << f[0] << "\n";
+    }
+#endif
+
     return EXIT_SUCCESS;
 }
 
