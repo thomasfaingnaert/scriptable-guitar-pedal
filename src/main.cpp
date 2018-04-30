@@ -97,8 +97,11 @@ int main(int argc, char *argv[])
 #endif
 
 #if 1
+    SampleData impulse("impulse.wav");
+    std::vector<float> impulseData = impulse.getSamples()[0];
+
     auto src = std::make_shared<FileSource>("input.wav");
-    auto eff = std::make_shared<FilterEffect>();
+    auto eff = std::make_shared<FilterEffect>(impulseData);
     auto snk = std::make_shared<FileSink>("output.wav", src->getSampleRate());
 
     src->connect(eff);

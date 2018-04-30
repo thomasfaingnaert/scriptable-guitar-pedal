@@ -17,7 +17,7 @@
 class FilterEffect : public Source<float>, public Sink<float>
 {
     public:
-        FilterEffect();
+        FilterEffect(const std::vector<float>& impulseResponse);
         virtual void push(const std::array<float, Constants::BLOCK_SIZE>& data);
 
     private:

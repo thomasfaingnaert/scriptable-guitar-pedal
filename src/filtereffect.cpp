@@ -7,13 +7,11 @@
 #include <iostream>
 #include <iterator>
 
-FilterEffect::FilterEffect()
+FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
     : numBlocksArrived(0)
 {
     constexpr unsigned int numThreads = 3;
-    SampleData impulse("impulse.wav");
-    std::vector<float> impulseData = impulse.getSamples()[0];
-    std::cout << "samples: " << impulseData.size() << "\n";
+    std::cout << "samples: " << impulseResponse.size() << "\n";
 
     unsigned int index = 0;
 
@@ -27,7 +25,7 @@ FilterEffect::FilterEffect()
 
         for (unsigned int j = 0; j < 16; ++j)
         {
-            impulseResponses.emplace_back(impulseData.begin() + index, impulseData.begin() + index + Constants::BLOCK_SIZE * blockSize);
+            impulseResponses.emplace_back(impulseResponse.begin() + index, impulseResponse.begin() + index + Constants::BLOCK_SIZE * blockSize);
             index += Constants::BLOCK_SIZE * blockSize;
         }
         std::cout << "index is at: " << index << "\n";
