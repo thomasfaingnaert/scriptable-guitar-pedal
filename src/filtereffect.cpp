@@ -170,10 +170,10 @@ void* FilterEffect::thread_function(void* argument)
         pthread_mutex_unlock(&param->filter->main_to_workers_mutexes[waitIndex]);
 
         // Calculate output
+        std::vector<float> res(param->input.size());
+        param->fdl.process(param->input.begin(), param->input.end(), res.begin());
         {
             std::lock_guard<std::mutex> l(*param->outputMutex);
-            std::vector<float> res(param->input.size());
-            param->fdl.process(param->input.begin(), param->input.end(), res.begin());
             param->outputBuffer.insert(param->outputBuffer.end(), res.begin(), res.end());
         }
 

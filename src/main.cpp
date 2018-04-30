@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
     src->connect(eff);
     eff->connect(snk);
 
-#if 1
+#if 0
     while (src->generate_next()) ;
 #else
     bool cont = true;
