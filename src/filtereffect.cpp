@@ -1,9 +1,10 @@
 #include "filtereffect.h"
 
 #include <algorithm>
-#include <cstring>
 #include <cmath>
+#include <cstring>
 #include <iostream>
+#include <iterator>
 
 FilterEffect::FilterEffect()
     : numBlocksArrived(0)
@@ -32,12 +33,18 @@ FilterEffect::FilterEffect()
         workers_to_main_conds.push_back(PTHREAD_COND_INITIALIZER);
 
         // Initialise counter to zero
-        unsigned int initialCounters[] = { 0, 1, 1, 2 };
         unsigned int counter = std::count_if(params.begin(), params.end(), [i](const thread_param& par) { return (i+1) % par.period == 0; });
+        unsigned int initialCounter = counter - std::count_if(params.begin(), params.end(), [i](const thread_param& par) { return i == par.period - 1; });
 
-        counters.emplace_back(initialCounters[i]);
+        counters.emplace_back(initialCounter);
         counterDefaults.emplace_back(counter);
     }
+
+    std::cout << "Counters: \n";
+    std::copy(counters.begin(), counters.end(), std::ostream_iterator<unsigned int>(std::cout, " "));
+    std::cout << "\nCounterDefs:\n";
+    std::copy(counterDefaults.begin(), counterDefaults.end(), std::ostream_iterator<unsigned int>(std::cout, " "));
+    std::cout << "\n";
 
 
     // TODO: Set priorities for each thread
