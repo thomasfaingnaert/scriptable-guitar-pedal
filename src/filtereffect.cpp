@@ -10,7 +10,6 @@ FilterEffect::FilterEffect()
     : numBlocksArrived(0)
 {
     constexpr unsigned int numThreads = 3;
-    schedulingPeriod = 4;
 
     // Create parameters for thread
     for (unsigned int i = 0; i < numThreads; ++i)
@@ -22,6 +21,12 @@ FilterEffect::FilterEffect()
         param.filter = this;
         params.push_back(param);
     }
+
+    // The scheduling period is the lcm of all thread periods.
+    // Because all thread periods are powers of two, this is also the maximum period.
+    // TODO: Since we are adding threads in increasing order of period, this is also the last period.
+    //       Maybe change this later?
+    schedulingPeriod = std::max_element(params.begin(), params.end(), [](const thread_param& par1, const thread_param& par2) { return par1.period < par2.period; })->period;
 
     // Initialise all data
     for (unsigned int i = 0; i < schedulingPeriod; ++i)
