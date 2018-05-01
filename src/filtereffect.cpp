@@ -10,37 +10,22 @@
 FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
     : numBlocksArrived(0)
 {
-    constexpr unsigned int numThreads = 3;
-    std::cout << "samples: " << impulseResponse.size() << "\n";
-
-    unsigned int index = 0;
+    std::vector<ImpulsePartition> partitions = partitionImpulse(impulseResponse);
 
     // Create parameters for thread
-    for (unsigned int i = 0; i < numThreads; ++i)
+    for (unsigned int i = 0; i < partitions.size(); ++i)
     {
-        unsigned int blockSize = std::pow(4,i);
-
-        std::vector<std::vector<float>> impulseResponses;
-        unsigned int delay = index;
-
-        for (unsigned int j = 0; j < 16; ++j)
-        {
-            impulseResponses.emplace_back(impulseResponse.begin() + index, impulseResponse.begin() + index + Constants::BLOCK_SIZE * blockSize);
-            index += Constants::BLOCK_SIZE * blockSize;
-        }
-        std::cout << "index is at: " << index << "\n";
-
-        FrequencyDelayLine fdl(Constants::BLOCK_SIZE * blockSize, impulseResponses);
+        FrequencyDelayLine fdl(Constants::BLOCK_SIZE * partitions[i].blockSize, partitions[i].impulses);
 
         thread_param param(fdl);
         param.name = "FDL-" + std::to_string(i);
-        param.period = blockSize;
+        param.period = partitions[i].blockSize;
         param.priority = 98 - i;
         param.inputAvailable = false;
         param.filter = this;
-        param.input = std::vector<float>(Constants::BLOCK_SIZE * blockSize);
+        param.input = std::vector<float>(Constants::BLOCK_SIZE * partitions[i].blockSize);
         param.outputMutex = std::make_shared<std::mutex>();
-        param.outputBuffer = std::vector<float>(Constants::BLOCK_SIZE + delay);
+        param.outputBuffer = std::vector<float>(Constants::BLOCK_SIZE + partitions[i].delay);
         params.push_back(param);
     }
 
@@ -71,7 +56,7 @@ FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
     }
 
     // Start all threads
-    for (unsigned int i = 0; i < numThreads; ++i)
+    for (unsigned int i = 0; i < partitions.size(); ++i)
     {
         // Create thread
         pthread_t thread;
@@ -214,4 +199,30 @@ void* FilterEffect::thread_function(void* argument)
     }
 
     return nullptr;
+}
+
+std::vector<FilterEffect::ImpulsePartition> FilterEffect::partitionImpulse(const std::vector<float>& impulseResponse)
+{
+    constexpr unsigned int numThreads = 3;
+    std::vector<ImpulsePartition> result;
+    unsigned int index = 0;
+
+    for (unsigned int i = 0; i < numThreads; ++i)
+    {
+        unsigned int blockSize = std::pow(4, i);
+        ImpulsePartition partition;
+        partition.delay = index;
+        partition.blockSize = blockSize;
+
+        for (unsigned int j = 0; j < 16; ++j)
+        {
+            partition.impulses.emplace_back(impulseResponse.begin() + index, impulseResponse.begin() + index + Constants::BLOCK_SIZE * blockSize);
+            index += Constants::BLOCK_SIZE * blockSize;
+        }
+        std::cout << "index is at: " << index << "\n";
+
+        result.push_back(partition);
+    }
+
+    return result;
 }

@@ -67,6 +67,15 @@ class FilterEffect : public Source<float>, public Sink<float>
 
         // Buffer for input
         boost::circular_buffer<float> inputBuffer;
+
+        struct ImpulsePartition
+        {
+            unsigned int blockSize;
+            unsigned int delay;
+            std::vector<std::vector<float>> impulses;
+        };
+
+        std::vector<ImpulsePartition> partitionImpulse(const std::vector<float>& impulseResponse);
 };
 
 #endif /* end of include guard: FILTEREFFECT_H_TJL7ARNQ */
