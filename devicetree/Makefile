@@ -1,12 +1,15 @@
-all:
-	dtc -I dts -o beaglebone-black-codec-alsa.dtbo -O dtb -b 0 -@ beaglebone-black-codec-alsa.dts
-	dtc -I dts -o beaglebone-black-codec-pru.dtbo -O dtb -b 0 -@ beaglebone-black-codec-pru.dts
+DTC = dtc
+DTFLAGS = --in-format dts --out-format dtb --warning no-unit_address_vs_reg --symbols
+
+DTBO = beaglebone-black-codec-alsa.dtbo beaglebone-black-codec-pru.dtbo
+
+all: $(DTBO)
+
+%.dtbo : %.dts
+	$(DTC) $(DTFLAGS) $< --out $@
 
 clean:
-	rm beaglebone-black-codec-alsa.dtbo
-	rm beaglebone-black-codec-pru.dtbo
+	rm $(DTBO)
 
 install:
-	cp beaglebone-black-codec-alsa.dtbo /lib/firmware/
-	cp beaglebone-black-codec-pru.dtbo /lib/firmware/
-
+	cp $(DTBO) /lib/firmware/

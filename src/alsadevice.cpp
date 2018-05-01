@@ -82,7 +82,7 @@ void AlsaDevice::generate_next()
 
     for (unsigned int i = 0; i < Constants::BLOCK_SIZE; ++i)
     {
-        block[i] = samples_int[2 * i];
+        block[i] = static_cast<float>(-samples_int[2 * i] / INT16_MIN);
     }
 
     generate(block);

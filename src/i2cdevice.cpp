@@ -1,14 +1,14 @@
 #include "i2cdevice.h"
 
+#include <string>
+
 #include <fcntl.h>
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#include <string>
-
-I2CDevice::I2CDevice(unsigned int adapter, uint16_t deviceAddress) : deviceAddress(deviceAddress)
+I2CDevice::I2CDevice(unsigned int adapter, std::uint16_t deviceAddress) : deviceAddress(deviceAddress)
 {
     std::string filename = "/dev/i2c-" + std::to_string(adapter);
 
@@ -32,9 +32,9 @@ I2CDevice::~I2CDevice()
     close(file);
 }
 
-void I2CDevice::writeRegister(uint8_t registerAddress, uint8_t value) const
+void I2CDevice::writeRegister(std::uint8_t registerAddress, std::uint8_t value) const
 {
-    uint8_t sendBuffer[] = {registerAddress, value};
+    std::uint8_t sendBuffer[] = {registerAddress, value};
 
     i2c_msg messages[1];
 
@@ -54,10 +54,10 @@ void I2CDevice::writeRegister(uint8_t registerAddress, uint8_t value) const
     }
 }
 
-uint8_t I2CDevice::readRegister(uint8_t registerAddress) const
+std::uint8_t I2CDevice::readRegister(std::uint8_t registerAddress) const
 {
-    uint8_t sendBuffer[] = {registerAddress};
-    uint8_t receiveBuffer[] = {0};
+    std::uint8_t sendBuffer[] = {registerAddress};
+    std::uint8_t receiveBuffer[] = {0};
 
     i2c_msg messages[2];
 
@@ -84,11 +84,11 @@ uint8_t I2CDevice::readRegister(uint8_t registerAddress) const
     return receiveBuffer[0];
 }
 
-void I2CDevice::updateRegister(uint8_t registerAddress, uint8_t mask, uint8_t value) const
+void I2CDevice::updateRegister(std::uint8_t registerAddress, std::uint8_t mask, std::uint8_t value) const
 {
-    uint8_t currentValue = readRegister(registerAddress);
+    std::uint8_t currentValue = readRegister(registerAddress);
 
-    uint8_t nextValue = (currentValue & ~mask) | (value & mask);
+    std::uint8_t nextValue = (currentValue & ~mask) | (value & mask);
 
     if (nextValue != currentValue)
     {
