@@ -4,8 +4,10 @@ language: cpp
 
 addons:
     apt:
+        sources:
+            - ubuntu-tool-chain-r-test
         packages:
-            - g++-arm-linux-gnueabihf
+            - g++-8-arm-linux-gnueabihf
 
 script:
     - cmake -DCMAKE_TOOLCHAIN_FILE="cmake/Toolchain.cmake" .
