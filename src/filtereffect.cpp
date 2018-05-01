@@ -203,6 +203,72 @@ void* FilterEffect::thread_function(void* argument)
 
 std::vector<FilterEffect::ImpulsePartition> FilterEffect::partitionImpulse(const std::vector<float>& impulseResponse)
 {
+    std::vector<unsigned int> blockSizes = { 1, 4, 16 }; // Blocksizes for each FDL
+    std::vector<unsigned int> maxCount = { 16, 16, 16 }; // Max number of impulse partitions for each FDL
+
+    std::vector<ImpulsePartition> result;
+
+    unsigned int impulseIndex = 0; // Remember what part of impulse response we have processed
+
+    // Add first FDL
+    ImpulsePartition fdl;
+    fdl.blockSize = blockSizes[0];
+    fdl.delay = 0;
+    result.push_back(fdl);
+
+    while (impulseIndex < impulseResponse.size())
+    {
+        // Check if we have exhausted all impulse partitions for this FDL
+        if (result.back().impulses.size() == maxCount[result.size() - 1])
+        {
+            // Have we exhausted all FDLs?
+            if (result.size() == blockSizes.size())
+            {
+                std::cout << "Stopped at " << impulseIndex << " samples\n";
+                impulseIndex = impulseResponse.size();
+                break;
+                // TODO: Throw exception
+                //throw std::invalid_argument("Impulse response too big: not enough FDLs");
+            }
+
+            // Add new FDL
+            ImpulsePartition newFdl;
+            newFdl.blockSize = blockSizes[result.size()];
+            newFdl.delay = impulseIndex;
+            result.push_back(newFdl);
+        }
+
+        // Get next block from impulse response
+        unsigned int blockSize = Constants::BLOCK_SIZE * blockSizes[result.size() - 1];
+        std::vector<float> block(blockSize);
+        if (impulseIndex + blockSize > impulseResponse.size())
+        {
+            std::copy(impulseResponse.begin() + impulseIndex, impulseResponse.end(), block.begin());
+            impulseIndex = impulseResponse.size();
+        }
+        else
+        {
+            std::copy_n(impulseResponse.begin() + impulseIndex, blockSize, block.begin());
+            impulseIndex += blockSize;
+        }
+        result.back().impulses.push_back(block);
+    }
+
+    std::cout << "Used " << impulseIndex << " samples\n";
+
+    return result;
+
+
+
+
+
+
+
+
+
+
+
+    /*
     constexpr unsigned int numThreads = 3;
     std::vector<ImpulsePartition> result;
     unsigned int index = 0;
@@ -225,4 +291,5 @@ std::vector<FilterEffect::ImpulsePartition> FilterEffect::partitionImpulse(const
     }
 
     return result;
+    */
 }
