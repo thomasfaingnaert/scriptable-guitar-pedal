@@ -7,7 +7,7 @@ addons:
         sources:
             - ubuntu-toolchain-r-test
         packages:
-            - g++-arm-linux-gnueabihf
+            - g++-6-arm-linux-gnueabihf
 
 script:
     - cmake -DCMAKE_TOOLCHAIN_FILE="cmake/Toolchain.cmake" .
