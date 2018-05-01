@@ -52,7 +52,7 @@ class FilterEffect : public Source<float>, public Sink<float>
             FilterEffect* filter; // This pointer
             std::vector<float> input; // The input
             std::vector<float> outputBuffer; // Buffer for output
-            std::shared_ptr<std::mutex> outputMutex; // Used to control access to outputBuffer
+            pthread_mutex_t outputMutex; // Mutex to control access to outputBuffer
             FrequencyDelayLine fdl; // The FDL used by this thread
         };
 
