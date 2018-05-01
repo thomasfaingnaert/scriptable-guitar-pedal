@@ -19,8 +19,8 @@ FrequencyDelayLine::FrequencyDelayLine(unsigned int blockSize, const std::vector
     for (const auto& impulseResponse : impulseResponses)
     {
         // Check size of impulse response
-        if (impulseResponse.size() != N + 1)
-            throw std::invalid_argument("Impulse should have size blockSize+1");
+        if (impulseResponse.size() != N)
+            throw std::invalid_argument("Impulse should have size blockSize");
 
         // Resize impulseResponses to PERIOD samples by adding zeros
         std::vector<float> impulseResized(PERIOD);
@@ -34,5 +34,6 @@ FrequencyDelayLine::FrequencyDelayLine(unsigned int blockSize, const std::vector
 
 FrequencyDelayLine::~FrequencyDelayLine()
 {
-    ne10_fft_destroy_r2c_float32(config);
+    // TODO: Find a clean way to handle this
+    //ne10_fft_destroy_r2c_float32(config);
 }

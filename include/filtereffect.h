@@ -4,16 +4,22 @@
 #include <atomic>
 #include <pthread.h>
 #include <deque>
+#include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
+#include <boost/circular_buffer.hpp>
+
+#include "NE10.h"
+#include "frequencydelayline.h"
 #include "sink.h"
 #include "source.h"
 
 class FilterEffect : public Source<float>, public Sink<float>
 {
     public:
-        FilterEffect();
+        FilterEffect(const std::vector<float>& impulseResponse);
         virtual void push(const std::array<float, Constants::BLOCK_SIZE>& data);
 
     private:
@@ -37,11 +43,17 @@ class FilterEffect : public Source<float>, public Sink<float>
         // Used as a parameter for the thread function
         struct thread_param
         {
+            thread_param(const FrequencyDelayLine& fdl) : fdl(fdl) { }
+
             std::string name; // The name of the thread
             unsigned int period; // The scheduling period (in amount of process calls)
             unsigned int priority; // The scheduling priority for this thread
             bool inputAvailable; // Flag that is used by main to tell workers if input is available
             FilterEffect* filter; // This pointer
+            std::vector<float> input; // The input
+            std::vector<float> outputBuffer; // Buffer for output
+            std::shared_ptr<std::mutex> outputMutex; // Used to control access to outputBuffer
+            FrequencyDelayLine fdl; // The FDL used by this thread
         };
 
         // The parameters for each thread
@@ -52,6 +64,18 @@ class FilterEffect : public Source<float>, public Sink<float>
 
         // The scheduling period
         unsigned int schedulingPeriod;
+
+        // Buffer for input
+        boost::circular_buffer<float> inputBuffer;
+
+        struct ImpulsePartition
+        {
+            unsigned int blockSize;
+            unsigned int delay;
+            std::vector<std::vector<float>> impulses;
+        };
+
+        std::vector<ImpulsePartition> partitionImpulse(const std::vector<float>& impulseResponse);
 };
 
 #endif /* end of include guard: FILTEREFFECT_H_TJL7ARNQ */

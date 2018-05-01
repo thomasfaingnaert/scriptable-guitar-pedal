@@ -8,6 +8,8 @@
 #include <thread>
 #include <vector>
 
+#include <boost/circular_buffer.hpp>
+
 #include "NE10.h"
 #include "sampledata.h"
 #include "filesink.h"
@@ -32,7 +34,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-#if 1
+#if 0
     constexpr unsigned int BLOCK_SIZE = 1024 * 128;
 
     std::cout << "Block size: " << BLOCK_SIZE << std::endl;
@@ -95,14 +97,20 @@ int main(int argc, char *argv[])
     std::cout << "Saved" << std::endl;
 #endif
 
-#if 0
+#if 1
+    SampleData impulse("impulse.wav");
+    std::vector<float> impulseData = impulse.getSamples()[0];
+
     auto src = std::make_shared<FileSource>("input.wav");
-    auto eff = std::make_shared<FilterEffect>();
+    auto eff = std::make_shared<FilterEffect>(impulseData);
     auto snk = std::make_shared<FileSink>("output.wav", src->getSampleRate());
 
     src->connect(eff);
     eff->connect(snk);
 
+#if 0
+    while (src->generate_next()) ;
+#else
     bool cont = true;
     unsigned int count = 0;
     std::chrono::duration<double> total, min = std::chrono::duration<double>::max(), max = std::chrono::duration<double>::min();
@@ -119,14 +127,47 @@ int main(int argc, char *argv[])
         std::this_thread::sleep_until(begin + std::chrono::microseconds(5333));
     }
 
-    snk->write();
 
     std::cout << "min: " << std::chrono::duration_cast<std::chrono::microseconds>(min).count() << " us\n"
-                 "max: " << std::chrono::duration_cast<std::chrono::microseconds>(max).count() << " us\n"
-                 "avg: " << std::chrono::duration_cast<std::chrono::microseconds>(total/count).count() << " us\n";
+        "max: " << std::chrono::duration_cast<std::chrono::microseconds>(max).count() << " us\n"
+        "avg: " << std::chrono::duration_cast<std::chrono::microseconds>(total/count).count() << " us\n";
+#endif
 
+    snk->write(true);
 
 #endif
+
+#if 0
+
+    FilterEffect fe;
+
+    for (unsigned int i = 1; i <= 10; ++i)
+    {
+        std::array<float, Constants::BLOCK_SIZE> block;
+        std::fill(block.begin(), block.end(), i);
+        fe.push(block);
+    }
+
+#endif
+
+#if 0
+
+    boost::circular_buffer<int> cb(3);
+    cb.push_back(1);
+    cb.push_back(2);
+    cb.push_back(3);
+
+    std::copy(cb.begin(), cb.end(), std::ostream_iterator<int>(std::cout, " "));
+    std::cout << "\n";
+
+    cb.push_back(4);
+    cb.push_back(5);
+
+    std::copy(cb.begin(), cb.end(), std::ostream_iterator<int>(std::cout, " "));
+    std::cout << "\n";
+
+#endif
+
     return EXIT_SUCCESS;
 }
 

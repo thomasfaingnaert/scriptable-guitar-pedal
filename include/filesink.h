@@ -13,7 +13,7 @@ class FileSink : public Sink<float>
     public:
         FileSink(const std::string& filename, unsigned int samplerate);
         virtual void push(const std::array<float, Constants::BLOCK_SIZE>& data);
-        void write();
+        void write(bool normalize = false);
 
     private:
         std::string filename;
