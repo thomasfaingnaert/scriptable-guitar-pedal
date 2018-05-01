@@ -8,6 +8,8 @@
 #include <thread>
 #include <vector>
 
+#include <boost/circular_buffer.hpp>
+
 #include "NE10.h"
 #include "sampledata.h"
 #include "filesink.h"
@@ -95,7 +97,7 @@ int main(int argc, char *argv[])
     std::cout << "Saved" << std::endl;
 #endif
 
-#if 1
+#if 0
     SampleData impulse("impulse.wav");
     std::vector<float> impulseData = impulse.getSamples()[0];
 
@@ -148,7 +150,23 @@ int main(int argc, char *argv[])
 
 #endif
 
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+#if 1
+
+    boost::circular_buffer<int> cb(3);
+    cb.push_back(1);
+    cb.push_back(2);
+    cb.push_back(3);
+
+    std::copy(cb.begin(), cb.end(), std::ostream_iterator<int>(std::cout, " "));
+    std::cout << "\n";
+
+    cb.push_back(4);
+    cb.push_back(5);
+
+    std::copy(cb.begin(), cb.end(), std::ostream_iterator<int>(std::cout, " "));
+    std::cout << "\n";
+
+#endif
 
     return EXIT_SUCCESS;
 }
