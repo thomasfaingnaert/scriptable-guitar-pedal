@@ -24,7 +24,7 @@ FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
         param.inputAvailable = false;
         param.filter = this;
         param.input = std::vector<float>(Constants::BLOCK_SIZE * partitions[i].blockSize);
-        param.outputMutex = std::make_shared<std::mutex>();
+        param.outputMutex = PTHREAD_MUTEX_INITIALIZER;
         param.outputBuffer = std::vector<float>(Constants::BLOCK_SIZE + partitions[i].delay);
         params.push_back(param);
     }
@@ -103,7 +103,7 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
     for (unsigned int i = 0; i < params.size(); ++i)
     {
         // TODO: Optimise this
-        std::unique_lock<std::mutex> l(*params[i].outputMutex);
+        pthread_mutex_lock(&params[i].outputMutex);
         if (!params[i].outputBuffer.empty())
         {
             ne10_add_float(result.data(), result.data(), params[i].outputBuffer.data(), Constants::BLOCK_SIZE);
@@ -113,6 +113,7 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
         {
             std::cerr << "outputBuffer was empty!" << std::endl;
         }
+        pthread_mutex_unlock(&params[i].outputMutex);
     }
 
     // Generate output
@@ -173,8 +174,9 @@ void* FilterEffect::thread_function(void* argument)
         param->fdl.process(param->input.begin(), param->input.end(), result.begin());
         {
             // TODO: Optimise this
-            std::lock_guard<std::mutex> l(*param->outputMutex);
+            pthread_mutex_lock(&param->outputMutex);
             param->outputBuffer.insert(param->outputBuffer.end(), result.begin(), result.end());
+            pthread_mutex_unlock(&param->outputMutex);
         }
 
         // Decrement count
@@ -257,39 +259,4 @@ std::vector<FilterEffect::ImpulsePartition> FilterEffect::partitionImpulse(const
     std::cout << "Used " << impulseIndex << " samples\n";
 
     return result;
-
-
-
-
-
-
-
-
-
-
-
-    /*
-    constexpr unsigned int numThreads = 3;
-    std::vector<ImpulsePartition> result;
-    unsigned int index = 0;
-
-    for (unsigned int i = 0; i < numThreads; ++i)
-    {
-        unsigned int blockSize = std::pow(4, i);
-        ImpulsePartition partition;
-        partition.delay = index;
-        partition.blockSize = blockSize;
-
-        for (unsigned int j = 0; j < 16; ++j)
-        {
-            partition.impulses.emplace_back(impulseResponse.begin() + index, impulseResponse.begin() + index + Constants::BLOCK_SIZE * blockSize);
-            index += Constants::BLOCK_SIZE * blockSize;
-        }
-        std::cout << "index is at: " << index << "\n";
-
-        result.push_back(partition);
-    }
-
-    return result;
-    */
 }
