@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
     std::cout << "Saved" << std::endl;
 #endif
 
-#if 0
+#if 1
     SampleData impulse("impulse.wav");
     std::vector<float> impulseData = impulse.getSamples()[0];
 
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 
 #endif
 
-#if 1
+#if 0
 
     boost::circular_buffer<int> cb(3);
     cb.push_back(1);

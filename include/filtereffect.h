@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/circular_buffer.hpp>
+
 #include "NE10.h"
 #include "frequencydelayline.h"
 #include "sink.h"
@@ -64,7 +66,7 @@ class FilterEffect : public Source<float>, public Sink<float>
         unsigned int schedulingPeriod;
 
         // Buffer for input
-        std::deque<float> inputBuffer;
+        boost::circular_buffer<float> inputBuffer;
 };
 
 #endif /* end of include guard: FILTEREFFECT_H_TJL7ARNQ */

@@ -51,7 +51,7 @@ FilterEffect::FilterEffect(const std::vector<float>& impulseResponse)
     schedulingPeriod = std::max_element(params.begin(), params.end(), [](const thread_param& par1, const thread_param& par2) { return par1.period < par2.period; })->period;
 
     // Remember enough input blocks
-    inputBuffer = std::deque<float>(schedulingPeriod * Constants::BLOCK_SIZE);
+    inputBuffer = boost::circular_buffer<float>(schedulingPeriod * Constants::BLOCK_SIZE);
 
     // Initialise all data
     for (unsigned int i = 0; i < schedulingPeriod; ++i)
@@ -135,7 +135,6 @@ void FilterEffect::push(const std::array<float, Constants::BLOCK_SIZE>& data)
 
     // TODO: Optimise this
     // Remove old input and add new input block
-    inputBuffer.erase(inputBuffer.begin(), inputBuffer.begin() + Constants::BLOCK_SIZE);
     inputBuffer.insert(inputBuffer.end(), data.begin(), data.end());
 
     // Signal all threads that have to be started
