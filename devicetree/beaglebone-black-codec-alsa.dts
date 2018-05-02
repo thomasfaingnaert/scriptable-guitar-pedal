@@ -195,7 +195,7 @@
                         "i2s", "right_j", "left_j" , "dsp_a"
                         "dsp_b", "ac97", "pdm", "msb", "lsb"
                     */
-                    format = "i2s";
+                    format = "left_j";
 
                     /*
                         Indicates dai-link frame master.
