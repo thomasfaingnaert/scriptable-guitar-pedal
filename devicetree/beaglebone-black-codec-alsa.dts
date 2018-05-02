@@ -57,9 +57,6 @@
         target = <&i2c1>;
 
         __overlay__ {
-            #address-cells = <1>;
-            #size-cells = <0>;
-
             status = "okay";
 
             clock-frequency = <100000>;
@@ -145,7 +142,8 @@
                 compatible = "simple-audio-card";
 
                 /*
-                    User specified audio sound card name, one string property.
+                    User specified audio sound card name, one string
+                    property.
                 */
                 simple-audio-card,name = "CS4271-Sound-Card";
 
@@ -158,8 +156,9 @@
 
                 /*
                     A list of the connections between audio components.
-                    Each entry is a pair of strings, the first being the connection's sink,
-                    the second being the connection's source.
+                    Each entry is a pair of strings, the first being the
+                    connection's sink, the second being the connection's
+                    source.
                 */
                 simple-audio-card,routing =
                     "AINA", "Line In Jack",
@@ -170,38 +169,52 @@
                     "Line Out Jack", "AOUTB-";
 
                 /*
-                    Multiplication factor between stream rate and codec
-                    mclk. When defined, mclk-fs property defined in
-                    dai-link sub nodes are ignored.
+                    Container for dai-link level
+                    properties and the CPU and CODEC
+                    sub-nodes.
                 */
-                simple-audio-card,mcklk-fs = <256>;
+                simple-audio-card,dai-link@0 {
+                    /*
+                        CPU sub-node
+                    */
+                    dailink0_slave: cpu {
+                        sound-dai = <&mcasp0>;
+                    };
 
-                /*
-                    CPU/CODEC common audio format.
-                    "i2s", "right_j", "left_j" , "dsp_a", "dsp_b", "ac97", "pdm", "msb", "lsb"
-                */
-                simple-audio-card,format = "i2s";
+                    /*
+                        CODEC sub-node
+                    */
+                    dailink0_master: codec {
+                        sound-dai = <&codec>;
 
-                /*
-                    Indicates dai-link frame master.
-                    phandle to a cpu or codec subnode.
-                */
-                simple-audio-card,frame-master = <&dailink0_master>;
+                        system-clock-frequency = <12288000>;
+                    };
 
-                /*
-                    Indicates dai-link bit clock master.
-                    phandle to a cpu or codec subnode.
-                */
-                simple-audio-card,bitclock-master = <&dailink0_master>;
+                    /*
+                        CPU/CODEC common audio format.
+                        "i2s", "right_j", "left_j" , "dsp_a"
+                        "dsp_b", "ac97", "pdm", "msb", "lsb"
+                    */
+                    format = "i2s";
 
-                dailink0_master: simple-audio-card,codec {
-                    sound-dai = <&codec>;
+                    /*
+                        Indicates dai-link frame master.
+                        phandle to a cpu or codec subnode.
+                    */
+                    frame-master = <&dailink0_master>;
 
-                    system-clock-frequency = <24576000>;
-                };
+                    /*
+                        Indicates dai-link bit clock master.
+                        phandle to a cpu or codec subnode.
+                    */
+                    bitclock-master = <&dailink0_master>;
 
-                dailink0_slave: simple-audio-card,cpu {
-                    sound-dai = <&mcasp0>;
+                    /*
+                        Multiplication factor between stream
+                        rate and codec mclk, applied only for
+                        the dai-link.
+                    */
+                    mclk-fs = <256>;
                 };
             };
         };
