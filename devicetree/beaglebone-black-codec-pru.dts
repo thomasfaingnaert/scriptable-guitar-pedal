@@ -5,7 +5,7 @@
     compatible = "ti,beaglebone", "ti,beaglebone-black";
 
     /* Identification */
-    part-number = "beaglebone-black-codec-alsa";
+    part-number = "beaglebone-black-codec-pru";
     version = "00A0";
 
     /* State the resources this cape uses */
@@ -20,7 +20,8 @@
         "P9.28", /* mcasp0_axr2 */
         "P9.29", /* mcasp0_fsx */
         "P9.30", /* mcasp0_axr0 */
-        "P9.31"; /* mcasp0_aclkx */
+        "P9.31", /* mcasp0_aclkx */
+        "pru0";
 
     /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt */
     fragment@0 {
@@ -73,25 +74,6 @@
         target-path="/";
 
         __overlay__ {
-            gpio {
-                compatible = "gpio-of-helper";
-
-                status = "okay";
-
-                pinctrl-names = "default";
-                pinctrl-0 = <&codec_gpio_pins>;
-
-                codec_not_reset {
-                    gpio-name = "codec_not_reset";
-
-                    gpio = <&gpio1 18 0>;
-
-                    output;
-
-                    init-low;
-                };
-            };
-
             ocp {
                 #address-cells = <1>;
                 #size-cells = <1>;
