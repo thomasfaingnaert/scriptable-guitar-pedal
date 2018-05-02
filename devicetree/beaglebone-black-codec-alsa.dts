@@ -59,11 +59,12 @@
         __overlay__ {
             status = "okay";
 
-            clock-frequency = <100000>;
-
             pinctrl-names = "default";
             pinctrl-0 = <&codec_i2c1_pins>;
 
+            clock-frequency = <100000>;
+
+            /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/cs4271.txt */
             codec: cs4271@10 {
                 compatible = "cirrus,cs4271";
 
