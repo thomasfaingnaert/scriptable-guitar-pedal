@@ -104,7 +104,7 @@
                 pinctrl-names = "default";
                 pinctrl-0 = <&codec_gpio_pins>;
 
-                codec-not-reset = {
+                codec-not-reset {
                     gpio = <&gpio1 18 0>;
 
                     init-low;
