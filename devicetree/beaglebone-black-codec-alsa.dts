@@ -138,69 +138,71 @@
         - https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/widgets.txt
     */
     fragment@3 {
-        target = <&sound>;
+        target-path= "/";
 
         __overlay__ {
-            compatible = "simple-audio-card";
+            sound {
+                compatible = "simple-audio-card";
 
-            /*
-                User specified audio sound card name, one string property.
-            */
-            simple-audio-card,name = "CS4271-Sound-Card";
+                /*
+                    User specified audio sound card name, one string property.
+                */
+                simple-audio-card,name = "CS4271-Sound-Card";
 
-            /*
-                Please refer to widgets.txt.
-            */
-            simple-audio-card,widgets =
-                "Line", "Line In Jack",
-                "Line", "Line Out Jack";
+                /*
+                    Please refer to widgets.txt.
+                */
+                simple-audio-card,widgets =
+                    "Line", "Line In Jack",
+                    "Line", "Line Out Jack";
 
-            /*
-                A list of the connections between audio components.
-                Each entry is a pair of strings, the first being the connection's sink,
-                the second being the connection's source.
-            */
-            simple-audio-card,routing =
-                "AINA", "Line In Jack",
-                "AINB", "Line In Jack",
-                "Line Out Jack", "AOUTA+",
-                "Line Out Jack", "AOUTA-",
-                "Line Out Jack", "AOUTB+",
-                "Line Out Jack", "AOUTB-";
+                /*
+                    A list of the connections between audio components.
+                    Each entry is a pair of strings, the first being the connection's sink,
+                    the second being the connection's source.
+                */
+                simple-audio-card,routing =
+                    "AINA", "Line In Jack",
+                    "AINB", "Line In Jack",
+                    "Line Out Jack", "AOUTA+",
+                    "Line Out Jack", "AOUTA-",
+                    "Line Out Jack", "AOUTB+",
+                    "Line Out Jack", "AOUTB-";
 
-            /*
-                Multiplication factor between stream rate and codec
-                mclk. When defined, mclk-fs property defined in
-                dai-link sub nodes are ignored.
-            */
-            simple-audio-card,mcklk-fs = <256>;
+                /*
+                    Multiplication factor between stream rate and codec
+                    mclk. When defined, mclk-fs property defined in
+                    dai-link sub nodes are ignored.
+                */
+                simple-audio-card,mcklk-fs = <256>;
 
-            /*
-                CPU/CODEC common audio format.
-                "i2s", "right_j", "left_j" , "dsp_a", "dsp_b", "ac97", "pdm", "msb", "lsb"
-            */
-            simple-audio-card,format = "i2s";
+                /*
+                    CPU/CODEC common audio format.
+                    "i2s", "right_j", "left_j" , "dsp_a", "dsp_b", "ac97", "pdm", "msb", "lsb"
+                */
+                simple-audio-card,format = "i2s";
 
-            /*
-                Indicates dai-link frame master.
-                phandle to a cpu or codec subnode.
-            */
-            simple-audio-card,frame-master = <&dailink0_master>;
+                /*
+                    Indicates dai-link frame master.
+                    phandle to a cpu or codec subnode.
+                */
+                simple-audio-card,frame-master = <&dailink0_master>;
 
-            /*
-                Indicates dai-link bit clock master.
-                phandle to a cpu or codec subnode.
-            */
-            simple-audio-card,bitclock-master = <&dailink0_master>;
+                /*
+                    Indicates dai-link bit clock master.
+                    phandle to a cpu or codec subnode.
+                */
+                simple-audio-card,bitclock-master = <&dailink0_master>;
 
-            dailink0_master: simple-audio-card,codec {
-                sound-dai = <&codec>;
+                dailink0_master: simple-audio-card,codec {
+                    sound-dai = <&codec>;
 
-                system-clock-frequency = <24576000>;
-            };
+                    system-clock-frequency = <24576000>;
+                };
 
-            dailink0_slave: simple-audio-card,cpu {
-                sound-dai = <&mcasp0>;
+                dailink0_slave: simple-audio-card,cpu {
+                    sound-dai = <&mcasp0>;
+                };
             };
         };
     };
