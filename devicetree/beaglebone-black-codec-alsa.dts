@@ -2,7 +2,7 @@
 /plugin/; /* Allow undefined label references and record them */
 
 / {
-    compatible = "ti,beaglebone", "ti,beaglebone-black";
+    compatible = "ti,beaglebone", "ti,beaglebone-black", "ti,beaglebone-green";
 
     /* Identification */
     part-number = "beaglebone-black-codec-alsa";
@@ -176,22 +176,6 @@
                 */
                 simple-audio-card,dai-link@0 {
                     /*
-                        CPU sub-node
-                    */
-                    dailink0_slave: cpu {
-                        sound-dai = <&mcasp0>;
-                    };
-
-                    /*
-                        CODEC sub-node
-                    */
-                    dailink0_master: codec {
-                        sound-dai = <&codec>;
-
-                        system-clock-frequency = <24576000>;
-                    };
-
-                    /*
                         CPU/CODEC common audio format.
                         "i2s", "right_j", "left_j" , "dsp_a"
                         "dsp_b", "ac97", "pdm", "msb", "lsb"
@@ -209,6 +193,22 @@
                         phandle to a cpu or codec subnode.
                     */
                     bitclock-master = <&dailink0_master>;
+
+                    /*
+                        CPU sub-node
+                    */
+                    dailink0_slave: cpu {
+                        sound-dai = <&mcasp0>;
+                    };
+
+                    /*
+                        CODEC sub-node
+                    */
+                    dailink0_master: codec {
+                        sound-dai = <&codec>;
+
+                        system-clock-frequency = <24576000>;
+                    };
                 };
             };
         };
