@@ -187,7 +187,7 @@
                     dailink0_master: codec {
                         sound-dai = <&codec>;
 
-                        system-clock-frequency = <12288000>;
+                        system-clock-frequency = <24576000>;
                     };
 
                     /*
@@ -208,13 +208,6 @@
                         phandle to a cpu or codec subnode.
                     */
                     bitclock-master = <&dailink0_master>;
-
-                    /*
-                        Multiplication factor between stream
-                        rate and codec mclk, applied only for
-                        the dai-link.
-                    */
-                    mclk-fs = <256>;
                 };
             };
         };
