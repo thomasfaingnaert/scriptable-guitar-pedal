@@ -147,7 +147,7 @@
                 /*
                     User specified audio sound card name, one string property.
                 */
-                simple-audio-card,name = "CS4272-Sound-Card";
+                simple-audio-card,name = "CS4271-Sound-Card";
 
                 /*
                     Please refer to widgets.txt.
@@ -168,6 +168,13 @@
                     "Line Out Jack", "AOUTA-",
                     "Line Out Jack", "AOUTB+",
                     "Line Out Jack", "AOUTB-";
+
+                /*
+                    Multiplication factor between stream rate and codec
+                    mclk. When defined, mclk-fs property defined in
+                    dai-link sub nodes are ignored.
+                */
+                simple-audio-card,mcklk-fs = <256>;
 
                 /*
                     CPU/CODEC common audio format.
