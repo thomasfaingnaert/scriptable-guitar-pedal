@@ -67,7 +67,20 @@
         };
     };
 
+    /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt */
     fragment@2 {
+        target = <&mcasp0>;
+
+        __overlay__ {
+            ti,no-idle;
+
+            pinctrl-names = "default";
+            pinctrl-0 = <&codec_mcasp0_pins>;
+
+        };
+    };
+
+    fragment@3 {
         target = <&ocp>;
 
         __overlay__ {
@@ -75,9 +88,6 @@
                 compatible = "ti,pruss-v2";
 
                 status = "okay";
-
-                pinctrl-names = "default";
-                pinctrl-0 = <&codec_mcasp0_pins>;
 
                 ti,hwmods = "pruss";
 
@@ -94,7 +104,7 @@
         };
     };
 
-    fragment@3 {
+    fragment@4 {
         target-path = "/";
 
         __overlay__ {
