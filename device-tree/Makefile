@@ -5,7 +5,7 @@ DTBO = beaglebone-black-codec-alsa.dtbo beaglebone-black-codec-pru.dtbo
 
 all: $(DTBO)
 
-%.dtbo : %.dts
+%.dtbo: %.dts
 	$(DTC) $(DTFLAGS) $< --out $@
 
 clean:
