@@ -22,7 +22,7 @@ function loadChains() {
                 '                    <td>' + (i + 1) + '</td>\n' +
                 '                    <td>' + element.name + '</td>\n' +
                 '                    <td class="hide" id="val-' + (i + 1) + '" data-chain=\'' + JSON.stringify(element.value) + '\'></td>\n' +
-                '                    <td><button class="btn btn-light" onclick="drawChain(\'#val-' + (i + 1) + '\')" type="button" role="button">Open</button></td>\n' +
+                '                    <td><button class="btn btn-light" onclick="drawChain(\'#val-' + (i + 1) + '\');" data-dismiss="modal" type="button" role="button">Open</button></td>\n' +
                 '                </tr>\n';
         });
 
@@ -33,6 +33,7 @@ function loadChains() {
         $('#modalLabel').html("Saved chains");
         $('#modalBody').html(table);
         $('#save-change-button').hide();
+        $('#delete-effect-button').hide();
 
         // Show modal
         $('#modal').modal('show');
@@ -48,8 +49,12 @@ function drawChain(valueId) {
     var jsonData = $(valueId).attr('data-chain');
     var chain = JSON.parse(jsonData);
 
+    var jsPlumbContainer = $('#jsplumb-container');
+
     // Clear the JsPlumbbox and fill with input and outputbox
-    $('#jsplumb-container').html(
+    jsPlumb.empty(jsPlumbContainer);
+
+    jsPlumbContainer.html(
         '<div class="jsplumb-box" id="inputbox"><p>Input</p></div>\n' +
         '<div class="jsplumb-box" id="outputbox"><p>Output</p></div>'
     );
@@ -60,7 +65,7 @@ function drawChain(valueId) {
     chain.forEach(function (effect, i) {
         var box = '<div class="jsplumb-box" id="box-' + i + '" ' +
             'data-effect=\'' + JSON.stringify(effect) + '\' ' +
-            'onclick="$(\'#modal\').modal(\'show\'); changeEffect(this);">\n' +
+            'ondblclick="$(\'#modal\').modal(\'show\'); changeEffect(this);">\n' +
             effect.effect.charAt(0).toUpperCase() + effect.effect.substring(1).toLowerCase() + '\n' +
             '</div>';
 
@@ -69,12 +74,61 @@ function drawChain(valueId) {
         var boxId = '#box-' + i + '';
 
         $(boxId).css({
-            'left': (1 + i) * 15 + '%',
-            'top': '30%'
+            'left': (1 + (i % 3)) * 20 + '%',
+            'top': (20 * (1 + 3 * Math.floor(i / 3))) + '%'
         });
 
         addEndPoints($(boxId));
     });
 
+    // Draw connections
+    drawConnections();
+}
 
+/**
+ * This function will draw connections between the different effects in the chain
+ */
+function drawConnections() {
+    var boxes = $('#jsplumb-container .jsplumb-box');
+    var numEffects = boxes.length - 2;
+
+    boxes.each(function (i, element) {
+        if (element.id === 'inputbox') {
+            jsPlumb.connect({
+                source: 'inputbox',
+                target: 'box-0',
+                uuids: ['ep-right-0', 'ep-left-1']
+            });
+        } else if (element.id !== 'outputbox') {
+            var j = parseInt(element.id.charAt(4)); // box-j
+            if (j < numEffects - 1) {
+                jsPlumb.connect({
+                    source: 'box-' + j,
+                    target: 'box-' + (j + 1),
+                    uuids: ['ep-right-' + (j + 1), 'ep-left-' + (j + 2)]
+                });
+            } else {
+                jsPlumb.connect({
+                    source: 'box-' + j,
+                    target: 'outputbox',
+                    uuids: ['ep-right-' + (j + 1), 'ep-left-0']
+                });
+            }
+        }
+    });
+}
+
+/**
+ * This function will send a request to the server for the active chain and if there is one, draw it.
+ */
+
+function loadActiveChain() {
+    $.get('/chain/load/active', function (data) {
+        if (data.length > 0) {
+            $('#current-chain').attr('data-chain', JSON.stringify(data));
+
+            // Draw chain
+            drawChain('#current-chain');
+        }
+    });
 }

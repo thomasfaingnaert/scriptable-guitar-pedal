@@ -9,24 +9,26 @@
 }
 
 .jsplumb-box {
-    border: 1px solid mediumblue;
-    padding: 20px;
+    border: 1px solid #1d2124;
+    padding: 10px;
     text-align: center;
     position: absolute; /* Position needs to be absolute for element to be draggable */
-    margin: 20px;
-    height: 75px;
-    float: left;
+    height: 55px;
+}
+
+svg circle {
+    fill: #1d2124;
 }
 
 #inputbox {
     position: absolute;
-    top: 30%;
+    top: 35%;
     left: 1%;
 }
 
 #outputbox {
     position: absolute;
-    top: 30%;
+    top: 35%;
     right: 1%;
 }
 

@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <sys/types.h>
+#include <dirent.h>
 #include <fstream>
 #include <ios>
 #include <iostream>
@@ -58,12 +60,17 @@ WebServer::WebServer(unsigned int port)
     mg_set_request_handler(context, "/lua/submit$", handle_lua_submit, this);
     mg_set_request_handler(context, "/chain/save$", handle_chain_save, this);
     mg_set_request_handler(context, "/chain/load$", handle_chain_load, this);
+    mg_set_request_handler(context, "/chain/load/active$", handle_chain_load_active, this);
+    mg_set_request_handler(context, "/conv/upload$", handle_ir_upload, this);
+    mg_set_request_handler(context, "/conv/list$", handle_ir_list, this);
 }
 
 WebServer::~WebServer()
 {
     mg_stop(context);
 }
+
+std::string WebServer::jsonChain;
 
 bool WebServer::isRunning() const
 {
@@ -114,7 +121,7 @@ int WebServer::handle_exit(mg_connection *connection, void *user_data)
 
 int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
 {
-#if 0
+#if 1
     mg_form_data_handler fdh = {0};
 
     // used to save paths
@@ -126,7 +133,8 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
 
     fdh.user_data = &paths;
 
-    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int {
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
+    {
         // check if field is a file
         if (filename && *filename)
         {
@@ -141,10 +149,6 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
             {
                 paths->inputPath = tempPath;
             }
-            else if (std::string(key) == "impulse-response")
-            {
-                paths->impulsePath = tempPath;
-            }
 
             return MG_FORM_FIELD_STORAGE_STORE;
         }
@@ -153,8 +157,22 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
         return MG_FORM_FIELD_STORAGE_GET;
     };
 
-    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int {
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
+    {
         return 0;
+    };
+
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
+    {
+        std::string name(key);
+
+        paths_t *vars = static_cast<paths_t*>(user_data);
+
+        if (name == "ir-list")
+        {
+            vars->impulsePath = std::string(value);
+        }
+        return MG_FORM_FIELD_STORAGE_GET;
     };
 
     if (mg_handle_form_request(connection, &fdh) <= 0)
@@ -163,12 +181,14 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
     }
 
     SampleData input(paths.inputPath);
-    SampleData filter(paths.impulsePath);
 
-    std::vector <Sample> inputSamples = input.getSamples()[0];
-    std::vector <Sample> filterSamples = filter.getSamples()[0];
+    std::string impulseResponse = "impulse-responses/" + paths.impulsePath + ".wav";
+    SampleData filter(impulseResponse);
 
-    std::vector <Sample> outputSamples;
+    std::vector<Sample> inputSamples = input.getSamples()[0];
+    std::vector<Sample> filterSamples = filter.getSamples()[0];
+
+    std::vector<Sample> outputSamples;
 
     FileSource src(paths.inputPath);
 
@@ -176,8 +196,8 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
     auto fe = std::make_shared<FilterEffect>(filterSamples);
     auto sink = std::make_shared<FileSink>(outputPath, 44100);
 
-    src.connect(fe, 0);
-    fe->connect(sink, 0);
+    src.connect(fe);
+    fe->connect(sink);
 
     while (src.generate_next());
 
@@ -565,6 +585,8 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
     rapidjson::Document chain;
     chain.Parse(vars.jsonString.c_str()); // Contains array of JSON objects
 
+    jsonChain = vars.jsonString;
+
     std::vector < std::shared_ptr < Sink < float >> > sinks;
     std::vector < std::shared_ptr < Source < float >> > sources;
 
@@ -802,6 +824,8 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
     // Parse
     rapidjson::Document chain;
 
+    jsonChain = vars.jsonString;
+
     std::string jsonObj = "{\"name\":\"" + vars.chainName + "\", \"value\":" + vars.jsonString + "}";
 
     chain.Parse(jsonObj.c_str()); // Contains array of JSON objects
@@ -818,7 +842,8 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
     }
 
     rapidjson::Document presets;
-    if (fileContent == "") {
+    if (fileContent == "")
+    {
         presets.Parse("[]");
     }
     else
@@ -827,7 +852,7 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
     }
 
     // Paste new value into document
-    rapidjson::Document::AllocatorType& allocator = presets.GetAllocator();
+    rapidjson::Document::AllocatorType &allocator = presets.GetAllocator();
     presets.PushBack(chain, allocator);
 
     // Write result to file
@@ -856,6 +881,120 @@ int WebServer::handle_chain_load(mg_connection *connection, void *user_data)
     buf << chainFile.rdbuf();
 
     render_json(connection, (buf.str().length() == 0 ? "[]" : buf.str()));
+
+    return 200;
+}
+
+int WebServer::handle_chain_load_active(mg_connection *connection, void *user_data)
+{
+    // Check if chain empty
+    if (jsonChain != "")
+    {
+        render_json(connection, jsonChain.c_str());
+    }
+    else
+    {
+        render_json(connection, "[]");
+    }
+    return 200;
+}
+
+int WebServer::handle_ir_upload(mg_connection *connection, void *user_data)
+{
+    mg_form_data_handler fdh = {};
+
+    struct vars_t
+    {
+        std::vector<std::string> inputPaths;
+    } vars;
+
+    fdh.user_data = &vars;
+
+    // If a field is found, it is checked if it is a file. If it is, it's processed here, else it's processed in field_get.
+    fdh.field_found = [](const char *key, const char *value, char *path, size_t pathlen, void *user_data) -> int
+    {
+        vars_t *vars = static_cast<vars_t *>(user_data);
+        // check if field is a file
+        if (value && *value)
+        {
+            snprintf(path, pathlen, "%s", value);
+
+            // store path
+            if (std::string(key) == "ir-file")
+            {
+                vars->inputPaths.push_back(value);
+            }
+            return MG_FORM_FIELD_STORAGE_STORE;
+        }
+        return MG_FORM_FIELD_STORAGE_GET;
+    };
+
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
+    {
+        return 0;
+    };
+
+    // Process the input from the form
+    if (mg_handle_form_request(connection, &fdh) <= 0)
+    {
+        throw std::runtime_error("Error handling form request.");
+    }
+
+    // Make filesink
+    for (std::string file : vars.inputPaths)
+    {
+        std::string fileName = "impulse-responses/" + file;
+        FileSink sink(fileName, 44100);
+        sink.write();
+
+        // Delete file from ~
+        std::remove(file.c_str());
+    }
+
+    render_redirect(connection, "/conv.html");
+
+    return 200;
+}
+
+int WebServer::handle_ir_list(mg_connection *connection, void *user_data)
+{
+    std::vector<std::string> v;
+
+    std::string dir = "impulse-responses";
+    DIR *dp;
+    struct dirent *dirp;
+    if ((dp = opendir(dir.c_str())) == NULL)
+    {
+        std::cout << "Error(" << errno << ") opening " << dir << std::endl;
+        return errno;
+    }
+
+    while ((dirp = readdir(dp)) != NULL)
+    {
+        v.push_back(std::string(dirp->d_name));
+    }
+    closedir(dp);
+
+    // Make json document containing all filenames
+    rapidjson::Document responses;
+    responses.Parse("[]");
+
+    rapidjson::Document::AllocatorType &allocator = responses.GetAllocator();
+
+    for (std::string file : v)
+    {
+        rapidjson::Value strVal;
+        strVal.SetString(file.c_str(), file.length(), allocator);
+
+        responses.PushBack(strVal, allocator);
+    }
+
+    rapidjson::StringBuffer sb;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
+    responses.Accept(writer);
+    std::string files(sb.GetString());
+
+    render_json(connection, files);
 
     return 200;
 }

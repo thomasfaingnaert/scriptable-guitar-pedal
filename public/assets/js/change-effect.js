@@ -13,7 +13,7 @@ function changeEffect(box) {
 
     $('#modalLabel').html(effect.charAt(0).toUpperCase() + effect.slice(1).toLowerCase());
 
-    var form = '<form onsubmit="changeJSON($(\'#effectID\').val()); $(\'#modal\').modal(\'toggle\'); return false;" id="changeEffectForm">' +
+    var form = '<form onsubmit="changeJSON($(\'#effectID\').val()); return false;" id="changeEffectForm">' +
         '    <input type="hidden" name= "effect" id="effect" value="' + effect + '"/>' +
         '    ' + displayForm(effect) +
         '    <input type="hidden" id="effectID" value="' + id + '"/>' + // No name so it doesn't get parsed
@@ -21,6 +21,9 @@ function changeEffect(box) {
 
     $('#modalBody').html(form);
     $('#save-change-button').show();
+    var deleteButton = $('#delete-effect-button');
+    deleteButton.attr('onclick', 'deleteEffect(\'' + id + '\');');
+    deleteButton.show();
 
     // Set the parameter value to the previous one
     $.each(parameterData, function (name, value) {
@@ -40,4 +43,14 @@ function changeEffect(box) {
 function changeJSON(effectID) {
     var jsonData = parseFormData($('#changeEffectForm'));
     $('#' + effectID).attr('data-effect', JSON.stringify(jsonData));
+}
+
+/**
+ * This function will delete the effect
+ *
+ * @param id The id of the effect to be deleted
+ */
+function deleteEffect(id) {
+    console.log(id);
+    jsPlumb.remove(id);
 }

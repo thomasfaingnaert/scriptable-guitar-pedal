@@ -6,9 +6,11 @@
         <title>Convolution Effect</title>
 
         <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css"/>
-        <script src="assets/js/bootstrap.min.js"></script>
         <script src="assets/js/jquery-3.3.1.min.js"></script>
         <script src="assets/js/popper.min.js"></script>
+        <script src="assets/js/bootstrap.min.js"></script>
+
+        <script src="assets/js/impulse-response.js"></script>
     </head>
     <body>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -33,18 +35,35 @@
         <div class="container">
             <h1>Convolution</h1>
             <form action="/conv/submit" method="post" accept-charset="utf-8" enctype="multipart/form-data">
-                <p>
-                    Input:<br/>
-                    <input type="file" name="input"/>
-                </p>
-                <p>
-                    Impulse Response:<br/>
-                    <input type="file" name="impulse-response"/>
-                </p>
-                <p>
-                    <input type="submit" value="Process"/>
-                </p>
+                <div class="form-group">
+                    <label for="input">Input</label>
+                    <input type="file" name="input" id="input">
+                </div>
+                <div class="form-group">
+                    <label for="response-list">Impulse responses</label>
+                    <select class="form-control" name="response-list" id="response-list">
+                    </select>
+                </div>
+                <input type="submit" value="Process"/>
+
             </form>
         </div>
+        <div class="container">
+            <h1>Upload impulse responses</h1>
+            <p>Here you can upload impulse responses to be used for reverb.</p>
+            <form action="/conv/upload" onsubmit="addIR()" id="addIRForm" method="post" accept-charset="utf-8"
+                  enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="ir-file">Impulse response</label>
+                    <input type="file" name="ir-file" id="ir-file" multiple>
+                </div>
+                <button type="submit" class="btn btn-light">Upload</button>
+            </form>
+        </div>
+
+        <script>
+            // Load impulse response
+            loadResponses();
+        </script>
     </body>
 </html>
