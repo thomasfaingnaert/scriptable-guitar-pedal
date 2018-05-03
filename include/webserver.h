@@ -1,6 +1,8 @@
 #include <string>
 
+#include "alsadevice.h"
 #include "civetweb.h"
+#include "document.h"
 
 #ifndef WEBSERVER_H_LMKVHNTB
 #define WEBSERVER_H_LMKVHNTB
@@ -16,6 +18,7 @@ class WebServer
         mg_context *context;
         bool exit = false;
         static std::string jsonChain;
+        static std::shared_ptr<AlsaDevice> alsaDevice;
 
         static void render(mg_connection *connection, const std::string &data, const std::string &contentType);
         static void render_text(mg_connection *connection, const std::string &text);
@@ -35,6 +38,7 @@ class WebServer
         static int handle_chain_load_active(mg_connection *connection, void *user_data);
         static int handle_ir_upload(mg_connection *connection, void *user_data);
         static int handle_ir_list(mg_connection *connection, void *user_data);
+        static int handle_alsa_submit(mg_connection *connection, void *user_data);
 };
 
 #endif /* end of include guard: WEBSERVER_H_LMKVHNTB */
