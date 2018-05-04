@@ -95,6 +95,7 @@ WebServer::~WebServer()
 
 // Static fields
 std::string WebServer::jsonChain;
+
 // std::shared_ptr<AlsDevice> WebServer::alsaDevice = std::make_shared<AlsaDevice>(0, 0, 48000, 2, 2, 1024, 1024, 2, 2);
 WebServer::thread_param WebServer::thread_params;
 
@@ -1070,7 +1071,6 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
 
     // Parse
     rapidjson::Document chain;
-    std::cout << vars.jsonString << std::endl;
     chain.Parse(vars.jsonString.c_str()); // Contains array of JSON objects
 
     jsonChain = vars.jsonString;
@@ -1166,7 +1166,16 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
         sources[i]->connect(sinks[i + 1]);
     }
 
+
+    if (pthread_mutex_lock(&thread_params.mutex) != 0)
+    {
+        throw std::runtime_error("Error locking mutex");
+    }
     thread_params.changed = true;
+    if (pthread_cond_wait(&thread_params.canChange, &thread_params.mutex) != 0)
+    {
+        throw std::runtime_error("Error in cond_wait");
+    }
 
     render_redirect(connection, "/chain.html");
 
@@ -1176,14 +1185,21 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
 void *WebServer::alsa_thread(void *arg)
 {
     thread_param *params = static_cast<thread_param *>(arg);
-    while (1)
+    while (true)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(80));
+
+        for (int i = 0; i < alsaDevice.getSampleRate(); ++i)
+        {
+            alsaDevice.generate_next();
+        }
+
         if (params->changed)
         {
-            std::cout << "Changing test" << std::endl;
+            alsaDevice.connect(params->firstSink);
+            params->lastSource->connect(alsaDevice);
             params->changed = false;
             pthread_cond_signal(&params->canChange);
         }
+
     }
 }

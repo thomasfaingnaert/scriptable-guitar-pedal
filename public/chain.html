@@ -68,7 +68,7 @@
         </div>
         <div class="container">
             <div class="row">
-                <div class="col">
+                <div class="col-12 col-lg">
                     <h3>Execute chain on file</h3>
                     <form action="/chain/submit" onsubmit="return sendEffect('effect-info')" method="post"
                           id="chain-form" enctype="multipart/form-data">
@@ -80,7 +80,7 @@
                         <button type="submit" class="btn btn-light">Submit</button>
                     </form>
                 </div>
-                <div class="col">
+                <div class="col-12 col-lg">
                     <h3>Execute chain on guitar signal</h3>
                     <form action="/alsa/submit" onsubmit="return sendEffect('effect-info')" method="post"
                           id="alsa-form" enctype="multipart/form-data">
@@ -90,7 +90,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col">
+                <div class="col-12 col-lg">
                     <h3>Save this chain</h3>
                     <form action="/chain/save" onsubmit="return sendEffect('save-effect-info')" method="post"
                           id="save-chain-form"
@@ -103,7 +103,7 @@
                         <button type="submit" class="btn btn-light">Save chain</button>
                     </form>
                 </div>
-                <div class="col">
+                <div class="col-12 col-lg">
                     <h3>Load a chain</h3>
                     <button type="button" class="btn btn-light" onclick="loadChains()">Load chain</button>
                 </div>
