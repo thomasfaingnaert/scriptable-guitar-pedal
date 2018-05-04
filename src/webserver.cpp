@@ -10,10 +10,12 @@
 #include <ios>
 #include <iostream>
 #include <memory>
+#include <pthread.h>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <thread>
 
 #include "alsadevice.h"
 #include "civetweb.h"
@@ -51,6 +53,25 @@ WebServer::WebServer(unsigned int port)
         throw std::runtime_error("Could not start HTTP server");
     }
 
+    // Configure param
+    thread_params.changed = false;
+    thread_params.firstSink = nullptr;
+    thread_params.lastSource = nullptr;
+    thread_params.canChange = PTHREAD_COND_INITIALIZER;
+    thread_params.mutex = PTHREAD_MUTEX_INITIALIZER;
+
+    if (pthread_create(&alsaThread, nullptr, alsa_thread, &thread_params) != 0)
+    {
+        throw std::runtime_error("Could not create alsa_thread");
+    }
+
+    sched_param param;
+    param.sched_priority = 99;
+    if (pthread_setschedparam(alsaThread, SCHED_FIFO, &param) != 0)
+    {
+        throw std::runtime_error("Something went wrong setting the priority.");
+    }
+
     // register handlers
     mg_set_request_handler(context, "/exit$", handle_exit, this);
     mg_set_request_handler(context, "/conv/submit$", handle_conv_submit, this);
@@ -72,8 +93,10 @@ WebServer::~WebServer()
     mg_stop(context);
 }
 
+// Static fields
 std::string WebServer::jsonChain;
-std::shared_ptr<AlsaDevice> WebServer::alsaDevice = std::make_shared<AlsaDevice>(0, 0, 48000, 2, 2, 1024, 1024, 2, 2);
+// std::shared_ptr<AlsDevice> WebServer::alsaDevice = std::make_shared<AlsaDevice>(0, 0, 48000, 2, 2, 1024, 1024, 2, 2);
+WebServer::thread_param WebServer::thread_params;
 
 bool WebServer::isRunning() const
 {
@@ -1047,6 +1070,7 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
 
     // Parse
     rapidjson::Document chain;
+    std::cout << vars.jsonString << std::endl;
     chain.Parse(vars.jsonString.c_str()); // Contains array of JSON objects
 
     jsonChain = vars.jsonString;
@@ -1094,7 +1118,7 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
             std::vector<float> coeffs;
             float decay = 1 - decayCoeff;
 
-            unsigned int delaySamples = (unsigned int) (delayTime * alsaDevice->getSampleRate());
+            unsigned int delaySamples = (unsigned int) (delayTime * /*alsaDevice->getSampleRate()*/ 48000);
 
             if (type == "fir")
             {
@@ -1122,7 +1146,7 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
             float depth = stof(std::string(obj["depth"].GetString()));
             float rate = stof(std::string(obj["rate"].GetString()));
 
-            unsigned int period = (unsigned int) ((1 / rate) * alsaDevice->getSampleRate());
+            unsigned int period = (unsigned int) ((1 / rate) * /*alsaDevice->getSampleRate()*/ 48000);
 
             // Create effect and add to vector
             auto tremolo = std::make_shared<TremoloEffect>(depth, period);
@@ -1136,23 +1160,30 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
         }
     }
 
-    if (sources.empty())
-    {
-        alsaDevice->connect(alsaDevice);
-    }
-    else
-    {
-        alsaDevice->connect(sinks[0]);
 
-        for (std::size_t i = 0; i < sources.size() - 1; ++i)
-        {
-            sources[i]->connect(sinks[i + 1]);
-        }
-
-        sources[sources.size() - 1]->connect(alsaDevice);
+    for (std::size_t i = 0; i < sources.size() - 1; ++i)
+    {
+        sources[i]->connect(sinks[i + 1]);
     }
 
-    while (alsaDevice->generate_next());
+    thread_params.changed = true;
+
+    render_redirect(connection, "/chain.html");
 
     return 200;
+}
+
+void *WebServer::alsa_thread(void *arg)
+{
+    thread_param *params = static_cast<thread_param *>(arg);
+    while (1)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(80));
+        if (params->changed)
+        {
+            std::cout << "Changing test" << std::endl;
+            params->changed = false;
+            pthread_cond_signal(&params->canChange);
+        }
+    }
 }

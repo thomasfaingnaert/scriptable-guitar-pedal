@@ -38,7 +38,7 @@
             </div>
         </nav>
         <div class="container">
-            <h1>Effecten combineren</h1>
+            <h1>Combining effects</h1>
             <p>
                 On this page, you can 'chain' different effects after one another.
                 Warning: You can only use 5 effects at a time.
@@ -68,16 +68,23 @@
         </div>
         <div class="container">
             <div class="row">
-                <div class="col-12">
+                <div class="col">
                     <h3>Execute chain on file</h3>
                     <form action="/chain/submit" onsubmit="return sendEffect('effect-info')" method="post"
-                          id="chain-form"
-                          enctype="multipart/form-data">
+                          id="chain-form" enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="input">Input File:</label>
                             <input type="file" name="input" id="input"/>
                         </div>
-                        <input type="hidden" name="effect-info" id="effect-info" value=""/>
+                        <input type="hidden" name="effect-info" class="effect-info" value="">
+                        <button type="submit" class="btn btn-light">Submit</button>
+                    </form>
+                </div>
+                <div class="col">
+                    <h3>Execute chain on guitar signal</h3>
+                    <form action="/alsa/submit" onsubmit="return sendEffect('effect-info')" method="post"
+                          id="alsa-form" enctype="multipart/form-data">
+                        <input type="hidden" name="effect-info" class="effect-info" value="">
                         <button type="submit" class="btn btn-light">Submit</button>
                     </form>
                 </div>
@@ -119,7 +126,8 @@
                         ...
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" id="delete-effect-button" data-dismiss="modal" onclick="deleteEffect()">
+                        <button type="button" class="btn btn-danger" id="delete-effect-button" data-dismiss="modal"
+                                onclick="deleteEffect()">
                             Delete
                         </button>
                         <button type="submit" class="btn btn-light" form="changeEffectForm" id="save-change-button"
