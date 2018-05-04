@@ -30,7 +30,7 @@ class WebServer
         mg_context *context;
         bool exit = false;
         static std::string jsonChain;
-        //static std::shared_ptr<AlsaDevice> alsaDevice;
+        static std::shared_ptr<AlsaDevice> alsaDevice;
         pthread_t alsaThread;
         static thread_param thread_params;
 

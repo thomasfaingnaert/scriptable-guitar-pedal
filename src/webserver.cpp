@@ -96,7 +96,7 @@ WebServer::~WebServer()
 // Static fields
 std::string WebServer::jsonChain;
 
-// std::shared_ptr<AlsDevice> WebServer::alsaDevice = std::make_shared<AlsaDevice>(0, 0, 48000, 2, 2, 1024, 1024, 2, 2);
+std::shared_ptr<AlsaDevice> WebServer::alsaDevice = std::make_shared<AlsaDevice>(0, 0, 48000, 2, 2, 1024, 1024, 2, 2);
 WebServer::thread_param WebServer::thread_params;
 
 bool WebServer::isRunning() const
@@ -1118,7 +1118,7 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
             std::vector<float> coeffs;
             float decay = 1 - decayCoeff;
 
-            unsigned int delaySamples = (unsigned int) (delayTime * /*alsaDevice->getSampleRate()*/ 48000);
+            unsigned int delaySamples = (unsigned int) (delayTime * alsaDevice->getSampleRate());
 
             if (type == "fir")
             {
@@ -1146,7 +1146,7 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
             float depth = stof(std::string(obj["depth"].GetString()));
             float rate = stof(std::string(obj["rate"].GetString()));
 
-            unsigned int period = (unsigned int) ((1 / rate) * /*alsaDevice->getSampleRate()*/ 48000);
+            unsigned int period = (unsigned int) ((1 / rate) * alsaDevice->getSampleRate());
 
             // Create effect and add to vector
             auto tremolo = std::make_shared<TremoloEffect>(depth, period);
@@ -1188,14 +1188,14 @@ void *WebServer::alsa_thread(void *arg)
     while (true)
     {
 
-        for (int i = 0; i < alsaDevice.getSampleRate(); ++i)
+        for (unsigned int i = 0; i < alsaDevice->getSampleRate(); ++i)
         {
-            alsaDevice.generate_next();
+            alsaDevice->generate_next();
         }
 
         if (params->changed)
         {
-            alsaDevice.connect(params->firstSink);
+            alsaDevice->connect(params->firstSink);
             params->lastSource->connect(alsaDevice);
             params->changed = false;
             pthread_cond_signal(&params->canChange);
