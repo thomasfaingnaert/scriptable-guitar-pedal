@@ -92,7 +92,18 @@ chmod +x ./internet.sh
 sudo ./internet.sh
 ```
 
-2. Apply the Xenomai patches to the kernel using:
+2. Update all packages:
+```bash
+sudo apt update
+sudo apt upgrade
+```
+
+3. Delete RoboticsCape, as it blacklists the `uio_pruss` module
+```bash
+sudo apt purge roboticscape
+```
+
+4. Apply the Xenomai patches to the kernel using:
 ```bash
 cd /opt/scripts/tools/
 git pull
@@ -105,44 +116,33 @@ uname -a
 ```
 This should output something similar to `Linux beaglebone 4.9.88-ti-xenomai-r107 #1 SMP PREEMPT Sat Mar 24 09:29:27 UTC 2018 armv7l GNU/Linux`.
 
-3. Next, we need to install our custom overlay:
+5. Next, we need to install our custom overlay:
 ```bash
 cd device-tree/
 make
 sudo make install
 ```
 
-4. Enable it by copying `uEnv-pru.txt` to the `boot/` folder:
+6. Enable it by copying `uEnv-pru.txt` to the `boot/` folder:
 ```bash
 cd boot/
 sudo cp uEnv-pru.txt /boot/uEnv.txt
 ```
 
-4. Update all packages:
-```bash
-sudo apt update
-sudo apt upgrade
-```
-
-5. Delete RoboticsCape, as it blacklists the `uio_pruss` module
-```bash
-sudo apt purge roboticscape
-```
-
-6. The UIO driver should now be loaded. You can verify this by running:
+7. The UIO driver should now be loaded. You can verify this by running:
 ```bash
 lsmod | grep uio
 ls /dev/uio*
 ```
 
-7. If you want to assemble PRU Assembly files on your PC, you should install the PRU assembler from https://github.com/beagleboard/am335x_pru_package.
+8. If you want to assemble PRU Assembly files on your PC, you should install the PRU assembler from https://github.com/beagleboard/am335x_pru_package.
 Otherwise, you could copy the `*.p` files to the BBB using SCP and assemble them there.
 To assemble a file `test.p`, you can use:
 ```bash
 pasm -b test.p
 ```
 
-8. Run the PRU loader to execute the PRU code:
+9. Run the PRU loader to execute the PRU code:
 ```bash
 ./scriptable-guitar-pedal test.bin
 ```
