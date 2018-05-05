@@ -3,11 +3,11 @@
 
 #include <string>
 
-class PRU
+class Pru
 {
     public:
-        PRU();
-        ~PRU();
+        Pru();
+        ~Pru();
         void executeProgram(const std::string& filename) const;
         void waitForInterrupt() const;
         ulong* setupSharedMemory() const;

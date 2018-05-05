@@ -8,7 +8,7 @@
 
 #include "pru.h"
 
-PRU::PRU()
+Pru::Pru()
 {
     // Initialise and allocate memory for the PRU Subsystem driver
     prussdrv_init();
@@ -32,7 +32,7 @@ PRU::PRU()
     }
 }
 
-PRU::~PRU()
+Pru::~Pru()
 {
     prussdrv_pru_disable(PRU0);
     prussdrv_exit();
@@ -41,7 +41,7 @@ PRU::~PRU()
     close(rtdm_file_descriptor);
 }
 
-void PRU::executeProgram(const std::string& filename) const
+void Pru::executeProgram(const std::string& filename) const
 {
     // Disable PRU, write instructions to PRU instruction RAM, enable PRU and start executing instructions
     if (prussdrv_exec_program(PRU0, filename.c_str()) < 0)
@@ -50,7 +50,7 @@ void PRU::executeProgram(const std::string& filename) const
     }
 }
 
-void PRU::waitForInterrupt() const
+void Pru::waitForInterrupt() const
 {
 #if 0
     // Wait for PRU event out
@@ -67,7 +67,7 @@ void PRU::waitForInterrupt() const
 #endif
 }
 
-ulong* PRU::setupSharedMemory() const
+ulong* Pru::setupSharedMemory() const
 {
     int fd = open("/dev/mem", O_RDWR | O_SYNC);
     ulong* sharedMemory = static_cast<ulong*>(mmap(0, SHARED_MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, PRU_ADDRESS + SHARED_MEMORY_OFFSET));

@@ -13,7 +13,7 @@ class PruDevice : public Source<float>, public Sink<float>
         void generate_next();
 
     private:
-        PRU pru;
+        Pru pru;
         volatile ulong* sharedMemory;
 
         static constexpr unsigned int BUFFER_SIZE = 4096;                                               // Size of the input and output buffer (in 32-bit samples)
