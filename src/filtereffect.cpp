@@ -172,12 +172,11 @@ void* FilterEffect::thread_function(void* argument)
         // Calculate output
         // TODO: Optimise this
         param->fdl.process(param->input.begin(), param->input.end(), result.begin());
-        {
-            // TODO: Optimise this
-            pthread_mutex_lock(&param->outputMutex);
-            param->outputBuffer.insert(param->outputBuffer.end(), result.begin(), result.end());
-            pthread_mutex_unlock(&param->outputMutex);
-        }
+
+        // TODO: Optimise this
+        pthread_mutex_lock(&param->outputMutex);
+        param->outputBuffer.insert(param->outputBuffer.end(), result.begin(), result.end());
+        pthread_mutex_unlock(&param->outputMutex);
 
         // Decrement count
         unsigned int signalIndex = (waitIndex + param->period) % param->filter->schedulingPeriod;

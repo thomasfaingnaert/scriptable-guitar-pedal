@@ -16,7 +16,7 @@ find_package(Boost REQUIRED)
 
 add_compile_options(-Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Wno-unused-parameter ${XENOMAI_CFLAGS})
 add_definitions(${XENOMAI_DEFINITIONS})
-add_executable(scriptable-guitar-pedal src/alsadevice.cpp src/codec.cpp src/delayeffect.cpp src/directformconvolver.cpp src/distortioneffect.cpp src/dspmath.cpp src/fftconvolver.cpp src/filesink.cpp src/filesource.cpp src/i2cdevice.cpp src/luaeffect.cpp src/main.cpp src/sampledata.cpp src/sinesource.cpp src/tremoloeffect.cpp src/webserver.cpp src/pru.cpp src/filtereffect.cpp src/frequencydelayline.cpp)
+add_executable(scriptable-guitar-pedal src/alsadevice.cpp src/codec.cpp src/delayeffect.cpp src/directformconvolver.cpp src/distortioneffect.cpp src/dspmath.cpp src/fftconvolver.cpp src/filesink.cpp src/filesource.cpp src/i2cdevice.cpp src/luaeffect.cpp src/main.cpp src/sampledata.cpp src/sinesource.cpp src/tremoloeffect.cpp src/webserver.cpp src/pru.cpp src/filtereffect.cpp src/frequencydelayline.cpp src/prudevice.cpp)
 target_link_libraries(scriptable-guitar-pedal ${NE10_LIBRARIES} ${CIVETWEB_LIBRARIES} ${LIBSNDFILE_LIBRARIES} ${LIBI2C_LIBRARIES} ${LUA_LIBRARIES} ${TINYALSA_LIBRARIES} ${PRUSSDRV_LIBRARIES} ${XENOMAI_LIBRARIES} ${ARM_NEON_COMPLEX_LIBRARIES})
 include_directories("${CMAKE_SOURCE_DIR}/include" ${NE10_INCLUDE_DIRS} ${CIVETWEB_INCLUDE_DIRS} ${LIBSNDFILE_INCLUDE_DIRS} ${LIBI2C_INCLUDE_DIRS} ${LUA_INCLUDE_DIRS} ${TINYALSA_INCLUDE_DIRS} ${RAPIDJSON_INCLUDE_DIRS} ${PRUSSDRV_INCLUDE_DIRS} ${XENOMAI_INCLUDE_DIRS} ${ARM_NEON_COMPLEX_INCLUDE_DIRS} ${BOOST_INCLUDE_DIRS})
 

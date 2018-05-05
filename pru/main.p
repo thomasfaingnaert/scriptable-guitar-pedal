@@ -11,6 +11,11 @@ start:
     clr     r0, r0, 4
     sbco    r0, CONSTANT_PRU_ICSS_CONFIG, 4, 4
 
+    ; Wait for empty input buffer
+
+    ; Add new input sample
+
+
     ; Load the McASP0 base address
-    mov     MCASP_BASE_ADDRESS_REGISTER, MCASP0_BASE_ADDRESS
+    ;mov     MCASP_BASE_ADDRESS_REGISTER, MCASP0_BASE_ADDRESS
 

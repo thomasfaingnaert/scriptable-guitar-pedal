@@ -1,0 +1,16 @@
+/* Number of samples in each circular buffer */
+#define RAM_BUFFER_SIZE                             4096
+
+/* Address of shared ram */
+#define RAM_ADDRESS                                 0x10000
+
+/* Offsets in the shared RAM for different fields */
+#define RAM_OFFSET_INPUT_BEGIN                      0
+#define RAM_OFFSET_INPUT_END                        1
+#define RAM_OFFSET_INPUT_DATA_BEGIN                 2
+#define RAM_OFFSET_INPUT_DATA_END                   RAM_OFFSET_INPUT_DATA_BEGIN + RAM_BUFFER_SIZE
+
+#define RAM_OFFSET_OUTPUT_BEGIN                     RAM_OFFSET_INPUT_END
+#define RAM_OFFSET_OUTPUT_END                       RAM_OFFSET_OUTPUT_BEGIN + 1
+#define RAM_OFFSET_OUTPUT_DATA_BEGIN                RAM_OFFSET_OUTPUT_END + 1
+#define RAM_OFFSET_OUTPUT_DATA_END                  RAM_OFFSET_OUTPUT_DATA_BEGIN + BUFFER_SIZE

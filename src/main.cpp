@@ -16,6 +16,7 @@
 #include "filesource.h"
 #include "filtereffect.h"
 #include "frequencydelayline.h"
+#include "prudevice.h"
 
 int main(int argc, char *argv[])
 {
@@ -33,6 +34,15 @@ int main(int argc, char *argv[])
         std::cerr << "Failed to set priority for thread: Error code " << errno << ": " << std::strerror(errno) << std::endl;
         return EXIT_FAILURE;
     }
+
+#if 0
+    auto pruDev = std::make_shared<PruDevice>();
+
+    while (true)
+    {
+        pruDev->generate_next();
+    }
+#endif
 
 #if 0
     constexpr unsigned int BLOCK_SIZE = 1024 * 128;
