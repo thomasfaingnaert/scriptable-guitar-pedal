@@ -48,4 +48,17 @@ start:
 
     mcasp_register_write    MCASP_RFMT_OFFSET, MCASP_RFMT
 
+    // 2-slot TDM
+    #define MCASP_RMOD 0x2
+    // Single word width of the receive frame sync during its active period
+    #define MCASP_FRWID 0x1
+    // Externally-generated receive frame sync
+    #define MCASP_FSRM 0x0
+    // A rising edge on the receive frame sync indicates the beginning of a frame
+    #define MCASP_FSRP 0x0
+
+    #define MCASP_AFSRCTL (MCASP_RMOD << 7) | (MCASP_FRWID << 4) | (MCASP_FSRM << 1) | (MCASP_FSRP << 0)
+
+    mcasp_register_write    MCASP_AFSRCTL_OFFSET, MCASP_AFSRCTL
+
     halt
