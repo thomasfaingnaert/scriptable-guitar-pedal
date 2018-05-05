@@ -4,6 +4,7 @@
 #include <pthread.h>
 
 #include "NE10.h"
+#include "prudevice.h"
 
 int main(int argc, char *argv[])
 {
@@ -25,6 +26,9 @@ int main(int argc, char *argv[])
 
         return EXIT_FAILURE;
     }
+
+    PruDevice pruDevice;
+    pruDevice.generate_next();
 
     return EXIT_SUCCESS;
 }

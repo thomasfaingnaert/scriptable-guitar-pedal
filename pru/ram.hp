@@ -14,3 +14,41 @@
 #define RAM_OFFSET_OUTPUT_END                       RAM_OFFSET_OUTPUT_BEGIN + 1
 #define RAM_OFFSET_OUTPUT_DATA_BEGIN                RAM_OFFSET_OUTPUT_END + 1
 #define RAM_OFFSET_OUTPUT_DATA_END                  RAM_OFFSET_OUTPUT_DATA_BEGIN + BUFFER_SIZE
+
+/* Interrupt number for CPU */
+#define PRUSS_PRU_ARM_INTERRUPT                     35
+#define RTDM_PRU_ARM_INTERRUPT                      36
+
+/* Sends an interrupt to the CPU */
+.macro ram_send_interrupt
+    mov     r31.b0, RTDM_PRU_ARM_INTERRUPT
+.endm
+
+/* Push sample to input buffer */
+.macro ram_input_push
+wait_loop_begin:
+    /* Load begin pointer in r4, and end pointer in r5 */
+    mov     r3, RAM_ADDRESS
+    lbbo    &r4, r3, 4 * RAM_OFFSET_INPUT_BEGIN, 8
+
+    /* Calculate (end + 1) % BUFFER_SIZE */
+    add     r6, r5, 1
+    mov     r7, RAM_BUFFER_SIZE - 1
+    and     r6, r6, r7
+
+    /* Input buffer is full when (end + 1) % BUFFER_SIZE == begin */
+    qbeq    wait_loop_begin, r4, r6
+
+    /* Write result */
+    mov     r7, RAM_ADDRESS + 4 * RAM_OFFSET_INPUT_DATA_BEGIN
+    lsl     r5, r5, 2
+    add     r7, r7, r5
+    sbbo    &r2, r7, 0, 4
+
+    /* Write new end pointer */
+    sbbo    &r6, r3, 4 * RAM_OFFSET_INPUT_END, 4
+.endm
+
+/* Get sample from output buffer */
+.macro ram_output_pop
+.endm

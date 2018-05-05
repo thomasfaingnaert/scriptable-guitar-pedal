@@ -1,5 +1,7 @@
 #include <cmath>
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 #include "prudevice.h"
 
@@ -11,7 +13,7 @@ PruDevice::PruDevice()
     sharedMemory[OFFSET_INPUT_BEGIN] = sharedMemory[OFFSET_INPUT_END] = 0;
     sharedMemory[OFFSET_OUTPUT_BEGIN] = sharedMemory[OFFSET_OUTPUT_END] = 0;
 
-    pru.executeProgram("main.bin");
+    pru.executeProgram("ram.bin");
 }
 
 void PruDevice::push(const std::array<float, Constants::BLOCK_SIZE>& data)
@@ -66,7 +68,6 @@ void PruDevice::generate_next()
         // Increment begin pointer
         begin = (begin + 1) % BUFFER_SIZE;
         sharedMemory[OFFSET_INPUT_BEGIN] = begin;
-
     }
 
     generate(data);
