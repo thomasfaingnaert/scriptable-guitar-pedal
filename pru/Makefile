@@ -9,4 +9,3 @@ all: $(BIN)
 
 clean:
 	rm $(BIN)
-
