@@ -16,12 +16,12 @@ class PruDevice : public Source<float>, public Sink<float>
         Pru pru;
         volatile ulong* sharedMemory;
 
-        static constexpr unsigned int BUFFER_SIZE = 2048;                                               // Size of the input and output buffer (in 32-bit samples)
+        static constexpr unsigned int BUFFER_SIZE = 1024;                                               // Size of the input and output buffer (in 32-bit samples)
 
         static constexpr unsigned int OFFSET_INPUT_BEGIN = 0;                                           // The iterator to the beginning of the input buffer
         static constexpr unsigned int OFFSET_INPUT_END = 1;                                             // The iterator to the end of the input buffer
         static constexpr unsigned int OFFSET_INPUT_DATA_BEGIN = 2;                                      // The beginning of the contents of the input buffer
-        static constexpr unsigned int OFFSET_INPUT_DATA_END = OFFSET_INPUT_BEGIN + BUFFER_SIZE;         // The end of the contents of the input buffer
+        static constexpr unsigned int OFFSET_INPUT_DATA_END = OFFSET_INPUT_DATA_BEGIN + BUFFER_SIZE;         // The end of the contents of the input buffer
 
         static constexpr unsigned int OFFSET_OUTPUT_BEGIN = OFFSET_INPUT_DATA_END;                      // The iterator to the beginning of the output buffer
         static constexpr unsigned int OFFSET_OUTPUT_END = OFFSET_OUTPUT_BEGIN + 1;                      // The iterator to the end of the output buffer

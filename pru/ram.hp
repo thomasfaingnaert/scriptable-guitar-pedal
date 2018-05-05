@@ -1,5 +1,5 @@
 /* Number of samples in each circular buffer */
-#define RAM_BUFFER_SIZE                             2048
+#define RAM_BUFFER_SIZE                             1024
 
 /* Address of shared ram */
 #define RAM_ADDRESS                                 0x10000
@@ -8,12 +8,12 @@
 #define RAM_OFFSET_INPUT_BEGIN                      0
 #define RAM_OFFSET_INPUT_END                        1
 #define RAM_OFFSET_INPUT_DATA_BEGIN                 2
-#define RAM_OFFSET_INPUT_DATA_END                   RAM_OFFSET_INPUT_DATA_BEGIN + RAM_BUFFER_SIZE
+#define RAM_OFFSET_INPUT_DATA_END                   (RAM_OFFSET_INPUT_DATA_BEGIN + RAM_BUFFER_SIZE)
 
-#define RAM_OFFSET_OUTPUT_BEGIN                     RAM_OFFSET_INPUT_END
-#define RAM_OFFSET_OUTPUT_END                       RAM_OFFSET_OUTPUT_BEGIN + 1
-#define RAM_OFFSET_OUTPUT_DATA_BEGIN                RAM_OFFSET_OUTPUT_END + 1
-#define RAM_OFFSET_OUTPUT_DATA_END                  RAM_OFFSET_OUTPUT_DATA_BEGIN + BUFFER_SIZE
+#define RAM_OFFSET_OUTPUT_BEGIN                     RAM_OFFSET_INPUT_DATA_END
+#define RAM_OFFSET_OUTPUT_END                       (RAM_OFFSET_OUTPUT_BEGIN + 1)
+#define RAM_OFFSET_OUTPUT_DATA_BEGIN                (RAM_OFFSET_OUTPUT_END + 1)
+#define RAM_OFFSET_OUTPUT_DATA_END                  (RAM_OFFSET_OUTPUT_DATA_BEGIN + BUFFER_SIZE)
 
 /* Interrupt number for CPU */
 #define PRUSS_PRU_ARM_INTERRUPT                     35
@@ -51,4 +51,25 @@ wait_loop_begin:
 
 /* Get sample from output buffer */
 .macro ram_output_pop
+wait_loop_begin:
+    /* Load begin pointer in r4, and end pointer in r5 */
+    mov     r3, RAM_ADDRESS + 4 * RAM_OFFSET_OUTPUT_BEGIN
+    lbbo    &r4, r3, 0, 8
+
+    /* Output buffer is empty when end == begin */
+    qbeq    wait_loop_begin, r4, r5
+
+    /* Calculate (begin + 1) % BUFFER_SIZE */
+    add     r6, r4, 1
+    mov     r7, RAM_BUFFER_SIZE - 1
+    and     r6, r6, r7
+
+    /* Read result */
+    mov     r7, RAM_ADDRESS + 4 * RAM_OFFSET_OUTPUT_DATA_BEGIN
+    lsl     r4, r4, 2
+    add     r7, r7, r4
+    lbbo    &r2, r7, 0, 4
+
+    /* Write new begin pointer */
+    sbbo    &r6, r3, 0, 4
 .endm

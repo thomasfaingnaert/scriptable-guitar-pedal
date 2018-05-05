@@ -12,12 +12,15 @@ start:
     sbco    r0, CONSTANT_PRU_ICSS_CONFIG, 4, 4
 
     mov     r2, 0
-    mov     r10, 4000
+    mov     r10, 256
 loop_beg:
     add     r2, r2, 1
     ram_input_push
     qbne    loop_beg, r2, r10
 
-    ram_send_interrupt
+infinite_loop_beg:
+    ram_output_pop
+    ram_input_push
+    jmp infinite_loop_beg
 
     halt

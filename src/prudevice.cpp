@@ -12,7 +12,6 @@ PruDevice::PruDevice()
     // Set iterators
     sharedMemory[OFFSET_INPUT_BEGIN] = sharedMemory[OFFSET_INPUT_END] = 0;
     sharedMemory[OFFSET_OUTPUT_BEGIN] = sharedMemory[OFFSET_OUTPUT_END] = 0;
-
     pru.executeProgram("ram.bin");
 }
 
@@ -62,13 +61,15 @@ void PruDevice::generate_next()
         }
 
         // Read sample
-        //data[i] = static_cast<float>(sharedMemory[OFFSET_INPUT_DATA_BEGIN + begin] / std::pow(2, 24));
-        std::cout << "read sample: " << sharedMemory[OFFSET_INPUT_DATA_BEGIN + begin] << std::endl;
+        data[i] = static_cast<float>(sharedMemory[OFFSET_INPUT_DATA_BEGIN + begin]) / std::pow(2, 24);
+        std::cout << sharedMemory[OFFSET_INPUT_DATA_BEGIN + begin] << " " << std::flush;
 
         // Increment begin pointer
         begin = (begin + 1) % BUFFER_SIZE;
         sharedMemory[OFFSET_INPUT_BEGIN] = begin;
     }
+    std::cout << "\n";
+    push(data);
 
     generate(data);
 }
