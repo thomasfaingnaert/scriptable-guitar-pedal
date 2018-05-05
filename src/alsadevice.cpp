@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
-#include <iostream>
 
 #include "alsadevice.h"
 
@@ -15,46 +14,46 @@ AlsaDevice::AlsaDevice(unsigned int card,
                        unsigned int period_count_in,
                        unsigned int period_count_out)
 {
-    const struct pcm_config pcm_config_in = {
-            channels_in,
-            rate,
-            period_size_in,
-            period_count_in,
-            PCM_FORMAT_S16_LE
-    };
+    pcm_config pcm_config_in{};
+
+    pcm_config_in.channels = channels_in;
+    pcm_config_in.rate = rate;
+    pcm_config_in.period_size = period_size_in;
+    pcm_config_in.period_count = period_count_in;
+    pcm_config_in.format = PCM_FORMAT_S16_LE;
 
     pcm_in = pcm_open(card, device, PCM_IN, &pcm_config_in);
 
     if (pcm_in == nullptr)
     {
-        std::cerr << "Failed to allocate memory for the input PCM!\n";
+        throw std::runtime_error("Failed to allocate memory for the input PCM");
     }
     else if (!pcm_is_ready(pcm_in))
     {
-        std::cerr << "Input PCM is not ready!\n";
-
         pcm_close(pcm_in);
+
+        throw std::runtime_error("Input PCM is not ready");
     }
 
-    const struct pcm_config pcm_config_out = {
-            channels_out,
-            rate,
-            period_size_out,
-            period_count_out,
-            PCM_FORMAT_S16_LE
-    };
+    pcm_config pcm_config_out{};
+
+    pcm_config_out.channels = channels_out;
+    pcm_config_out.rate = rate;
+    pcm_config_out.period_size = period_size_out;
+    pcm_config_out.period_count = period_count_out;
+    pcm_config_out.format = PCM_FORMAT_S16_LE;
 
     pcm_out = pcm_open(card, device, PCM_OUT, &pcm_config_out);
 
     if (pcm_out == nullptr)
     {
-        std::cerr << "Failed to allocate memory for the output PCM!\n";
+        throw std::runtime_error("Failed to allocate memory for the output PCM");
     }
     else if (!pcm_is_ready(pcm_out))
     {
-        std::cerr << "Output PCM is not ready!\n";
-
         pcm_close(pcm_out);
+
+        throw std::runtime_error("Output PCM is not ready");
     }
 }
 
