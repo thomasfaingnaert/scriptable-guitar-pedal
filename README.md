@@ -98,8 +98,12 @@ sudo apt update
 sudo apt upgrade
 ```
 
+3. Delete RoboticsCape, as it blacklists the `uio_pruss` module
+```bash
+sudo apt purge roboticscape
+```
 
-3. Apply the Xenomai patches to the kernel using:
+4. Apply the Xenomai patches to the kernel using:
 ```bash
 cd /opt/scripts/tools/
 git pull
@@ -112,22 +116,17 @@ uname -a
 ```
 This should output something similar to `Linux beaglebone 4.9.88-ti-xenomai-r107 #1 SMP PREEMPT Sat Mar 24 09:29:27 UTC 2018 armv7l GNU/Linux`.
 
-4. Next, we need to install our custom overlay:
+5. Next, we need to install our custom overlay:
 ```bash
 cd device-tree/
 make
 sudo make install
 ```
 
-5. Enable it by copying `uEnv-pru.txt` to the `boot/` folder:
+6. Enable it by copying `uEnv-pru.txt` to the `boot/` folder:
 ```bash
 cd boot/
 sudo cp uEnv-pru.txt /boot/uEnv.txt
-```
-
-6. Delete RoboticsCape, as it blacklists the `uio_pruss` module
-```bash
-sudo apt purge roboticscape
 ```
 
 7. The UIO driver should now be loaded. You can verify this by running:
