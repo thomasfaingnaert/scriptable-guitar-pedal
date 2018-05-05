@@ -2,6 +2,8 @@
 #include <cstring>
 #include <iostream>
 #include <pthread.h>
+#include <thread>
+#include <chrono>
 
 #include "NE10.h"
 #include "prudevice.h"
@@ -28,7 +30,11 @@ int main(int argc, char *argv[])
     }
 
     PruDevice pruDevice;
-    pruDevice.generate_next();
+    while (true)
+    {
+        pruDevice.generate_next();
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
 
     return EXIT_SUCCESS;
 }

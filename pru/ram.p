@@ -11,11 +11,12 @@ start:
     clr     r0, r0, 4
     sbco    r0, CONSTANT_PRU_ICSS_CONFIG, 4, 4
 
-    mov     r2, 42
+    mov     r2, 0
+    mov     r10, 4000
+loop_beg:
+    add     r2, r2, 1
     ram_input_push
-
-    mov     r2, 17
-    ram_input_push
+    qbne    loop_beg, r2, r10
 
     ram_send_interrupt
 
