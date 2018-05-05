@@ -16,10 +16,13 @@ int main(int argc, char *argv[])
 
     // Set thread priority
     sched_param param;
+
     param.sched_priority = 99;
+
     if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &param) != 0)
     {
         std::cerr << "Failed to set priority for thread: Error code " << errno << ": " << std::strerror(errno) << std::endl;
+
         return EXIT_FAILURE;
     }
 
