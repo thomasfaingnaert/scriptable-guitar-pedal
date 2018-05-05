@@ -1,4 +1,4 @@
-uname_r=4.9.82-ti-r102
+uname_r=4.9.88-ti-xenomai-r107
 
 # U-Boot Overlays
 ## Master Enable
