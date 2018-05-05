@@ -1,5 +1,5 @@
 /* Number of samples in each circular buffer */
-#define RAM_BUFFER_SIZE                             4096
+#define RAM_BUFFER_SIZE                             2048
 
 /* Address of shared ram */
 #define RAM_ADDRESS                                 0x10000

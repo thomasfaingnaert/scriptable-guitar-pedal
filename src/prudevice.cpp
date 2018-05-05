@@ -61,8 +61,6 @@ void PruDevice::generate_next()
             end = sharedMemory[OFFSET_INPUT_END];
         }
 
-        std::cout << "begin: " << begin << ", end: " << end << "\n";
-
         // Read sample
         //data[i] = static_cast<float>(sharedMemory[OFFSET_INPUT_DATA_BEGIN + begin] / std::pow(2, 24));
         std::cout << "read sample: " << sharedMemory[OFFSET_INPUT_DATA_BEGIN + begin] << std::endl;
