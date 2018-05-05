@@ -105,33 +105,44 @@ uname -a
 ```
 This should output something similar to `Linux beaglebone 4.9.88-ti-xenomai-r107 #1 SMP PREEMPT Sat Mar 24 09:29:27 UTC 2018 armv7l GNU/Linux`.
 
-3. Next, we need to enable the device overlay for UIO.
-Open the file `/boot/uEnv.txt` and uncomment the following line:
-```
-uboot_overlay_pru=/lib/firmware/AM335X-PRU-UIO-00A0.dtbo
-```
-When you're done, save the file and reboot.
-
-4. The UIO driver should now be loaded. You can verify this by running:
+3. Next, we need to install our custom overlay:
 ```bash
-lsmod | grep uio
-ls /dev/uio*
+cd device-tree/
+make
+sudo make install
 ```
 
-5. Update all packages:
+4. Enable it by copying `uEnv-pru.txt` to the `boot/` folder:
+```bash
+cd boot/
+sudo cp uEnv-pru.txt /boot/uEnv.txt
+```
+
+4. Update all packages:
 ```bash
 sudo apt update
 sudo apt upgrade
 ```
 
-6. If you want to assemble PRU Assembly files on your PC, you should install the PRU assembler from https://github.com/beagleboard/am335x_pru_package.
+5. Delete RoboticsCape, as it blacklists the `uio_pruss` module
+```bash
+sudo apt purge roboticscape
+```
+
+6. The UIO driver should now be loaded. You can verify this by running:
+```bash
+lsmod | grep uio
+ls /dev/uio*
+```
+
+7. If you want to assemble PRU Assembly files on your PC, you should install the PRU assembler from https://github.com/beagleboard/am335x_pru_package.
 Otherwise, you could copy the `*.p` files to the BBB using SCP and assemble them there.
 To assemble a file `test.p`, you can use:
 ```bash
 pasm -b test.p
 ```
 
-7. Run the PRU loader to execute the PRU code:
+8. Run the PRU loader to execute the PRU code:
 ```bash
 ./scriptable-guitar-pedal test.bin
 ```
