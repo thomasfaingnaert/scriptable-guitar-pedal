@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-#if 1
+#if 0
     auto pruDev = std::make_shared<PruDevice>();
 
     while (true)
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
     std::cout << "Saved" << std::endl;
 #endif
 
-#if 0
+#if 1
     SampleData impulse("impulse.wav");
     std::vector<float> impulseData = impulse.getSamples()[0];
 
