@@ -1,7 +1,7 @@
-/* Register containing the base address of the McASP */
+// Register containing the base address of the McASP
 #define MCASP_BASE_ADDRESS_REGISTER r29
 
-/* Base address of the McASP */
+// Base address of the McASP
 #define MCASP0_BASE_ADDRESS 0x48038000
 #define MCASP1_BASE_ADDRESS 0x4803C000
 
@@ -41,14 +41,14 @@
 #define MCASP_XCLKCHK_OFFSET            0xC8
 #define MCASP_XEVTCTL_OFFSET            0xCC
 
-/* Write a McASP register */
+// Write a McASP register
 .macro mcasp_register_write
 .mparam offset, value
     mov     r27, value
     sbbo    &r27, MCASP_BASE_ADDRESS_REGISTER, offset, 4
 .endm
 
-/* Write a McASP register beyond the 0xFF boundary */
+// Write a McASP register beyond the 0xFF boundary
 .macro mcasp_register_write_extended
 .mparam offset, value
     mov     r27, value
@@ -56,20 +56,20 @@
     sbbo    &r27, MCASP_BASE_ADDRESS_REGISTER, r28, 4
 .endm
 
-/* Read a McASP register */
+// Read a McASP register
 .macro mcasp_register_read
 .mparam destination, offset
     lbbo    &destination, MCASP_BASE_ADDRESS_REGISTER, offset, 4
 .endm
 
-/* Read a McASP register beyond the 0xFF boundary */
+// Read a McASP register beyond the 0xFF boundary
 .macro mcasp_register_read_extended
 .mparam destination, offset
     mov     r28, offset
     lbbo    &destination, MCASP_BASE_ADDRESS_REGISTER, r28, 4
 .endm
 
-/* Set a McASP register bit and wait for it to come up */
+// Set a McASP register bit and wait for it to come up
 .macro mcasp_register_set_bit_and_poll
 .mparam offset, bit
     lbbo    &r28, MCASP_BASE_ADDRESS_REGISTER, offset, 4
