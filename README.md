@@ -142,7 +142,15 @@ To assemble a file `test.p`, you can use:
 pasm -b test.p
 ```
 
-9. Run the PRU loader to execute the PRU code:
+9. Install the RTDM kernel module from https://github.com/thomasfaingnaert/rtdm_pruss_irq:
+```bash
+wget https://github.com/thomasfaingnaert/rtdm_pruss_irq/releases/download/v1.0/rtdm_pruss_irq.ko
+sudo cp rtdm_pruss_irq.ko /lib/modules/`uname -r`/extra
+sudo depmod -a
+sudo modprobe rtdm_pruss_irq
+```
+
+10. Run the PRU loader to execute the PRU code:
 ```bash
 ./scriptable-guitar-pedal test.bin
 ```
