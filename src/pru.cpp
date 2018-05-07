@@ -59,7 +59,12 @@ void Pru::waitForInterrupt() const
 
 ulong* Pru::setupSharedMemory() const
 {
-    int fd = open("/dev/mem", O_RDWR | O_SYNC);
-    ulong* sharedMemory = static_cast<ulong*>(mmap(0, SHARED_MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, PRU_ADDRESS + SHARED_MEMORY_OFFSET));
+    ulong* sharedMemory;
+
+    if (prussdrv_map_prumem(PRUSS0_SHARED_DATARAM, (void**)&sharedMemory))
+    {
+        throw std::runtime_error("Can't map shared data RAM");
+    }
+
     return sharedMemory;
 }
