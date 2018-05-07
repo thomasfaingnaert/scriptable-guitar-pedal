@@ -6,6 +6,7 @@
 #include <chrono>
 
 #include "NE10.h"
+#include "codec.h"
 #include "prudevice.h"
 
 int main(int argc, char *argv[])
@@ -29,11 +30,15 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    PruDevice pruDevice;
+    Codec codec(1, 0x10);
+
+    auto pruDevice = std::make_shared<PruDevice>();
+
+    pruDevice->connect(pruDevice);
+
     while (true)
     {
-        pruDevice.generate_next();
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        pruDevice->generate_next();
     }
 
     return EXIT_SUCCESS;
