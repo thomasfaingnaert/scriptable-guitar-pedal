@@ -10,7 +10,7 @@ class Pru
         ~Pru();
         void executeProgram(const std::string& filename) const;
         void waitForInterrupt() const;
-        ulong* setupSharedMemory() const;
+        volatile ulong* setupSharedMemory() const;
 
     private:
         const std::string RTDM_DRIVER = "/dev/rtdm/rtdm_pruss_irq_0";

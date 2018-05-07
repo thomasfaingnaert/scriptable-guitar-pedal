@@ -57,7 +57,7 @@ void Pru::waitForInterrupt() const
     read(rtdm_file_descriptor, &val, sizeof(val));
 }
 
-ulong* Pru::setupSharedMemory() const
+volatile ulong* Pru::setupSharedMemory() const
 {
     ulong* sharedMemory;
 
