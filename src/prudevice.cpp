@@ -10,8 +10,8 @@ PruDevice::PruDevice()
     sharedMemory = pru.setupSharedMemory();
 
     // Set iterators
-    sharedMemory[OFFSET_INPUT_BEGIN] = sharedMemory[OFFSET_INPUT_END] = 0;
-    sharedMemory[OFFSET_OUTPUT_BEGIN] = sharedMemory[OFFSET_OUTPUT_END] = 0;
+    sharedMemory[INPUT_BEGIN_OFFSET] = sharedMemory[INPUT_END_OFFSET] = 0;
+    sharedMemory[OUTPUT_BEGIN_OFFSET] = sharedMemory[OUTPUT_END_OFFSET] = 0;
     pru.executeProgram("ram.bin");
 }
 
@@ -23,22 +23,22 @@ void PruDevice::push(const std::array<float, Constants::BLOCK_SIZE>& data)
         ulong i = static_cast<ulong>(f * std::pow(2, 24));
 
         // Read current begin and end pointer
-        ulong begin = sharedMemory[OFFSET_OUTPUT_BEGIN];
-        ulong end = sharedMemory[OFFSET_OUTPUT_END];
+        ulong begin = sharedMemory[OUTPUT_BEGIN_OFFSET];
+        ulong end = sharedMemory[OUTPUT_END_OFFSET];
 
         // Wait until buffer is no longer full
         while ((end + 1) % BUFFER_SIZE == begin)
         {
-            begin = sharedMemory[OFFSET_OUTPUT_BEGIN];
-            end = sharedMemory[OFFSET_OUTPUT_END];
+            begin = sharedMemory[OUTPUT_BEGIN_OFFSET];
+            end = sharedMemory[OUTPUT_END_OFFSET];
         }
 
         // Write result
-        sharedMemory[OFFSET_OUTPUT_DATA_BEGIN + end] = i;
+        sharedMemory[OUTPUT_DATA_BEGIN_OFFSET + end] = i;
 
         // Increment end pointer
         end = (end + 1) % BUFFER_SIZE;
-        sharedMemory[OFFSET_OUTPUT_END] = end;
+        sharedMemory[OUTPUT_END_OFFSET] = end;
     }
 }
 
@@ -49,24 +49,24 @@ void PruDevice::generate_next()
     for (unsigned int i = 0; i < Constants::BLOCK_SIZE; ++i)
     {
         // Read current begin and end pointer
-        ulong begin = sharedMemory[OFFSET_INPUT_BEGIN];
-        ulong end = sharedMemory[OFFSET_INPUT_END];
+        ulong begin = sharedMemory[INPUT_BEGIN_OFFSET];
+        ulong end = sharedMemory[INPUT_END_OFFSET];
 
         // Wait until there is a new sample available
         while (begin == end)
         {
             pru.waitForInterrupt();
-            begin = sharedMemory[OFFSET_INPUT_BEGIN];
-            end = sharedMemory[OFFSET_INPUT_END];
+            begin = sharedMemory[INPUT_BEGIN_OFFSET];
+            end = sharedMemory[INPUT_END_OFFSET];
         }
 
         // Read sample
-        data[i] = static_cast<float>(sharedMemory[OFFSET_INPUT_DATA_BEGIN + begin]) / std::pow(2, 24);
-        std::cout << sharedMemory[OFFSET_INPUT_DATA_BEGIN + begin] << " " << std::flush;
+        data[i] = static_cast<float>(sharedMemory[INPUT_DATA_BEGIN_OFFSET + begin]) / std::pow(2, 24);
+        std::cout << sharedMemory[INPUT_DATA_BEGIN_OFFSET + begin] << " " << std::flush;
 
         // Increment begin pointer
         begin = (begin + 1) % BUFFER_SIZE;
-        sharedMemory[OFFSET_INPUT_BEGIN] = begin;
+        sharedMemory[INPUT_BEGIN_OFFSET] = begin;
     }
     std::cout << "\n";
     push(data);

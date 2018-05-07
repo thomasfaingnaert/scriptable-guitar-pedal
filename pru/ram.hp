@@ -2,18 +2,18 @@
 #define RAM_BUFFER_SIZE                             1024
 
 // Address of shared ram
-#define RAM_ADDRESS                                 0x10000
+#define RAM_BASE_ADDRESS                            0x10000
 
 // Offsets in the shared RAM for different fields
-#define RAM_OFFSET_INPUT_BEGIN                      0
-#define RAM_OFFSET_INPUT_END                        1
-#define RAM_OFFSET_INPUT_DATA_BEGIN                 2
-#define RAM_OFFSET_INPUT_DATA_END                   (RAM_OFFSET_INPUT_DATA_BEGIN + RAM_BUFFER_SIZE)
+#define RAM_INPUT_BEGIN_OFFSET                      0
+#define RAM_INPUT_END_OFFSET                        1
+#define RAM_INPUT_DATA_BEGIN_OFFSET                 2
+#define RAM_INPUT_DATA_END_OFFSET                   (RAM_INPUT_DATA_BEGIN_OFFSET + RAM_BUFFER_SIZE)
 
-#define RAM_OFFSET_OUTPUT_BEGIN                     RAM_OFFSET_INPUT_DATA_END
-#define RAM_OFFSET_OUTPUT_END                       (RAM_OFFSET_OUTPUT_BEGIN + 1)
-#define RAM_OFFSET_OUTPUT_DATA_BEGIN                (RAM_OFFSET_OUTPUT_END + 1)
-#define RAM_OFFSET_OUTPUT_DATA_END                  (RAM_OFFSET_OUTPUT_DATA_BEGIN + RAM_BUFFER_SIZE)
+#define RAM_OUTPUT_BEGIN_OFFSET                     RAM_INPUT_DATA_END_OFFSET
+#define RAM_OUTPUT_END_OFFSET                       (RAM_OUTPUT_BEGIN_OFFSET + 1)
+#define RAM_OUTPUT_DATA_BEGIN_OFFSET                (RAM_OUTPUT_END_OFFSET + 1)
+#define RAM_OUTPUT_DATA_END_OFFSET                  (RAM_OUTPUT_DATA_BEGIN_OFFSET + RAM_BUFFER_SIZE)
 
 // Interrupt number for CPU
 #define PRUSS_PRU_ARM_INTERRUPT                     35
@@ -28,8 +28,8 @@
 .macro ram_input_push
 wait_loop_begin:
     // Load begin pointer in r4, and end pointer in r5
-    mov     r3, RAM_ADDRESS
-    lbbo    &r4, r3, 4 * RAM_OFFSET_INPUT_BEGIN, 8
+    mov     r3, RAM_BASE_ADDRESS
+    lbbo    &r4, r3, 4 * RAM_INPUT_BEGIN_OFFSET, 8
 
     // Calculate (end + 1) % BUFFER_SIZE
     add     r6, r5, 1
@@ -40,20 +40,20 @@ wait_loop_begin:
     qbeq    wait_loop_begin, r4, r6
 
     // Write result
-    mov     r7, RAM_ADDRESS + 4 * RAM_OFFSET_INPUT_DATA_BEGIN
+    mov     r7, RAM_BASE_ADDRESS + 4 * RAM_INPUT_DATA_BEGIN_OFFSET
     lsl     r5, r5, 2
     add     r7, r7, r5
     sbbo    &r2, r7, 0, 4
 
     // Write new end pointer
-    sbbo    &r6, r3, 4 * RAM_OFFSET_INPUT_END, 4
+    sbbo    &r6, r3, 4 * RAM_INPUT_END_OFFSET, 4
 .endm
 
 // Get sample from output buffer
 .macro ram_output_pop
 wait_loop_begin:
     // Load begin pointer in r4, and end pointer in r5
-    mov     r3, RAM_ADDRESS + 4 * RAM_OFFSET_OUTPUT_BEGIN
+    mov     r3, RAM_BASE_ADDRESS + 4 * RAM_OUTPUT_BEGIN_OFFSET
     lbbo    &r4, r3, 0, 8
 
     // Output buffer is empty when end == begin
@@ -65,7 +65,7 @@ wait_loop_begin:
     and     r6, r6, r7
 
     // Read result
-    mov     r7, RAM_ADDRESS + 4 * RAM_OFFSET_OUTPUT_DATA_BEGIN
+    mov     r7, RAM_BASE_ADDRESS + 4 * RAM_OUTPUT_DATA_BEGIN_OFFSET
     lsl     r4, r4, 2
     add     r7, r7, r4
     lbbo    &r2, r7, 0, 4

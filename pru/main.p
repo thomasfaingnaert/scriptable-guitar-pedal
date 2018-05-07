@@ -39,7 +39,7 @@ start:
     #define MCASP_RPBIT 23
     // Slot size is 32 bits
     #define MCASP_RSSZ 0xF
-    // Reads from XRBUF[n] originate on data port
+    // Reads from XRBUF[n] originate from the data port
     #define MCASP_RBUSEL 0x0
     // Rotate right by 8 bit positions
     #define MCASP_RROT 0x2
@@ -60,5 +60,56 @@ start:
     #define MCASP_AFSRCTL (MCASP_RMOD << 7) | (MCASP_FRWID << 4) | (MCASP_FSRM << 1) | (MCASP_FSRP << 0)
 
     mcasp_register_write    MCASP_AFSRCTL_OFFSET, MCASP_AFSRCTL
+
+    // Receiver samples data on the rising edge of the serial clock
+    #define MCASP_CLKRP 0x1
+    // This has no effect, because MCASP_ASYNC = 0x0
+    #define MCASP_CLKRM 0x0
+    // This has no effect, because MCASP_ASYNC = 0x0
+    #define MCASP_CLKRDIV 0x0
+
+    #define MCASP_ACLKRCTL (MCASP_CLKRP << 7) | (MCASP_CLKRM << 5) | (MCASP_CLKRDIV << 0)
+
+    mcasp_register_write    MCASP_ACLKRCTL_OFFSET, MCASP_ACLKRCTL
+
+    // This has no effect
+    mcasp_register_write    MCASP_AHCLKRCTL_OFFSET, 0x00000000
+
+    // Receive TDM time slot 0 and 1 are active
+    #define MCASP_RTDMS 0x3
+
+    #define MCASP_RTDM (MCASP_RTDMS << 0)
+
+    mcasp_register_write    MCASP_RTDM_OFFSET, MCASP_RTDM
+
+    // Disable all receive interrupts
+    mcasp_register_write    MCASP_RINTCTL_OFFSET, 0x00000000
+
+    // Do not use the receive clock failure detection circuit
+    mcasp_register_write    MCASP_RCLKCHK_OFFSET, 0x00000000
+
+    // The 8 most significant bits of transmit data are masked out and then padded with the selected bit pad value (XPAD and XPBIT bits in XFMT)
+    #define MCASP_XMASK 0xFFFFFF00
+
+    mcasp_register_write    MCASP_XMASK_OFFSET, MCASP_XMASK
+
+    // 0-bit delay
+    #define MCASP_XDATDLY 0x0
+    // Bitstream is MSB first
+    #define MCASP_XRVRS 0x1
+    // Pad extra bits with 0
+    #define MCASP_XPAD 0x0
+    // This has no effect, because MCASP_XPAD != 0x2
+    #define MCASP_XPBIT 0
+    // Slot size is 32 bits
+    #define MCASP_XSSZ 0xF
+    // Writes to XRBUF[n] originate from the data port
+    #define MCASP_XBUSEL 0x0
+    // Rotate right by 24 bit positions
+    #define MCASP_XROT 0x6
+
+    #define MCASP_XFMT (MCASP_XDATDLY << 16) | (MCASP_XRVRS << 15) | (MCASP_XPAD << 13) | (MCASP_XPBIT << 8) | (MCASP_XSSZ << 4) | (MCASP_XBUSEL << 3) | (MCASP_XROT << 0)
+
+    mcasp_register_write    MCASP_XFMT_OFFSET, MCASP_XFMT
 
     halt
