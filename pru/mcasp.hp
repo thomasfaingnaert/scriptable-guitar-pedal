@@ -41,6 +41,20 @@
 #define MCASP_XCLKCHK_OFFSET            0xC8
 #define MCASP_XEVTCTL_OFFSET            0xCC
 
+#define MCASP_SRCTL_0_OFFSET    0x180
+#define MCASP_SRCTL_1_OFFSET    0x184
+#define MCASP_SRCTL_2_OFFSET    0x188
+#define MCASP_SRCTL_3_OFFSET    0x18C
+#define MCASP_SRCTL_4_OFFSET    0x190
+#define MCASP_SRCTL_5_OFFSET    0x194
+
+#define MCASP_XBUF_0_OFFSET 0x200
+#define MCASP_XBUF_1_OFFSET 0x204
+#define MCASP_XBUF_2_OFFSET 0x208
+#define MCASP_XBUF_3_OFFSET 0x20C
+#define MCASP_XBUF_4_OFFSET 0x210
+#define MCASP_XBUF_5_OFFSET 0x214
+
 // Write a McASP register
 .macro mcasp_register_write
 .mparam offset, value

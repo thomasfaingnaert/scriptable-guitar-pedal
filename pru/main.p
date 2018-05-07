@@ -61,17 +61,8 @@ start:
 
     mcasp_register_write    MCASP_AFSRCTL_OFFSET, MCASP_AFSRCTL
 
-    // Receiver samples data on the rising edge of the serial clock
-    #define MCASP_CLKRP 0x1
-    // This has no effect, because MCASP_ASYNC = 0x0
-    #define MCASP_CLKRM 0x0
-    // This has no effect, because MCASP_ASYNC = 0x0
-    #define MCASP_CLKRDIV 0x0
-
-    #define MCASP_ACLKRCTL (MCASP_CLKRP << 7) | (MCASP_CLKRM << 5) | (MCASP_CLKRDIV << 0)
-
-    mcasp_register_write    MCASP_ACLKRCTL_OFFSET, MCASP_ACLKRCTL
-
+    // This is irrelevant, because MCASP_ASYNC = 0x0
+    mcasp_register_write    MCASP_ACLKRCTL_OFFSET, 0x00000000
     // This has no effect
     mcasp_register_write    MCASP_AHCLKRCTL_OFFSET, 0x00000000
 
@@ -111,5 +102,170 @@ start:
     #define MCASP_XFMT (MCASP_XDATDLY << 16) | (MCASP_XRVRS << 15) | (MCASP_XPAD << 13) | (MCASP_XPBIT << 8) | (MCASP_XSSZ << 4) | (MCASP_XBUSEL << 3) | (MCASP_XROT << 0)
 
     mcasp_register_write    MCASP_XFMT_OFFSET, MCASP_XFMT
+
+    // 2-slot TDM
+    #define MCASP_XMOD 0x2
+    // Single word width of the transmit frame sync during its active period
+    #define MCASP_FXWID 0x1
+    // Externally-generated transmit frame sync
+    #define MCASP_FSXM 0x0
+    // A rising edge on the transmit frame sync indicates the beginning of a frame
+    #define MCASP_FSXP 0x0
+
+    #define MCASP_AFSXCTL (MCASP_XMOD << 7) | (MCASP_FXWID << 4) | (MCASP_FSXM << 1) | (MCASP_FSXP << 0)
+
+    mcasp_register_write    MCASP_AFSXCTL_OFFSET, MCASP_AFSXCTL
+
+    // External receiver samples data on the rising edge of the serial clock
+    #define MCASP_CLKXP 0x1
+    // Transmit clock and frame sync provides the source for both the transmit and receive sections
+    #define MCASP_ASYNC 0x0
+    // External transmit clock source from ACLKX pin
+    #define MCASP_CLKXM 0x0
+    // This has no effect, because MCASP_CLKXM = 0x0
+    #define MCASP_CLKXDIV 0x0
+
+    #define MCASP_ACLKXCTL (MCASP_CLKXP << 7) | (MCASP_ASYNC << 6) | (MCASP_CLKXM << 5) | (MCASP_CLKXDIV << 0)
+
+    mcasp_register_write    MCASP_ACLKXCTL_OFFSET, MCASP_ACLKXCTL
+
+    // External transmit high-frequency clock source from AHCLKX
+    #define MCASP_HCLKXM 0x0
+    // This has no effect
+    #define MCASP_HCLKXP 0x0
+    // This has no effect
+    #define MCASP_HCLKXDIV 0x0
+
+    #define MCASP_AHCLKXCTL (MCASP_HCLKXM << 15) | (MCASP_HCLKXP << 14) | (MCASP_HCLKXDIV << 0)
+
+    mcasp_register_write    MCASP_AHCLKXCTL_OFFSET, MCASP_AHCLKXCTL
+
+    // Transmit TDM time slot 0 and 1 are active
+    #define MCASP_XTDMS 0x3
+
+    #define MCASP_XTDM (MCASP_XTDMS << 0)
+
+    mcasp_register_write    MCASP_XTDM_OFFSET, MCASP_XTDM
+
+    // Disable all transmit interrupts
+    mcasp_register_write    MCASP_XINTCTL_OFFSET, 0x00000000
+
+    // Do not use the transmit clock failure detection circuit
+    mcasp_register_write    MCASP_XCLKCHK_OFFSET, 0x00000000
+
+    // Drive on pin is logic high
+    #define MCASP_DISMOD_0 0x3
+    // Serializer is receiver
+    #define MCASP_SRMOD_0 0x2
+
+    #define MCASP_SRCTL_0 (MCASP_DISMOD_0 << 2) | (MCASP_SRMOD_0 << 0)
+
+    mcasp_register_write_extended   MCASP_SRCTL_0_OFFSET, MCASP_SRCTL_0
+
+    // Drive on pin is logic high
+    #define MCASP_DISMOD_2 0x3
+    // Serializer is transmitter
+    #define MCASP_SRMOD_2 0x1
+
+    #define MCASP_SRCTL_2 (MCASP_DISMOD_2 << 2) | (MCASP_SRMOD_2 << 0)
+
+    mcasp_register_write_extended   MCASP_SRCTL_2_OFFSET, MCASP_SRCTL_2
+
+    // AFSR functions as a GPIO pin
+    #define MCASP_PFUNC_AFSR 0x1
+    // AHCLKR functions as a GPIO pin
+    #define MCASP_PFUNC_AHCLKR 0x1
+    // ACLKR functions as a GPIO pin
+    #define MCASP_PFUNC_ACLKR 0x1
+    // AFSX functions as a McASP pin
+    #define MCASP_PFUNC_AFSX 0x0
+    // AHCLKX functions as a McASP pin
+    #define MCASP_PFUNC_AHCLKX 0x0
+    // ACLKX functions as a McASP pin
+    #define MCASP_PFUNC_ACLKX 0x0
+    // AMUTE functions as a McASP pin
+    #define MCASP_PFUNC_AMUTE 0x0
+    // AXR0 functions as a McASP pin
+    // AXR1 functions as a GPIO pin
+    // AXR2 functions as a McASP pin
+    // AXR3 functions as a GPIO pin
+    #define MCASP_PFUNC_AXR 0x5
+
+    #define MCASP_PFUNC (MCASP_PFUNC_AFSR << 31) | (MCASP_PFUNC_AHCLKR << 30) | (MCASP_PFUNC_ACLKR << 29) | (MCASP_PFUNC_AFSX << 28) | (MCASP_PFUNC_AHCLKX << 27) | (MCASP_PFUNC_ACLKX << 26) | (MCASP_PFUNC_AMUTE << 25) | (MCASP_PFUNC_AXR << 0)
+
+    mcasp_register_write    MCASP_PFUNC_OFFSET, MCASP_PFUNC
+
+    // AFSR functions as an input
+    #define MCASP_PDIR_AFSR 0x0
+    // AHCLKR functions as an input
+    #define MCASP_PDIR_AHCLKR 0x0
+    // ACLKR functions as an input
+    #define MCASP_PDIR_ACLKR 0x0
+    // AFSX functions as an input
+    #define MCASP_PDIR_AFSX 0x0
+    // AHCLKX functions as an input
+    #define MCASP_PDIR_AHCLKX 0x0
+    // ACLKX functions as an input
+    #define MCASP_PDIR_ACLKX 0x0
+    // AMUTE functions as an output
+    #define MCASP_PDIR_AMUTE 0x1
+    // AXR0 functions as an input
+    // AXR1 functions as an input
+    // AXR2 functions as an output
+    // AXR3 functions as an input
+    #define MCASP_PDIR_AXR 0x4
+
+    #define MCASP_PDIR (MCASP_PDIR_AFSR << 31) | (MCASP_PDIR_AHCLKR << 30) | (MCASP_PDIR_ACLKR << 29) | (MCASP_PDIR_AFSX << 28) | (MCASP_PDIR_AHCLKX << 27) | (MCASP_PDIR_ACLKX << 26) | (MCASP_PDIR_AMUTE << 25) | (MCASP_PDIR_AXR << 0)
+
+    mcasp_register_write    MCASP_PDIR_OFFSET, MCASP_PDIR
+
+    // DIT mode is disabled
+    #define MCASP_DITEN 0x0
+
+    #define MCASP_DITCTL (MCASP_DITEN << 0)
+
+    mcasp_register_write    MCASP_DITCTL_OFFSET, MCASP_DITCTL
+
+    // Loopback mode is disabled
+    #define MCASP_DLBEN 0x0
+
+    #define MCASP_DLBCTL (MCASP_DLBEN << 0)
+
+    mcasp_register_write    MCASP_DLBCTL_OFFSET, MCASP_DLBCTL
+
+    // AMUTE pin is disabled
+    #define MCASP_MUTEN 0x0
+
+    #define MCASP_AMUTE (MCASP_MUTEN << 0)
+
+    mcasp_register_write    MCASP_AMUTE_OFFSET, MCASP_AMUTE
+
+    // Receive high-frequency clock divider is running
+    mcasp_register_set_bit_and_poll MCASP_GBLCTL_OFFSET, 1
+    // Transmit high-frequency clock divider is running
+    mcasp_register_set_bit_and_poll MCASP_GBLCTL_OFFSET, 9
+
+    // Clear the receiver status register
+    mcasp_register_write    MCASP_RSTAT_OFFSET, 0xFFFF
+    // Clear the transmitter status register
+    mcasp_register_write    MCASP_XSTAT_OFFSET, 0xFFFF
+
+    // Receive serializers are active
+    mcasp_register_set_bit_and_poll MCASP_GBLCTL_OFFSET, 2
+    // Transmit serializers are active
+    mcasp_register_set_bit_and_poll MCASP_GBLCTL_OFFSET, 10
+
+    // Write to XBUF
+    mcasp_register_write_extended MCASP_XBUF_2_OFFSET, 0x00000000
+
+    // Receive state machine is released from reset
+    mcasp_register_set_bit_and_poll MCASP_GBLCTL_OFFSET, 3
+    // Transmit state machine is released from reset
+    mcasp_register_set_bit_and_poll MCASP_GBLCTL_OFFSET, 11
+
+    // Receive frame sync generator is active
+    mcasp_register_set_bit_and_poll MCASP_GBLCTL_OFFSET, 4
+    // Transmit frame sync generator is active
+    mcasp_register_set_bit_and_poll MCASP_GBLCTL_OFFSET, 12
 
     halt
