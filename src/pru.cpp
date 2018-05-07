@@ -61,10 +61,7 @@ ulong* Pru::setupSharedMemory() const
 {
     ulong* sharedMemory;
 
-    if (prussdrv_map_prumem(PRUSS0_SHARED_DATARAM, (void**)&sharedMemory))
-    {
-        throw std::runtime_error("Can't map shared data RAM");
-    }
+    prussdrv_map_prumem(PRUSS0_SHARED_DATARAM, (void**)&sharedMemory);
 
     return sharedMemory;
 }
