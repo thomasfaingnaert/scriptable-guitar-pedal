@@ -13,7 +13,7 @@
 #define RAM_OFFSET_OUTPUT_BEGIN                     RAM_OFFSET_INPUT_DATA_END
 #define RAM_OFFSET_OUTPUT_END                       (RAM_OFFSET_OUTPUT_BEGIN + 1)
 #define RAM_OFFSET_OUTPUT_DATA_BEGIN                (RAM_OFFSET_OUTPUT_END + 1)
-#define RAM_OFFSET_OUTPUT_DATA_END                  (RAM_OFFSET_OUTPUT_DATA_BEGIN + BUFFER_SIZE)
+#define RAM_OFFSET_OUTPUT_DATA_END                  (RAM_OFFSET_OUTPUT_DATA_BEGIN + RAM_BUFFER_SIZE)
 
 /* Interrupt number for CPU */
 #define PRUSS_PRU_ARM_INTERRUPT                     35

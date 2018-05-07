@@ -1,6 +1,6 @@
 PASM = pasm
 PASMFLAGS = -bL
-BIN = main.bin
+BIN = main.bin ram.bin
 
 all: $(BIN)
 
