@@ -697,7 +697,15 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
         }
         else if (effect == "convolution")
         {
-            // TODO
+            std::string impulseResponseName(obj["response-list"].GetString());
+
+            // complete path
+            std::string impulseResponse = "impulse-responses/" + impulseResponseName + ".wav";
+            SampleData filter(impulseResponse);
+
+            auto fe = std::make_shared<FilterEffect>(filter.getSamples()[0]);
+            sources.push_back(fe);
+            sinks.push_back(fe);
         }
     }
 
@@ -1154,8 +1162,15 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
         }
         else if (effect == "convolution")
         {
-            // TODO
-            std::cout << "Later alligator" << std::endl;
+            std::string impulseResponseName(obj["response-list"].GetString());
+
+            // complete path
+            std::string impulseResponse = "impulse-responses/" + impulseResponseName + ".wav";
+            SampleData filter(impulseResponse);
+
+            auto fe = std::make_shared<FilterEffect>(filter.getSamples()[0]);
+            sources.push_back(fe);
+            sinks.push_back(fe);
         }
     }
 
