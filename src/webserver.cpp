@@ -698,7 +698,6 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
         else if (effect == "convolution")
         {
             // TODO
-            std::cout << "Later alligator" << std::endl;
         }
     }
 
