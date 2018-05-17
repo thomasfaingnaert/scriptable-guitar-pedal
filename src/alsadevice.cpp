@@ -13,6 +13,7 @@ AlsaDevice::AlsaDevice(unsigned int card,
                        unsigned int period_size_out,
                        unsigned int period_count_in,
                        unsigned int period_count_out)
+    : rate(rate)
 {
     pcm_config pcm_config_in;
     pcm_config_in.channels = channels_in;
@@ -59,9 +60,9 @@ AlsaDevice::~AlsaDevice()
     pcm_close(pcm_out);
 }
 
-void AlsaDevice::push(const std::array<float, Constants::BLOCK_SIZE>& data)
+void AlsaDevice::push(const std::array<float, Constants::BLOCK_SIZE> &data)
 {
-    std::array<int16_t, Constants::BLOCK_SIZE * 2> samples_int;
+    std::array < int16_t, Constants::BLOCK_SIZE * 2 > samples_int;
 
     for (unsigned int i = 0; i < Constants::BLOCK_SIZE; ++i)
     {
@@ -72,9 +73,9 @@ void AlsaDevice::push(const std::array<float, Constants::BLOCK_SIZE>& data)
     pcm_writei(pcm_out, samples_int.data(), pcm_bytes_to_frames(pcm_out, sizeof(int16_t) * samples_int.size()));
 }
 
-void AlsaDevice::generate_next()
+bool AlsaDevice::generate_next()
 {
-    std::array<int16_t, Constants::BLOCK_SIZE * 2> samples_int;
+    std::array < int16_t, Constants::BLOCK_SIZE * 2 > samples_int;
 
     pcm_readi(pcm_in, samples_int.data(), pcm_bytes_to_frames(pcm_in, sizeof(int16_t) * samples_int.size()));
 
@@ -86,4 +87,5 @@ void AlsaDevice::generate_next()
     }
 
     generate(block);
+    return true;
 }

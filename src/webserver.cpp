@@ -10,11 +10,14 @@
 #include <ios>
 #include <iostream>
 #include <memory>
+#include <pthread.h>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <thread>
 
+#include "alsadevice.h"
 #include "civetweb.h"
 #include "delayeffect.h"
 #include "distortioneffect.h"
@@ -50,6 +53,25 @@ WebServer::WebServer(unsigned int port)
         throw std::runtime_error("Could not start HTTP server");
     }
 
+    // Configure param
+    thread_params.changed = false;
+    thread_params.firstSink = nullptr;
+    thread_params.lastSource = nullptr;
+    thread_params.canChange = PTHREAD_COND_INITIALIZER;
+    thread_params.mutex = PTHREAD_MUTEX_INITIALIZER;
+
+    if (pthread_create(&alsaThread, nullptr, alsa_thread, &thread_params) != 0)
+    {
+        throw std::runtime_error("Could not create alsa_thread");
+    }
+
+    sched_param param;
+    param.sched_priority = 99;
+    if (pthread_setschedparam(alsaThread, SCHED_FIFO, &param) != 0)
+    {
+        throw std::runtime_error("Something went wrong setting the priority.");
+    }
+
     // register handlers
     mg_set_request_handler(context, "/exit$", handle_exit, this);
     mg_set_request_handler(context, "/conv/submit$", handle_conv_submit, this);
@@ -63,6 +85,7 @@ WebServer::WebServer(unsigned int port)
     mg_set_request_handler(context, "/chain/load/active$", handle_chain_load_active, this);
     mg_set_request_handler(context, "/conv/upload$", handle_ir_upload, this);
     mg_set_request_handler(context, "/conv/list$", handle_ir_list, this);
+    mg_set_request_handler(context, "/alsa/submit$", handle_alsa_submit, this);
 }
 
 WebServer::~WebServer()
@@ -70,7 +93,11 @@ WebServer::~WebServer()
     mg_stop(context);
 }
 
+// Static fields
 std::string WebServer::jsonChain;
+
+std::shared_ptr<AlsaDevice> WebServer::alsaDevice = std::make_shared<AlsaDevice>(0, 0, 48000, 2, 2, 1024, 1024, 2, 2);
+WebServer::thread_param WebServer::thread_params;
 
 bool WebServer::isRunning() const
 {
@@ -166,7 +193,7 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
     {
         std::string name(key);
 
-        paths_t *vars = static_cast<paths_t*>(user_data);
+        paths_t *vars = static_cast<paths_t *>(user_data);
 
         if (name == "ir-list")
         {
@@ -670,8 +697,15 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
         }
         else if (effect == "convolution")
         {
-            // TODO
-            std::cout << "Later alligator" << std::endl;
+            std::string impulseResponseName(obj["response-list"].GetString());
+
+            // complete path
+            std::string impulseResponse = "impulse-responses/" + impulseResponseName + ".wav";
+            SampleData filter(impulseResponse);
+
+            auto fe = std::make_shared<FilterEffect>(filter.getSamples()[0]);
+            sources.push_back(fe);
+            sinks.push_back(fe);
         }
     }
 
@@ -997,4 +1031,189 @@ int WebServer::handle_ir_list(mg_connection *connection, void *user_data)
     render_json(connection, files);
 
     return 200;
+}
+
+int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
+{
+    mg_form_data_handler fdh = {};
+
+    struct vars_t
+    {
+        std::string jsonString;
+    } vars;
+
+    fdh.user_data = &vars;
+
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
+    {
+        return MG_FORM_FIELD_STORAGE_GET;
+    };
+
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
+    {
+        return 0;
+    };
+
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
+    {
+        std::string name = std::string(key);
+        vars_t *vars = static_cast<vars_t *>(user_data);
+
+        std::string res = std::string(value);
+
+        res = res.substr(0, res.find('\r'));
+
+        if (name == "effect-info")
+        {
+            vars->jsonString = res;
+        }
+
+        return MG_FORM_FIELD_STORAGE_GET;
+    };
+
+    if (mg_handle_form_request(connection, &fdh) <= 0)
+    {
+        throw std::runtime_error("Error handling form request.");
+    }
+
+    // Parse
+    rapidjson::Document chain;
+    chain.Parse(vars.jsonString.c_str()); // Contains array of JSON objects
+
+    jsonChain = vars.jsonString;
+
+    std::vector < std::shared_ptr < Sink < float >> > sinks;
+    std::vector < std::shared_ptr < Source < float >> > sources;
+
+    // Iterate through array
+    for (auto &obj : chain.GetArray())
+    {
+        std::string effect(obj["effect"].GetString());
+        if (effect == "distortion")
+        {
+            std::string type = "symmetric";
+            if (obj.HasMember("type"))
+            {
+                type = std::string(obj["type"].GetString());
+            }
+
+            float gain1 = stof(std::string(obj["gain1"].GetString()));
+            float gain2 = (type == "asymmetric") ? stof(std::string(obj["gain2"].GetString())) : gain1;
+            float mix1 = stof(std::string(obj["mix1"].GetString()));
+            float mix2 = (type == "asymmetric") ? stof(std::string(obj["mix2"].GetString())) : mix1;
+            float threshold = stof(std::string(obj["threshold"].GetString()));
+
+            // Make effect and add to vector
+            auto dist = std::make_shared<DistortionEffect>(gain1, gain2, mix1, mix2, threshold);
+            sinks.push_back(dist);
+            sources.push_back(dist);
+        }
+        else if (effect == "delay")
+        {
+            std::string type = "fir";
+            if (obj.HasMember("type"))
+            {
+                std::string tmp(obj["type"].GetString());
+                type = tmp;
+            }
+            float delayTime = stof(std::string(obj["delay"].GetString()));
+            float decayCoeff = stof(std::string(obj["decay"].GetString()));
+
+            // Process vars
+            float mainCoeff = 1.0;
+            std::vector<unsigned int> delays;
+            std::vector<float> coeffs;
+            float decay = 1 - decayCoeff;
+
+            unsigned int delaySamples = (unsigned int) (delayTime * alsaDevice->getSampleRate());
+
+            if (type == "fir")
+            {
+                delays = {delaySamples};
+                coeffs = {decay};
+            }
+            else // iir
+            {
+                int i = 1;
+                while (decay >= 0.05)
+                {
+                    delays.push_back(delaySamples * i++);
+                    coeffs.push_back(decay);
+                    decay *= decay;
+                }
+            }
+
+            // Create effect and add to vector
+            auto delay = std::make_shared<DelayEffect>(mainCoeff, delays, coeffs);
+            sources.push_back(delay);
+            sinks.push_back(delay);
+        }
+        else if (effect == "tremolo")
+        {
+            float depth = stof(std::string(obj["depth"].GetString()));
+            float rate = stof(std::string(obj["rate"].GetString()));
+
+            unsigned int period = (unsigned int) ((1 / rate) * alsaDevice->getSampleRate());
+
+            // Create effect and add to vector
+            auto tremolo = std::make_shared<TremoloEffect>(depth, period);
+            sources.push_back(tremolo);
+            sinks.push_back(tremolo);
+        }
+        else if (effect == "convolution")
+        {
+            std::string impulseResponseName(obj["response-list"].GetString());
+
+            // complete path
+            std::string impulseResponse = "impulse-responses/" + impulseResponseName + ".wav";
+            SampleData filter(impulseResponse);
+
+            auto fe = std::make_shared<FilterEffect>(filter.getSamples()[0]);
+            sources.push_back(fe);
+            sinks.push_back(fe);
+        }
+    }
+
+
+    for (std::size_t i = 0; i < sources.size() - 1; ++i)
+    {
+        sources[i]->connect(sinks[i + 1]);
+    }
+
+
+    if (pthread_mutex_lock(&thread_params.mutex) != 0)
+    {
+        throw std::runtime_error("Error locking mutex");
+    }
+    thread_params.changed = true;
+    if (pthread_cond_wait(&thread_params.canChange, &thread_params.mutex) != 0)
+    {
+        throw std::runtime_error("Error in cond_wait");
+    }
+
+    render_redirect(connection, "/chain.html");
+
+    return 200;
+}
+
+void *WebServer::alsa_thread(void *arg)
+{
+    thread_param *params = static_cast<thread_param *>(arg);
+    while (true)
+    {
+
+        for (unsigned int i = 0; i < alsaDevice->getSampleRate(); ++i)
+        {
+            alsaDevice->generate_next();
+        }
+
+        if (params->changed)
+        {
+            alsaDevice->connect(params->firstSink);
+            params->lastSource->connect(alsaDevice);
+            params->changed = false;
+            pthread_cond_signal(&params->canChange);
+        }
+
+    }
 }

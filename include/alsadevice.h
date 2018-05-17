@@ -23,10 +23,13 @@ public:
 
     virtual void push(const std::array<float, Constants::BLOCK_SIZE>& data);
 
-    void generate_next();
+    unsigned int getSampleRate() { return rate; }
+
+    bool generate_next();
 private:
     pcm *pcm_in;
     pcm *pcm_out;
+    unsigned int rate;
 };
 
 #endif

@@ -2,10 +2,10 @@
  * This function will take the effects from the jsplumb container, check if they are well connected,
  * and then send a JSON string to the server for it to be processed over there
  *
- * @param id The id of the field in which to inject the info
+ * @param className The className of the field in which to inject the info
  * @returns {boolean}
  */
-function sendEffect(id) {
+function sendEffect(className) {
     var sources = [];
     var targets = [];
 
@@ -15,7 +15,7 @@ function sendEffect(id) {
     });
 
     if (checkConnections(sources, targets)) {
-        if (id === 'effect-info' && $('#input').get() === '') {
+        if (className === 'effect-info' && $('#input').get() === '') {
             return false;
         }
 
@@ -23,13 +23,15 @@ function sendEffect(id) {
         var jsonString = makeJSON(sources); // sources always contains 'inputbox' at this point
 
         // Set value for hidden fields
-        $('#' + id).val(jsonString);
+        console.log(jsonString);
+        console.log('.' + className);
+        $('.' + className).val(jsonString);
 
         return true;
     } else {
-        if (id === 'effect-info') {
+        if (className === 'effect-info') {
             alert("Please make sure your effects are chained correctly and you have selected a file!");
-        } else if (id === 'save-effect-info') {
+        } else if (className === 'save-effect-info') {
             alert("Please make sure your effects are chained correctly.");
         }
         return false;

@@ -27,6 +27,9 @@ $(document).ready(function () {
 
     // Check if there's a chain already and if so, load it
     loadActiveChain();
+
+    // Load impulse responses
+    loadResponses();
 });
 
 /**
@@ -110,8 +113,9 @@ function displayForm(effect) {
             "                </div>";
     } else if (effect === 'conv') {
         form = "<div class=\"form-group\">\n" +
-            "                    <label for=\"impulse-response\">Input file</label>\n" +
-            "                    <input type=\"file\" class=\"form-control-file\" name=\"impulse-response\" id=\"impulse-response\" />\n" +
+            "                    <label for=\"response-list\">Impulse responses</label>\n" +
+            "                    <select class=\"form-control\" name=\"response-list\" id=\"response-list\">\n" +
+            "                    </select>\n" +
             "                </div>";
     } else {
         alert("Select only 1 effect at a time please.");
@@ -180,11 +184,11 @@ function addEndPoints(box) {
         isSource: true,
         isTarget: true,
         connector: ["Straight"],
-        endpoint: ["Dot", {radius:6}]
+        endpoint: ["Dot", {radius: 6}]
     };
 
     if (id !== 'inputbox') {
-        jsPlumb.addEndpoint(id, { anchors: ['Left'], uuid: 'ep-left-' + numElements }, common);
+        jsPlumb.addEndpoint(id, {anchors: ['Left'], uuid: 'ep-left-' + numElements}, common);
     }
     if (id !== 'outputbox') {
         jsPlumb.addEndpoint(id, {anchors: ['Right'], uuid: 'ep-right-' + numElements}, common);
