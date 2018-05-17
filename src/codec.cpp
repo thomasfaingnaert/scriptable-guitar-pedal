@@ -25,13 +25,13 @@ Codec::Codec(unsigned int adapter, uint16_t deviceAddress) : I2CDevice(adapter, 
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     // Activate the control port and place the part in power-down
-    writeRegister(MODE_CONTROL_2, 0b00000011);
+    writeRegister(MODE_CONTROL_2, 0x03);
 
     // Select master mode
-    writeRegister(MODE_CONTROL_1, 0b00001000);
+    writeRegister(MODE_CONTROL_1, 0x08);
 
     // Power up the device
-    writeRegister(MODE_CONTROL_2, 0b00000010);
+    writeRegister(MODE_CONTROL_2, 0x02);
 
     // The power-up sequence requires approximately 85 us
     std::this_thread::sleep_for(std::chrono::microseconds(85));
