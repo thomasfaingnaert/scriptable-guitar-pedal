@@ -74,6 +74,87 @@ cmake -DCMAKE_TOOLCHAIN_FILE="../scriptable-guitar-pedal/cmake/Toolchain.cmake" 
 make
 ```
 
+## Configuring the PRU
+These instructions are for the Beaglebone image [Debian 9.3 2018-03-05 4GB SD IoT](http://debian.beagleboard.org/images/bone-debian-9.3-iot-armhf-2018-03-05-4gb.img.xz).
+They may or may not work for you if you use a different one.
+
+1. Make sure you can access the internet on the BeagleBone Black.
+This can be done by configuring your internet adapter on your PC to share its connection with the Beaglebone.
+Create a script `internet.sh` with the following contents:
+```bash
+#!/usr/bin/env bash
+route add default gw 192.168.7.1
+echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+```
+Finally, run the script with sudo:
+```bash
+chmod +x ./internet.sh
+sudo ./internet.sh
+```
+
+2. Update all packages:
+```bash
+sudo apt update
+sudo apt upgrade
+```
+
+3. Delete RoboticsCape, as it blacklists the `uio_pruss` module
+```bash
+sudo apt purge roboticscape
+```
+
+4. Apply the Xenomai patches to the kernel using:
+```bash
+cd /opt/scripts/tools/
+git pull
+sudo ./update_kernel.sh --ti-xenomai-kernel --lts-4_9
+sudo reboot
+```
+Finally, you can check if you are running the right kernel using:
+```bash
+uname -a
+```
+This should output something similar to `Linux beaglebone 4.9.88-ti-xenomai-r107 #1 SMP PREEMPT Sat Mar 24 09:29:27 UTC 2018 armv7l GNU/Linux`.
+
+5. Next, we need to install our custom overlay:
+```bash
+cd device-tree/
+make
+sudo make install
+```
+
+6. Enable it by copying `uEnv-pru.txt` to the `boot/` folder:
+```bash
+cd boot/
+sudo cp uEnv-pru.txt /boot/uEnv.txt
+```
+
+7. The UIO driver should now be loaded. You can verify this by running:
+```bash
+lsmod | grep uio
+ls /dev/uio*
+```
+
+8. If you want to assemble PRU Assembly files on your PC, you should install the PRU assembler from https://github.com/beagleboard/am335x_pru_package.
+Otherwise, you could copy the `*.p` files to the BBB using SCP and assemble them there.
+To assemble a file `test.p`, you can use:
+```bash
+pasm -b test.p
+```
+
+9. Install the RTDM kernel module from https://github.com/thomasfaingnaert/rtdm_pruss_irq:
+```bash
+wget https://github.com/thomasfaingnaert/rtdm_pruss_irq/releases/download/v1.0/rtdm_pruss_irq.ko
+sudo cp rtdm_pruss_irq.ko /lib/modules/`uname -r`/extra
+sudo depmod -a
+sudo modprobe rtdm_pruss_irq
+```
+
+10. Run the PRU loader to execute the PRU code:
+```bash
+./scriptable-guitar-pedal test.bin
+```
+
 ## Building the ASoC codec driver
 
 ### GNU/Linux - Fedora (cross compilation)
@@ -90,7 +171,7 @@ git checkout 4.9.82-ti-r102
 2. Make sure you have no stale .o files and dependencies lying around:
 ```bash
 make mrproper
-``` 
+```
 
 3. Modularize the ASoC codec driver:
 ```bash

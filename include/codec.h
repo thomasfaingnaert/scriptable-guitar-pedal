@@ -8,19 +8,6 @@ class Codec : I2CDevice
 public:
     Codec(unsigned int adapter, uint16_t deviceAddress);
 
-    uint8_t getModeControl1();
-    uint8_t getModeControl2();
-
-    uint8_t getDACControl();
-    uint8_t getDACVolumeAndMixingControl();
-    uint8_t getDACChannelAVolumeControl();
-    uint8_t getDACChannelBVolumeControl();
-
-    uint8_t getADCControl();
-
-    uint8_t getChipID();
-
-protected:
     enum Register : uint8_t
     {
         MODE_CONTROL_1 = 0x01,

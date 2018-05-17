@@ -15,7 +15,8 @@ AlsaDevice::AlsaDevice(unsigned int card,
                        unsigned int period_count_out)
     : rate(rate)
 {
-    pcm_config pcm_config_in;
+    pcm_config pcm_config_in{};
+
     pcm_config_in.channels = channels_in;
     pcm_config_in.rate = rate;
     pcm_config_in.period_size = period_size_in;
@@ -30,11 +31,13 @@ AlsaDevice::AlsaDevice(unsigned int card,
     }
     else if (!pcm_is_ready(pcm_in))
     {
-        throw std::runtime_error("Input PCM is not ready");
         pcm_close(pcm_in);
+
+        throw std::runtime_error("Input PCM is not ready");
     }
 
-    pcm_config pcm_config_out;
+    pcm_config pcm_config_out{};
+
     pcm_config_out.channels = channels_out;
     pcm_config_out.rate = rate;
     pcm_config_out.period_size = period_size_out;
@@ -49,8 +52,9 @@ AlsaDevice::AlsaDevice(unsigned int card,
     }
     else if (!pcm_is_ready(pcm_out))
     {
-        throw std::runtime_error("Output PCM is not ready");
         pcm_close(pcm_out);
+
+        throw std::runtime_error("Output PCM is not ready");
     }
 }
 
@@ -83,7 +87,7 @@ bool AlsaDevice::generate_next()
 
     for (unsigned int i = 0; i < Constants::BLOCK_SIZE; ++i)
     {
-        block[i] = samples_int[2 * i];
+        block[i] = static_cast<float>(-samples_int[2 * i] / INT16_MIN);
     }
 
     generate(block);

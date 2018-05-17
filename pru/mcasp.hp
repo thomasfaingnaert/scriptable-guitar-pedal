@@ -1,0 +1,95 @@
+// Register containing the base address of the McASP
+#define MCASP_BASE_ADDRESS_REGISTER r29
+
+// Base address of the McASP
+#define MCASP0_BASE_ADDRESS 0x48038000
+#define MCASP1_BASE_ADDRESS 0x4803C000
+
+#define MCASP_REV_OFFSET                0x00
+#define MCASP_PWRIDLESYSCONFIG_OFFSET   0x04
+#define MCASP_PFUNC_OFFSET              0x10
+#define MCASP_PDIR_OFFSET               0x14
+#define MCASP_PDOUT_OFFSET              0x18
+#define MCASP_PDIN_OFFSET               0x1C
+#define MCASP_PDCLR_OFFSET              0x20
+#define MCASP_GBLCTL_OFFSET             0x44
+#define MCASP_AMUTE_OFFSET              0x48
+#define MCASP_DLBCTL_OFFSET             0x4C
+#define MCASP_DITCTL_OFFSET             0x50
+#define MCASP_RGBLCTL_OFFSET            0x60
+#define MCASP_RMASK_OFFSET              0x64
+#define MCASP_RFMT_OFFSET               0x68
+#define MCASP_AFSRCTL_OFFSET            0x6C
+#define MCASP_ACLKRCTL_OFFSET           0x70
+#define MCASP_AHCLKRCTL_OFFSET          0x74
+#define MCASP_RTDM_OFFSET               0x78
+#define MCASP_RINTCTL_OFFSET            0x7C
+#define MCASP_RSTAT_OFFSET              0x80
+#define MCASP_RSLOT_OFFSET              0x84
+#define MCASP_RCLKCHK_OFFSET            0x88
+#define MCASP_REVTCTL_OFFSET            0x8C
+#define MCASP_XGBLCTL_OFFSET            0xA0
+#define MCASP_XMASK_OFFSET              0xA4
+#define MCASP_XFMT_OFFSET               0xA8
+#define MCASP_AFSXCTL_OFFSET            0xAC
+#define MCASP_ACLKXCTL_OFFSET           0xB0
+#define MCASP_AHCLKXCTL_OFFSET          0xB4
+#define MCASP_XTDM_OFFSET               0xB8
+#define MCASP_XINTCTL_OFFSET            0xBC
+#define MCASP_XSTAT_OFFSET              0xC0
+#define MCASP_XSLOT_OFFSET              0xC4
+#define MCASP_XCLKCHK_OFFSET            0xC8
+#define MCASP_XEVTCTL_OFFSET            0xCC
+
+#define MCASP_SRCTL_0_OFFSET    0x180
+#define MCASP_SRCTL_1_OFFSET    0x184
+#define MCASP_SRCTL_2_OFFSET    0x188
+#define MCASP_SRCTL_3_OFFSET    0x18C
+#define MCASP_SRCTL_4_OFFSET    0x190
+#define MCASP_SRCTL_5_OFFSET    0x194
+
+#define MCASP_XBUF_0_OFFSET 0x200
+#define MCASP_XBUF_1_OFFSET 0x204
+#define MCASP_XBUF_2_OFFSET 0x208
+#define MCASP_XBUF_3_OFFSET 0x20C
+#define MCASP_XBUF_4_OFFSET 0x210
+#define MCASP_XBUF_5_OFFSET 0x214
+
+// Write a McASP register
+.macro mcasp_register_write
+.mparam offset, value
+    mov     r27, value
+    sbbo    &r27, MCASP_BASE_ADDRESS_REGISTER, offset, 4
+.endm
+
+// Write a McASP register beyond the 0xFF boundary
+.macro mcasp_register_write_extended
+.mparam offset, value
+    mov     r27, value
+    mov     r28, offset
+    sbbo    &r27, MCASP_BASE_ADDRESS_REGISTER, r28, 4
+.endm
+
+// Read a McASP register
+.macro mcasp_register_read
+.mparam destination, offset
+    lbbo    &destination, MCASP_BASE_ADDRESS_REGISTER, offset, 4
+.endm
+
+// Read a McASP register beyond the 0xFF boundary
+.macro mcasp_register_read_extended
+.mparam destination, offset
+    mov     r28, offset
+    lbbo    &destination, MCASP_BASE_ADDRESS_REGISTER, r28, 4
+.endm
+
+// Set a McASP register bit and wait for it to come up
+.macro mcasp_register_set_bit_and_poll
+.mparam offset, bit
+    lbbo    &r28, MCASP_BASE_ADDRESS_REGISTER, offset, 4
+    set     r28, r28, bit
+    sbbo    &r28, MCASP_BASE_ADDRESS_REGISTER, offset, 4
+poll:
+    lbbo    &r28, MCASP_BASE_ADDRESS_REGISTER, offset, 4
+    qbbc    poll, r28, bit
+.endm

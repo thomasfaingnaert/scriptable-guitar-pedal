@@ -1,0 +1,216 @@
+/dts-v1/;
+/plugin/; /* Allow undefined label references and record them */
+
+/ {
+    compatible = "ti,beaglebone", "ti,beaglebone-black", "ti,beaglebone-green";
+
+    /* Identification */
+    part-number = "beaglebone-black-codec-alsa";
+    version = "00A0";
+
+    /* State the resources this cape uses */
+    exclusive-use =
+        "gpio1_18",
+        "P9.14", /* gpio1_18 */
+        "i2c1",
+        "P9.17", /* i2c1_scl */
+        "P9.18", /* i2c1_sda */
+        "mcasp0",
+        "P9.25", /* mcasp0_ahclkx */
+        "P9.28", /* mcasp0_axr2 */
+        "P9.29", /* mcasp0_fsx */
+        "P9.30", /* mcasp0_axr0 */
+        "P9.31"; /* mcasp0_aclkx */
+
+    /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt */
+    fragment@0 {
+        target = <&am33xx_pinmux>;
+
+        __overlay__ {
+            codec_gpio_pins: pinmux_codec_gpio_pins {
+                pinctrl-single,pins = <
+                    0x048 0x07 /* gpio1_18: output, pull down, mode 7 */
+                >;
+            };
+
+            codec_i2c1_pins: pinmux_codec_i2c1_pins {
+                pinctrl-single,pins = <
+                    0x158 0x72 /* i2c1_sda: slew control slow, input, pull up, mode 2 */
+                    0x15c 0x72 /* i2c1_scl: slew control slow, input, pull up, mode 2 */
+                >;
+            };
+
+            codec_mcasp0_pins: pinmux_codec_mcasp0_pins {
+                pinctrl-single,pins = <
+                    0x190 0x20 /* mcasp0_aclkx:  input,  pull down, mode 0 */
+                    0x194 0x30 /* mcasp0_fsx:    input,  pull up,   mode 0 */
+                    0x198 0x20 /* mcasp0_axr0:   input,  pull down, mode 0 */
+                    0x19c 0x02 /* mcasp0_axr2:   output, pull down, mode 2 */
+                    0x1ac 0x30 /* mcasp0_ahclkx: input,  pull up,   mode 0 */
+                >;
+            };
+        };
+    };
+
+    /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/i2c/i2c.txt */
+    fragment@1 {
+        target = <&i2c1>;
+
+        __overlay__ {
+            status = "okay";
+
+            pinctrl-names = "default";
+            pinctrl-0 = <&codec_i2c1_pins>;
+
+            clock-frequency = <100000>;
+
+            /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/cs4271.txt */
+            codec: cs4271@10 {
+                compatible = "cirrus,cs4271";
+
+                pinctrl-names = "default";
+                pinctrl-0 = <&codec_gpio_pins>;
+
+                /*
+                    The I2C address.
+                */
+                reg = <0x10>;
+
+                /*
+                    A GPIO spec to define which pin is connected to the chip's !RESET pin
+                */
+                reset-gpio = <&gpio1 18 0>;
+
+                #sound-dai-cells = <0>;
+            };
+        };
+    };
+
+    /* Documentation: https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt */
+    fragment@2 {
+        target = <&mcasp0>;
+
+        __overlay__ {
+            status = "okay";
+
+            pinctrl-names = "default";
+            pinctrl-0 = <&codec_mcasp0_pins>;
+
+            /*
+                I2S/DIT ops mode. 0 for I2S mode. 1 for DIT mode used for S/PDIF,
+                IEC60958-1, and AES-3 formats.
+            */
+            op-mode = <0>;
+
+            /*
+                Slots for TDM operation.
+                Indicates number of channels transmitted or received over one serializer.
+            */
+            tdm-slots =<2>;
+
+            /*
+                A list of serializer configuration.
+                Each entry is an number indictation for serializer pin direction.
+                (0 - INACTIVE, 1 - TX, 2 - RX)
+            */
+            serial-dir = <
+                2 0 1 0
+                0 0 0 0
+                0 0 0 0
+                0 0 0 0
+            >;
+
+            /*
+                FIFO levels.
+                Documentation: https://www.kernel.org/doc/Documentation/sound/soc/davinci/davinci-mcasp.c
+            */
+            tx-num-evt = <32>;
+            rx-num-evt = <32>;
+
+            #sound-dai-cells = <0>;
+        };
+    };
+
+    /* Documentation:
+        - https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/simple-card.txt
+        - https://www.kernel.org/doc/Documentation/devicetree/bindings/sound/widgets.txt
+    */
+    fragment@3 {
+        target-path= "/";
+
+        __overlay__ {
+            sound {
+                compatible = "simple-audio-card";
+
+                /*
+                    User specified audio sound card name, one string
+                    property.
+                */
+                simple-audio-card,name = "CS4271-Sound-Card";
+
+                /*
+                    Please refer to widgets.txt.
+                */
+                simple-audio-card,widgets =
+                    "Line", "Line In Jack",
+                    "Line", "Line Out Jack";
+
+                /*
+                    A list of the connections between audio components.
+                    Each entry is a pair of strings, the first being the
+                    connection's sink, the second being the connection's
+                    source.
+                */
+                simple-audio-card,routing =
+                    "AINA", "Line In Jack",
+                    "AINB", "Line In Jack",
+                    "Line Out Jack", "AOUTA+",
+                    "Line Out Jack", "AOUTA-",
+                    "Line Out Jack", "AOUTB+",
+                    "Line Out Jack", "AOUTB-";
+
+                /*
+                    Container for dai-link level
+                    properties and the CPU and CODEC
+                    sub-nodes.
+                */
+                simple-audio-card,dai-link@0 {
+                    /*
+                        CPU/CODEC common audio format.
+                        "i2s", "right_j", "left_j" , "dsp_a"
+                        "dsp_b", "ac97", "pdm", "msb", "lsb"
+                    */
+                    format = "left_j";
+
+                    /*
+                        Indicates dai-link frame master.
+                        phandle to a cpu or codec subnode.
+                    */
+                    frame-master = <&dailink0_master>;
+
+                    /*
+                        Indicates dai-link bit clock master.
+                        phandle to a cpu or codec subnode.
+                    */
+                    bitclock-master = <&dailink0_master>;
+
+                    /*
+                        CPU sub-node
+                    */
+                    dailink0_slave: cpu {
+                        sound-dai = <&mcasp0>;
+                    };
+
+                    /*
+                        CODEC sub-node
+                    */
+                    dailink0_master: codec {
+                        sound-dai = <&codec>;
+
+                        system-clock-frequency = <24576000>;
+                    };
+                };
+            };
+        };
+    };
+};

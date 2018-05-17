@@ -1,11 +1,16 @@
+#include <chrono>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
+#include <pthread.h>
+#include <thread>
 
-#include "sampledata.h"
 #include "NE10.h"
-#include "filesource.h"
+#include "codec.h"
 #include "filesink.h"
+#include "filesource.h"
 #include "filtereffect.h"
+#include "prudevice.h"
 #include "webserver.h"
 
 int main(int argc, char *argv[])
@@ -17,15 +22,19 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    // Set thread priority
+    sched_param param;
+    param.sched_priority = 99;
+
+    if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &param) != 0)
+    {
+        std::cerr << "Failed to set priority for thread: Error code " << errno << ": " << std::strerror(errno) << std::endl;
+        return EXIT_FAILURE;
+    }
+
     // Webserver
     WebServer server(8888);
-
-    std::cout << "Webserver is running" << std::endl;
-
     while(server.isRunning());
-
-    std::cout << "Webserver shutdown" << std::endl;
-
 
     return EXIT_SUCCESS;
 }
