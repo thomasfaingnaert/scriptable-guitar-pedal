@@ -82,9 +82,17 @@
                     </form>
                 </div>
                 <div class="col-12 col-lg">
-                    <h3>Execute chain on guitar signal</h3>
+                    <h3>Execute chain on guitar signal (ALSA)</h3>
                     <form action="/alsa/submit" onsubmit="return sendEffect('effect-info')" method="post"
                           id="alsa-form" enctype="multipart/form-data">
+                        <input type="hidden" name="effect-info" class="effect-info" value="">
+                        <button type="submit" class="btn btn-light">Submit</button>
+                    </form>
+                </div>
+                <div class="col-12 col-lg">
+                    <h3>Execute chain on guitar signal (PRU)</h3>
+                    <form action="/pru/submit" onsubmit="return sendEffect('effect-info')" method="post" id="pru-form"
+                          enctype="multipart/form-data">
                         <input type="hidden" name="effect-info" class="effect-info" value="">
                         <button type="submit" class="btn btn-light">Submit</button>
                     </form>

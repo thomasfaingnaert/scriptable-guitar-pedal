@@ -5,7 +5,8 @@
 
 #include "prudevice.h"
 
-PruDevice::PruDevice()
+PruDevice::PruDevice(unsigned int rate):
+rate(rate)
 {
     sharedMemory = pru.setupSharedMemory();
 

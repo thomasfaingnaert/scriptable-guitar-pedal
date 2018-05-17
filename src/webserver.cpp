@@ -27,6 +27,7 @@
 #include "filtereffect.h"
 #include "luaeffect.h"
 #include "prettywriter.h"
+#include "prudevice.h"
 #include "sampledata.h"
 #include "source.h"
 #include "tremoloeffect.h"
@@ -53,21 +54,40 @@ WebServer::WebServer(unsigned int port)
         throw std::runtime_error("Could not start HTTP server");
     }
 
-    // Configure param
-    thread_params.changed = false;
-    thread_params.firstSink = nullptr;
-    thread_params.lastSource = nullptr;
-    thread_params.canChange = PTHREAD_COND_INITIALIZER;
-    thread_params.mutex = PTHREAD_MUTEX_INITIALIZER;
+    // Configure alsa_param
+    alsa_thread_params.changed = false;
+    alsa_thread_params.firstSink = nullptr;
+    alsa_thread_params.lastSource = nullptr;
+    alsa_thread_params.canChange = PTHREAD_COND_INITIALIZER;
+    alsa_thread_params.mutex = PTHREAD_MUTEX_INITIALIZER;
 
-    if (pthread_create(&alsaThread, nullptr, alsa_thread, &thread_params) != 0)
+    if (pthread_create(&alsaThread, nullptr, alsa_thread, &alsa_thread_params) != 0)
     {
         throw std::runtime_error("Could not create alsa_thread");
     }
 
-    sched_param param;
-    param.sched_priority = 99;
-    if (pthread_setschedparam(alsaThread, SCHED_FIFO, &param) != 0)
+    sched_param alsa_param;
+    alsa_param.sched_priority = 99;
+    if (pthread_setschedparam(alsaThread, SCHED_FIFO, &alsa_param) != 0)
+    {
+        throw std::runtime_error("Something went wrong setting the priority.");
+    }
+
+    // Configure pru_param
+    pru_thread_params.changed = false;
+    pru_thread_params.firstSink = nullptr;
+    pru_thread_params.lastSource = nullptr;
+    pru_thread_params.canChange = PTHREAD_COND_INITIALIZER;
+    pru_thread_params.mutex = PTHREAD_MUTEX_INITIALIZER;
+
+    if (pthread_create(&pruThread, nullptr, pru_thread, &pru_thread_params) != 0)
+    {
+        throw std::runtime_error("Could not create pru thread");
+    }
+
+    sched_param pru_param;
+    pru_param.sched_priority = 99;
+    if (pthread_setschedparam(pruThread, SCHED_FIFO, &pru_param) != 0)
     {
         throw std::runtime_error("Something went wrong setting the priority.");
     }
@@ -86,6 +106,7 @@ WebServer::WebServer(unsigned int port)
     mg_set_request_handler(context, "/conv/upload$", handle_ir_upload, this);
     mg_set_request_handler(context, "/conv/list$", handle_ir_list, this);
     mg_set_request_handler(context, "/alsa/submit$", handle_alsa_submit, this);
+    mg_set_request_handler(context, "/pru/submit$", handle_pru_submit, this);
 }
 
 WebServer::~WebServer()
@@ -97,7 +118,9 @@ WebServer::~WebServer()
 std::string WebServer::jsonChain;
 
 std::shared_ptr<AlsaDevice> WebServer::alsaDevice = std::make_shared<AlsaDevice>(0, 0, 48000, 2, 2, 1024, 1024, 2, 2);
-WebServer::thread_param WebServer::thread_params;
+WebServer::thread_param WebServer::alsa_thread_params;
+std::shared_ptr<PruDevice> WebServer::pruDevice = std::make_shared<PruDevice>(48000);
+WebServer::thread_param WebServer::pru_thread_params;
 
 bool WebServer::isRunning() const
 {
@@ -1085,6 +1108,157 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
     std::vector < std::shared_ptr < Sink < float >> > sinks;
     std::vector < std::shared_ptr < Source < float >> > sources;
 
+    // process chain
+    process_chain(chain, sinks, sources, alsaDevice->getSampleRate());
+
+    for (std::size_t i = 0; i < sources.size() - 1; ++i)
+    {
+        sources[i]->connect(sinks[i + 1]);
+    }
+
+
+    if (pthread_mutex_lock(&alsa_thread_params.mutex) != 0)
+    {
+        throw std::runtime_error("Error locking mutex");
+    }
+    alsa_thread_params.changed = true;
+    if (pthread_cond_wait(&alsa_thread_params.canChange, &alsa_thread_params.mutex) != 0)
+    {
+        throw std::runtime_error("Error in cond_wait");
+    }
+
+    render_redirect(connection, "/chain.html");
+
+    return 200;
+}
+
+
+int WebServer::handle_pru_submit(mg_connection *connection, void *user_data)
+{
+    mg_form_data_handler fdh = {};
+
+    struct vars_t
+    {
+        std::string jsonString;
+    } vars;
+
+    fdh.user_data = &vars;
+
+    fdh.field_found = [](const char *key, const char *filename, char *path, size_t pathlen, void *user_data) -> int
+    {
+        return MG_FORM_FIELD_STORAGE_GET;
+    };
+
+    fdh.field_store = [](const char *path, long long file_size, void *user_data) -> int
+    {
+        return 0;
+    };
+
+    fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
+    {
+        std::string name = std::string(key);
+        vars_t *vars = static_cast<vars_t *>(user_data);
+
+        std::string res = std::string(value);
+
+        res = res.substr(0, res.find('\r'));
+
+        if (name == "effect-info")
+        {
+            vars->jsonString = res;
+        }
+
+        return MG_FORM_FIELD_STORAGE_GET;
+    };
+
+    if (mg_handle_form_request(connection, &fdh) <= 0)
+    {
+        throw std::runtime_error("Error handling form request.");
+    }
+
+    // Parse
+    rapidjson::Document chain;
+    chain.Parse(vars.jsonString.c_str()); // Contains array of JSON objects
+
+    jsonChain = vars.jsonString;
+
+    std::vector < std::shared_ptr < Sink < float >> > sinks;
+    std::vector < std::shared_ptr < Source < float >> > sources;
+
+    // Process the chain
+    process_chain(chain, sinks, sources, pruDevice->getSampleRate());
+
+    for (std::size_t i = 0; i < sources.size() - 1; ++i)
+    {
+        sources[i]->connect(sinks[i + 1]);
+    }
+
+
+    if (pthread_mutex_lock(&pru_thread_params.mutex) != 0)
+    {
+        throw std::runtime_error("Error locking mutex");
+    }
+    alsa_thread_params.changed = true;
+    if (pthread_cond_wait(&pru_thread_params.canChange, &pru_thread_params.mutex) != 0)
+    {
+        throw std::runtime_error("Error in cond_wait");
+    }
+
+    render_redirect(connection, "/chain.html");
+
+    return 200;
+}
+
+void *WebServer::alsa_thread(void *arg)
+{
+    thread_param *params = static_cast<thread_param *>(arg);
+    while (true)
+    {
+
+        for (unsigned int i = 0; i < alsaDevice->getSampleRate(); ++i)
+        {
+            alsaDevice->generate_next();
+        }
+
+        if (params->changed)
+        {
+            alsaDevice->connect(params->firstSink);
+            params->lastSource->connect(alsaDevice);
+            params->changed = false;
+            pthread_cond_signal(&params->canChange);
+        }
+
+    }
+
+    return nullptr;
+}
+
+void *WebServer::pru_thread(void *arg)
+{
+thread_param *params = static_cast<thread_param *>(arg);
+    while (true)
+    {
+
+        for (unsigned int i = 0; i < pruDevice->getSampleRate(); ++i)
+        {
+            pruDevice->generate_next();
+        }
+
+        if (params->changed)
+        {
+            pruDevice->connect(params->firstSink);
+            params->lastSource->connect(pruDevice);
+            params->changed = false;
+            pthread_cond_signal(&params->canChange);
+        }
+
+    }
+
+    return nullptr;
+}
+
+void WebServer::process_chain(rapidjson::Document& chain, std::vector < std::shared_ptr < Sink < float >> >& sinks, std::vector < std::shared_ptr < Source < float >> >& sources, int sampleRate)
+{
     // Iterate through array
     for (auto &obj : chain.GetArray())
     {
@@ -1125,7 +1299,7 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
             std::vector<float> coeffs;
             float decay = 1 - decayCoeff;
 
-            unsigned int delaySamples = (unsigned int) (delayTime * alsaDevice->getSampleRate());
+            unsigned int delaySamples = (unsigned int) (delayTime * sampleRate);
 
             if (type == "fir")
             {
@@ -1153,7 +1327,7 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
             float depth = stof(std::string(obj["depth"].GetString()));
             float rate = stof(std::string(obj["rate"].GetString()));
 
-            unsigned int period = (unsigned int) ((1 / rate) * alsaDevice->getSampleRate());
+            unsigned int period = (unsigned int) ((1 / rate) * sampleRate);
 
             // Create effect and add to vector
             auto tremolo = std::make_shared<TremoloEffect>(depth, period);
@@ -1173,50 +1347,4 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
             sinks.push_back(fe);
         }
     }
-
-
-    for (std::size_t i = 0; i < sources.size() - 1; ++i)
-    {
-        sources[i]->connect(sinks[i + 1]);
-    }
-
-
-    if (pthread_mutex_lock(&thread_params.mutex) != 0)
-    {
-        throw std::runtime_error("Error locking mutex");
-    }
-    thread_params.changed = true;
-    if (pthread_cond_wait(&thread_params.canChange, &thread_params.mutex) != 0)
-    {
-        throw std::runtime_error("Error in cond_wait");
-    }
-
-    render_redirect(connection, "/chain.html");
-
-    return 200;
 }
-
-void *WebServer::alsa_thread(void *arg)
-{
-    thread_param *params = static_cast<thread_param *>(arg);
-    while (true)
-    {
-
-        for (unsigned int i = 0; i < alsaDevice->getSampleRate(); ++i)
-        {
-            alsaDevice->generate_next();
-        }
-
-        if (params->changed)
-        {
-            alsaDevice->connect(params->firstSink);
-            params->lastSource->connect(alsaDevice);
-            params->changed = false;
-            pthread_cond_signal(&params->canChange);
-        }
-
-    }
-
-    return nullptr;
-}
-

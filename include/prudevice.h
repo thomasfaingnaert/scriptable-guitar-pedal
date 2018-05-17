@@ -8,13 +8,15 @@
 class PruDevice : public Source<float>, public Sink<float>
 {
     public:
-        PruDevice();
+        PruDevice(unsigned int rate);
         virtual void push(const std::array<float, Constants::BLOCK_SIZE>& data);
         void generate_next();
 
+        unsigned int getSampleRate() { return rate; }
     private:
         Pru pru;
         volatile ulong* sharedMemory;
+        unsigned int rate;
 
         static constexpr unsigned int BUFFER_SIZE = 1024;                                               // Size of the input and output buffer (in 32-bit samples)
 
