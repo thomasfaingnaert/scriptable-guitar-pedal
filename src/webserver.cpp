@@ -168,7 +168,7 @@ int WebServer::handle_conv_submit(mg_connection *connection, void *user_data)
             // file, so save as tmp file
             //std::string tempPath = std::tmpnam(nullptr);
             std::string tempPath = filename;
-            snprintf(path, pathlen, tempPath.c_str());
+            snprintf(path, pathlen, "%s", tempPath.c_str());
 
             // store path
             paths_t *paths = static_cast<paths_t *>(user_data);
@@ -1216,5 +1216,7 @@ void *WebServer::alsa_thread(void *arg)
         }
 
     }
+
+    return nullptr;
 }
 
