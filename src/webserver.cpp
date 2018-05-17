@@ -97,6 +97,7 @@ WebServer::~WebServer()
 std::string WebServer::jsonChain;
 
 std::shared_ptr<AlsaDevice> WebServer::alsaDevice = std::make_shared<AlsaDevice>(0, 0, 48000, 2, 2, 1024, 1024, 2, 2);
+
 WebServer::thread_param WebServer::thread_params;
 
 bool WebServer::isRunning() const
@@ -1185,7 +1186,27 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
     {
         throw std::runtime_error("Error locking mutex");
     }
+
+    if (sinks.size() == 0)
+    {
+        thread_params.firstSink = nullptr;
+    }
+    else
+    {
+        thread_params.firstSink = sinks[0];
+    }
+
+    if (sources.size() == 0)
+    {
+        thread_params.lastSource = nullptr;
+    }
+    else
+    {
+        thread_params.lastSource = sources[sources.size() - 1];
+    }
+
     thread_params.changed = true;
+
     if (pthread_cond_wait(&thread_params.canChange, &thread_params.mutex) != 0)
     {
         throw std::runtime_error("Error in cond_wait");
@@ -1209,14 +1230,19 @@ void *WebServer::alsa_thread(void *arg)
 
         if (params->changed)
         {
-            alsaDevice->connect(params->firstSink);
-            params->lastSource->connect(alsaDevice);
+            if (params->firstSink == nullptr || params->lastSource == nullptr)
+            {
+                alsaDevice->connect(alsaDevice);
+            }
+            else
+            {
+                alsaDevice->connect(params->firstSink);
+                params->lastSource->connect(alsaDevice);
+            }
+
             params->changed = false;
             pthread_cond_signal(&params->canChange);
         }
-
     }
-
-    return nullptr;
 }
 
