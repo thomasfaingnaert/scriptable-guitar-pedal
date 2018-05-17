@@ -4,13 +4,13 @@ t = (0:1/Fs:l-1/Fs)';
 
 x = sin((4*pi/3)*t);
 
-y = distortion.makeOutputSamples5(x,4,1);
+y = distortion.makeOutputSamples2(x,4,1);
 
 plot(t,x);
 hold on
 plot(t,y);
-title('Orginal vs. distorted signal');
+title('Orgineel vs. distorted signaal');
 xlabel('t');
 ylabel('Amplitude');
-legend('Original','Distorted');
+legend('Origineel','Distorted');
 hold off

@@ -9,8 +9,8 @@ y = tremolo.makeOutputSamples(x,Fs,0.2,0.5);
 plot(t,x);
 hold on
 plot(t,y);
-title('Orginal vs. tremolo signal');
+title('Orgineel vs. tremolo signaal');
 xlabel('t');
 ylabel('Amplitude');
-legend('Original','Tremolo');
+legend('Origineel','Tremolo');
 hold off
