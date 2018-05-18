@@ -70,7 +70,7 @@ void AlsaDevice::push(const std::array<float, Constants::BLOCK_SIZE> &data)
 
     for (unsigned int i = 0; i < Constants::BLOCK_SIZE; ++i)
     {
-        samples_int[2 * i] = static_cast<int16_t>(std::floor(INT16_MAX * data[i]));
+        samples_int[2 * i] = std::min(static_cast<int16_t>(std::floor(INT16_MAX * data[i])), static_cast<int16_t>(INT16_MAX));
         samples_int[2 * i + 1] = 0;
     }
 
@@ -87,7 +87,7 @@ bool AlsaDevice::generate_next()
 
     for (unsigned int i = 0; i < Constants::BLOCK_SIZE; ++i)
     {
-        block[i] = static_cast<float>(-samples_int[2 * i] / INT16_MIN);
+        block[i] = -static_cast<float>(samples_int[2 * i]) / INT16_MIN;
     }
 
     generate(block);
