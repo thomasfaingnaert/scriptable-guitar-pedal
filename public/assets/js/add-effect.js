@@ -106,7 +106,7 @@ function displayForm(effect) {
             "                    0.95\n" +
             "                </div>\n" +
             "                <div class=\"form-group\">\n" +
-            "                    <label for=\"rate\">Depth</label> <br/>\n" +
+            "                    <label for=\"rate\">Rate</label> <br/>\n" +
             "                    0.5 Hz\n" +
             "                    <input type=\"range\" name=\"rate\" id=\"rate\" min=\"0.5\" max=\"10\" step=\"any\"/>\n" +
             "                    10 Hz\n" +
