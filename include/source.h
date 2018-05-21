@@ -17,6 +17,7 @@ class Source
     public:
         void connect(const std::shared_ptr<Sink<T>>& sink)
         {
+            connectedSinks.clear();
             connectedSinks.push_back(sink);
         }
 

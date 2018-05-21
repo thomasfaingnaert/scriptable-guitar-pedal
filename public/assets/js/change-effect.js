@@ -43,6 +43,8 @@ function changeEffect(box) {
 function changeJSON(effectID) {
     var jsonData = parseFormData($('#changeEffectForm'));
     $('#' + effectID).attr('data-effect', JSON.stringify(jsonData));
+
+    $('#modal').modal('hide');
 }
 
 /**
