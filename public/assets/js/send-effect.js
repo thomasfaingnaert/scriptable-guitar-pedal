@@ -23,8 +23,6 @@ function sendEffect(className) {
         var jsonString = makeJSON(sources); // sources always contains 'inputbox' at this point
 
         // Set value for hidden fields
-        console.log(jsonString);
-        console.log('.' + className);
         $('.' + className).val(jsonString);
 
         return true;
