@@ -16,7 +16,7 @@ class WebServer
         WebServer(unsigned int port);
         ~WebServer();
         bool isRunning() const;
-        std::shared_ptr<AlsaDevice> getAlsaDevice() { return alsaDevice; };
+        static std::shared_ptr<AlsaDevice> getAlsaDevice() { return alsaDevice; };
 
         static void alsa_thread();
     private:

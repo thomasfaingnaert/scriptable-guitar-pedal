@@ -7,10 +7,14 @@
 
 #include "NE10.h"
 #include "codec.h"
+#include "delayeffect.h"
+#include "distortioneffect.h"
 #include "filesink.h"
 #include "filesource.h"
 #include "filtereffect.h"
 #include "prudevice.h"
+#include "sampledata.h"
+#include "tremoloeffect.h"
 #include "webserver.h"
 
 int main(int argc, char *argv[])
@@ -23,7 +27,7 @@ int main(int argc, char *argv[])
     }
 
     // Set thread priority
-#if 0
+#if 1
     sched_param param;
     param.sched_priority = 99;
 
@@ -37,6 +41,51 @@ int main(int argc, char *argv[])
     // Webserver
     WebServer server(8888);
     server.alsa_thread();
+
+    //auto alsaDevice = WebServer::getAlsaDevice();
+
+    /*
+    float mainCoeff = 1.0;
+    std::vector<unsigned int> delays;
+    std::vector<float> coeffs;
+    float decay = 0.4;
+
+    int i = 1;
+    while (decay >= 0.05)
+    {
+        delays.push_back(48000/2 * i++);
+        coeffs.push_back(decay);
+        decay *= decay;
+    }
+
+    auto effect = std::make_shared<DelayEffect>(mainCoeff, delays, coeffs);
+    */
+
+/*
+    auto effect = std::make_shared<DistortionEffect>(8,2,1,0.5);
+
+*/
+    /*
+    auto effect = std::make_shared<TremoloEffect>(0.4, 48000 / 6);
+*/
+
+/*
+    SampleData filter("rev.wav");
+
+    std::vector<float> reverb = filter.getSamples()[0];
+
+    for(float& sample : reverb)
+        sample /= 75;
+
+    auto effect = std::make_shared<FilterEffect>(reverb);
+   */
+/*
+    alsaDevice->connect(effect);
+    effect->connect(alsaDevice);
+
+
+    while(alsaDevice->generate_next());
+*/
 
     return EXIT_SUCCESS;
 }

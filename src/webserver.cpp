@@ -1186,10 +1186,10 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
     }
 
 
-    if (pthread_mutex_lock(&thread_params.mutex) != 0)
-    {
-        throw std::runtime_error("Error locking mutex");
-    }
+    pthread_mutex_lock(&thread_params.mutex);
+
+    while (thread_params.changed)
+        pthread_cond_wait(&thread_params.canChange, &thread_params.mutex);
 
     if (sinks.size() == 0)
     {
@@ -1211,10 +1211,7 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
 
     thread_params.changed = true;
 
-    if (pthread_cond_wait(&thread_params.canChange, &thread_params.mutex) != 0)
-    {
-        throw std::runtime_error("Error in cond_wait");
-    }
+    pthread_mutex_unlock(&thread_params.mutex);
 
     render_redirect(connection, "/chain.html");
 
@@ -1233,6 +1230,8 @@ void WebServer::alsa_thread()
 
         if (thread_params.changed)
         {
+            pthread_mutex_lock(&thread_params.mutex);
+
             if (thread_params.firstSink == nullptr || thread_params.lastSource == nullptr)
             {
                 alsaDevice->connect(alsaDevice);
@@ -1245,6 +1244,8 @@ void WebServer::alsa_thread()
 
             thread_params.changed = false;
             pthread_cond_signal(&thread_params.canChange);
+
+            pthread_mutex_unlock(&thread_params.mutex);
         }
     }
 }
