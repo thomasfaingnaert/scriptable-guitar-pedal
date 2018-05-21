@@ -16,7 +16,7 @@ $(document).ready(function () {
         $('#parameter-form').html(form);
     });
 
-    var jsPlumbContainer = $('#jsplumb-container')
+    var jsPlumbContainer = $('#jsplumb-container');
     // JsPlumb initialisation
     jsPlumb.setContainer(jsPlumbContainer);
 
@@ -114,9 +114,11 @@ function displayForm(effect) {
     } else if (effect === 'conv') {
         form = "<div class=\"form-group\">\n" +
             "                    <label for=\"response-list\">Impulse responses</label>\n" +
-            "                    <select class=\"form-control\" name=\"response-list\" id=\"response-list\">\n" +
+            "                    <select class=\"form-control response-list\" name=\"response-list\">\n" +
             "                    </select>\n" +
             "                </div>";
+
+        loadResponses();
     } else {
         alert("Select only 1 effect at a time please.");
     }

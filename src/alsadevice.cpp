@@ -5,36 +5,6 @@
 
 #include "alsadevice.h"
 
-struct pcm {
-    /** The PCM's file descriptor */
-    int fd;
-    /** Flags that were passed to @ref pcm_open */
-    unsigned int flags;
-    /** Whether the PCM is running or not */
-    int running:1;
-    /** Whether or not the PCM has been prepared */
-    int prepared:1;
-    /** The number of underruns that have occured */
-    int underruns;
-    /** Size of the buffer */
-    unsigned int buffer_size;
-    /** The boundary for ring buffer pointers */
-    unsigned int boundary;
-    /** Description of the last error that occured */
-    char error[128];
-    /** Configuration that was passed to @ref pcm_open */
-    struct pcm_config config;
-    struct snd_pcm_mmap_status *mmap_status;
-    struct snd_pcm_mmap_control *mmap_control;
-    struct snd_pcm_sync_ptr *sync_ptr;
-    void *mmap_buffer;
-    unsigned int noirq_frames_per_msec;
-    /** The delay of the PCM, in terms of frames */
-    long pcm_delay;
-    /** The subdevice corresponding to the PCM */
-    unsigned int subdevice;
-};
-
 AlsaDevice::AlsaDevice(unsigned int card,
                        unsigned int device,
                        unsigned int rate,
@@ -122,11 +92,6 @@ bool AlsaDevice::generate_next()
     }
 
     generate(block);
-
-    if (pcm_out->underruns)
-    {
-        std::cout << "underruns: " << pcm_out->underruns << std::endl;
-    }
 
     return true;
 }

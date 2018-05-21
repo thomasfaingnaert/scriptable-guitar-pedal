@@ -55,23 +55,11 @@ WebServer::WebServer(unsigned int port)
     }
 
     // Configure param
-    thread_params.changed = false;
+    thread_params.changed = true;
     thread_params.firstSink = nullptr;
     thread_params.lastSource = nullptr;
     thread_params.canChange = PTHREAD_COND_INITIALIZER;
     thread_params.mutex = PTHREAD_MUTEX_INITIALIZER;
-
-//    if (pthread_create(&alsaThread, nullptr, alsa_thread, &thread_params) != 0)
-//    {
-//        throw std::runtime_error("Could not create alsa_thread");
-//    }
-//
-//    sched_param param;
-//    param.sched_priority = 99;
-//    if (pthread_setschedparam(alsaThread, SCHED_FIFO, &param) != 0)
-//    {
-//        throw std::runtime_error("Something went wrong setting the priority.");
-//    }
 
     // register handlers
     mg_set_request_handler(context, "/exit$", handle_exit, this);
@@ -626,6 +614,7 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
     for (auto &obj : chain.GetArray())
     {
         std::string effect(obj["effect"].GetString());
+
         if (effect == "distortion")
         {
             std::string type = "symmetric";
@@ -697,8 +686,10 @@ int WebServer::handle_chain_submit(mg_connection *connection, void *user_data)
             sources.push_back(tremolo);
             sinks.push_back(tremolo);
         }
-        else if (effect == "convolution")
+        else if (effect == "conv")
         {
+            std::cout << "Hello" << std::endl;
+
             std::string impulseResponseName(obj["response-list"].GetString());
 
             // complete path
@@ -1179,10 +1170,12 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
         }
     }
 
-
-    for (std::size_t i = 0; i < sources.size() - 1; ++i)
+    if (sources.size() != 0)
     {
-        sources[i]->connect(sinks[i + 1]);
+        for (std::size_t i = 0; i < sources.size() - 1; ++i)
+        {
+            sources[i]->connect(sinks[i + 1]);
+        }
     }
 
 
@@ -1230,6 +1223,7 @@ void WebServer::alsa_thread()
 
         if (thread_params.changed)
         {
+
             pthread_mutex_lock(&thread_params.mutex);
 
             if (thread_params.firstSink == nullptr || thread_params.lastSource == nullptr)

@@ -24,6 +24,6 @@ function loadResponses() {
         });
 
         // Append options to form
-        $('#response-list').append(options);
+        $('.response-list').append(options);
     })
 }

@@ -91,30 +91,38 @@ function drawConnections() {
     var boxes = $('#jsplumb-container .jsplumb-box');
     var numEffects = boxes.length - 2;
 
-    boxes.each(function (i, element) {
-        if (element.id === 'inputbox') {
-            jsPlumb.connect({
-                source: 'inputbox',
-                target: 'box-0',
-                uuids: ['ep-right-0', 'ep-left-1']
-            });
-        } else if (element.id !== 'outputbox') {
-            var j = parseInt(element.id.charAt(4)); // box-j
-            if (j < numEffects - 1) {
+    if (numEffects > 0) {
+        boxes.each(function (i, element) {
+            if (element.id === 'inputbox') {
                 jsPlumb.connect({
-                    source: 'box-' + j,
-                    target: 'box-' + (j + 1),
-                    uuids: ['ep-right-' + (j + 1), 'ep-left-' + (j + 2)]
+                    source: 'inputbox',
+                    target: 'box-0',
+                    uuids: ['ep-right-0', 'ep-left-1']
                 });
-            } else {
-                jsPlumb.connect({
-                    source: 'box-' + j,
-                    target: 'outputbox',
-                    uuids: ['ep-right-' + (j + 1), 'ep-left-0']
-                });
+            } else if (element.id !== 'outputbox') {
+                var j = parseInt(element.id.charAt(4)); // box-j
+                if (j < numEffects - 1) {
+                    jsPlumb.connect({
+                        source: 'box-' + j,
+                        target: 'box-' + (j + 1),
+                        uuids: ['ep-right-' + (j + 1), 'ep-left-' + (j + 2)]
+                    });
+                } else {
+                    jsPlumb.connect({
+                        source: 'box-' + j,
+                        target: 'outputbox',
+                        uuids: ['ep-right-' + (j + 1), 'ep-left-0']
+                    });
+                }
             }
-        }
-    });
+        });
+    } else {
+        jsPlumb.connect({
+            source: 'inputbox',
+            target: 'outputbox',
+            uuids: ['ep-right-0', 'ep-left-0']
+        })
+    }
 }
 
 /**
@@ -123,11 +131,11 @@ function drawConnections() {
 
 function loadActiveChain() {
     $.get('/chain/load/active', function (data) {
-        if (data.length > 0) {
+        //if (data.length > 0) {
             $('#current-chain').attr('data-chain', JSON.stringify(data));
 
             // Draw chain
             drawChain('#current-chain');
-        }
+        //}
     });
 }
