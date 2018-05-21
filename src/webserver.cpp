@@ -19,6 +19,7 @@
 
 #include "alsadevice.h"
 #include "civetweb.h"
+#include "constants.h"
 #include "delayeffect.h"
 #include "distortioneffect.h"
 #include "document.h"
@@ -60,17 +61,17 @@ WebServer::WebServer(unsigned int port)
     thread_params.canChange = PTHREAD_COND_INITIALIZER;
     thread_params.mutex = PTHREAD_MUTEX_INITIALIZER;
 
-    if (pthread_create(&alsaThread, nullptr, alsa_thread, &thread_params) != 0)
-    {
-        throw std::runtime_error("Could not create alsa_thread");
-    }
-
-    sched_param param;
-    param.sched_priority = 99;
-    if (pthread_setschedparam(alsaThread, SCHED_FIFO, &param) != 0)
-    {
-        throw std::runtime_error("Something went wrong setting the priority.");
-    }
+//    if (pthread_create(&alsaThread, nullptr, alsa_thread, &thread_params) != 0)
+//    {
+//        throw std::runtime_error("Could not create alsa_thread");
+//    }
+//
+//    sched_param param;
+//    param.sched_priority = 99;
+//    if (pthread_setschedparam(alsaThread, SCHED_FIFO, &param) != 0)
+//    {
+//        throw std::runtime_error("Something went wrong setting the priority.");
+//    }
 
     // register handlers
     mg_set_request_handler(context, "/exit$", handle_exit, this);
@@ -832,6 +833,9 @@ int WebServer::handle_chain_save(mg_connection *connection, void *user_data)
 
     fdh.field_get = [](const char *key, const char *value, size_t valuelen, void *user_data) -> int
     {
+        std::cout << key << std::endl;
+        std::cout << value << std::endl;
+
         std::string name = std::string(key);
         vars_t *vars = static_cast<vars_t *>(user_data);
 
@@ -1217,31 +1221,30 @@ int WebServer::handle_alsa_submit(mg_connection *connection, void *user_data)
     return 200;
 }
 
-void *WebServer::alsa_thread(void *arg)
+void WebServer::alsa_thread()
 {
-    thread_param *params = static_cast<thread_param *>(arg);
     while (true)
     {
 
-        for (unsigned int i = 0; i < alsaDevice->getSampleRate(); ++i)
+        for (unsigned int i = 0; i < alsaDevice->getSampleRate() / Constants::BLOCK_SIZE; ++i)
         {
             alsaDevice->generate_next();
         }
 
-        if (params->changed)
+        if (thread_params.changed)
         {
-            if (params->firstSink == nullptr || params->lastSource == nullptr)
+            if (thread_params.firstSink == nullptr || thread_params.lastSource == nullptr)
             {
                 alsaDevice->connect(alsaDevice);
             }
             else
             {
-                alsaDevice->connect(params->firstSink);
-                params->lastSource->connect(alsaDevice);
+                alsaDevice->connect(thread_params.firstSink);
+                thread_params.lastSource->connect(alsaDevice);
             }
 
-            params->changed = false;
-            pthread_cond_signal(&params->canChange);
+            thread_params.changed = false;
+            pthread_cond_signal(&thread_params.canChange);
         }
     }
 }

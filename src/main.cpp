@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
     }
 
     // Set thread priority
+#if 0
     sched_param param;
     param.sched_priority = 99;
 
@@ -31,10 +32,11 @@ int main(int argc, char *argv[])
         std::cerr << "Failed to set priority for thread: Error code " << errno << ": " << std::strerror(errno) << std::endl;
         return EXIT_FAILURE;
     }
+#endif
 
     // Webserver
     WebServer server(8888);
-    while(server.isRunning());
+    server.alsa_thread();
 
     return EXIT_SUCCESS;
 }

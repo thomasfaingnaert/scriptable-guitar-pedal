@@ -1,4 +1,5 @@
 #include <atomic>
+#include <memory>
 #include <pthread.h>
 #include <string>
 
@@ -15,9 +16,10 @@ class WebServer
         WebServer(unsigned int port);
         ~WebServer();
         bool isRunning() const;
+        std::shared_ptr<AlsaDevice> getAlsaDevice() { return alsaDevice; };
 
+        static void alsa_thread();
     private:
-
         struct thread_param
         {
             std::atomic<bool> changed; // Has chain changed?
@@ -53,8 +55,6 @@ class WebServer
         static int handle_ir_upload(mg_connection *connection, void *user_data);
         static int handle_ir_list(mg_connection *connection, void *user_data);
         static int handle_alsa_submit(mg_connection *connection, void *user_data);
-
-        static void *alsa_thread(void *arg);
 };
 
 #endif /* end of include guard: WEBSERVER_H_LMKVHNTB */

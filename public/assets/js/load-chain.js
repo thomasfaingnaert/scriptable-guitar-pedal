@@ -3,7 +3,6 @@
  */
 function loadChains() {
     // Send AJAX request for presets
-
     $.get('/chain/load', function (data) {
         // Construct a table
         var table = '<table class="table">\n' +

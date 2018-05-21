@@ -4,7 +4,7 @@ t = (0:1/Fs:l-1/Fs)';
 
 x = sin((4*pi/3)*t);
 
-y = distortion.makeOutputSamples2(x,4,1);
+y = distortion.makeOutputSamples6(x,4,1);
 
 plot(t,x);
 hold on
